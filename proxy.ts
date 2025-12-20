@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-// Clerk auth will be handled client-side via ClerkProvider instead
-export default function middleware(request: NextRequest) {
+// Next.js 16 proxy function (runs on Node.js runtime)
+// Clerk auth handled client-side via ClerkProvider
+export function proxy(request: NextRequest) {
   // Allow all routes - auth protection handled by components
   return NextResponse.next()
 }
