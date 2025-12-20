@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { SignUp } from "@clerk/nextjs"
 import { useEffect, useCallback, useState } from "react"
 import Image from "next/image"
-import { ClerkCustomClose } from "./clerk-custom-close"
-import { HoverBorderGradient } from "./ui/hover-border-gradient"
 
 interface WaitlistModalProps {
   isOpen: boolean
@@ -17,7 +15,7 @@ interface WaitlistModalProps {
 export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
   const [isProductionDomain, setIsProductionDomain] = useState(false)
   const [email, setEmail] = useState("")
-  const [submitted, setSubmitted] = useState(false)
+  const [step, setStep] = useState<"waitlist" | "signup">("waitlist")
 
   useEffect(() => {
     // Check if we're on the allowed Clerk domain
@@ -50,15 +48,14 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // For now, just show success - you can add actual submission logic later
-    setSubmitted(true)
+    // Move to signup step after waitlist submission
+    setStep("signup")
   }
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {isProductionDomain && <ClerkCustomClose />}
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -81,22 +78,18 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
             aria-modal="true"
             aria-labelledby="waitlist-title"
           >
-            <HoverBorderGradient
-              as="div"
-              containerClassName="rounded-2xl"
-              className="w-full max-w-lg bg-[#0a0a0a] p-0"
-              duration={2}
-              clockwise={true}
+            <div
+              className="w-full max-w-lg bg-[#0a0a0a]/80 rounded-2xl border border-white/10 p-0 backdrop-blur-lg"
+              onClick={(e) => e.stopPropagation()}
             >
               <div
-                className="relative w-full bg-[#0a0a0a] rounded-2xl overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
+                className="relative w-full bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] rounded-2xl overflow-hidden"
               >
-                {/* Orange glow effect */}
+                {/* Subtle gradient glow */}
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: "radial-gradient(ellipse at top, rgba(181, 82, 0, 0.15) 0%, transparent 50%)",
+                    background: "radial-gradient(ellipse at top right, rgba(181, 82, 0, 0.08) 0%, transparent 60%)",
                   }}
                 />
 
@@ -133,7 +126,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
 
                   {/* Brand label */}
                   <p className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase mb-2">
-                    $0PTX — AUTH
+                    JOE AI — DEPIN
                   </p>
 
                   {/* Title */}
@@ -141,11 +134,11 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                     id="waitlist-title"
                     className="font-sans text-2xl md:text-3xl font-light tracking-tight text-white mb-2"
                   >
-                    <span className="text-accent">JETT</span> OPTICS
+                    <span className="text-accent">Jett</span> Optics
                   </h2>
 
                   {/* Tagline */}
-                  <p className="font-mono text-xs tracking-wider text-muted-foreground">Spatial Encryption </p>
+                  <p className="font-mono text-xs tracking-wider text-muted-foreground">Spatial Encryption</p>
                 </div>
 
                 {/* Content */}
@@ -153,12 +146,12 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                   {/* Value proposition */}
                   <div className="mb-6 space-y-3">
                     <p className="font-mono text-xs text-center text-muted-foreground leading-relaxed">
-                      Join the waitlist for early access to quantum-resistant, hands-free optical encryption technology.
+                      Join the waitlist for early access to quantum-resistant, decentralized spatial encryption.
                     </p>
 
                     {/* Feature pills */}
                     <div className="flex flex-wrap justify-center gap-2">
-                      {["Quantum-Resistant", "Evolve", "Inevitable"].map((feature) => (
+                      {["Quantum-Resistant", "DePIN", "Decentralized"].map((feature) => (
                         <span
                           key={feature}
                           className="font-mono text-[10px] tracking-wider px-3 py-1 border border-white/20 rounded-full text-muted-foreground"
@@ -169,26 +162,39 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                     </div>
                   </div>
 
-                  {/* Clerk verification badge */}
-                  {isProductionDomain && (
-                    <div className="flex items-center justify-center gap-2 mb-6 pb-4 border-b border-white/5">
-                      <Image src="/images/clerk-logo.svg" alt="Clerk" width={60} height={18} className="opacity-90" />
-                      <span className="font-mono text-[10px] tracking-wider text-muted-foreground">
-                        Verified Security
-                      </span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-accent">
-                        <path
-                          d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                  )}
 
-                  {isProductionDomain ? (
+                  {step === "waitlist" ? (
+                    /* Waitlist form */
+                    <div className="space-y-4">
+                      <form onSubmit={handleEmailSubmit} className="space-y-4">
+                        <div>
+                          <label htmlFor="email" className="block font-mono text-xs text-muted-foreground mb-2">
+                            Email Address
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            placeholder="your@email.com"
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg
+                              font-mono text-sm text-white placeholder:text-muted-foreground
+                              focus:outline-none focus:border-accent/50 transition-colors"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="w-full px-4 py-3 bg-accent hover:bg-accent/80 rounded-lg
+                            font-mono text-xs tracking-wider uppercase text-white
+                            transition-colors duration-300"
+                        >
+                          Join Waitlist
+                        </button>
+                      </form>
+                    </div>
+                  ) : isProductionDomain ? (
+                    /* Clerk signup form - only on production */
                     <div className="clerk-waitlist-container">
                       <SignUp
                         appearance={{
@@ -234,77 +240,39 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                       />
                     </div>
                   ) : (
-                    /* Fallback email form for non-production domains */
-                    <div className="space-y-4">
-                      {!submitted ? (
-                        <form onSubmit={handleEmailSubmit} className="space-y-4">
-                          <div>
-                            <label htmlFor="email" className="block font-mono text-xs text-muted-foreground mb-2">
-                              Email Address
-                            </label>
-                            <input
-                              type="email"
-                              id="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              required
-                              placeholder="your@email.com"
-                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
-                                font-mono text-sm text-white placeholder:text-muted-foreground
-                                focus:outline-none focus:border-accent/50 transition-colors"
-                            />
-                          </div>
-                          <button
-                            type="submit"
-                            className="w-full px-4 py-3 bg-accent hover:bg-accent/80 rounded-lg
-                              font-mono text-xs tracking-wider uppercase text-white
-                              transition-colors duration-300"
-                          >
-                            Join Waitlist
-                          </button>
-                        </form>
-                      ) : (
-                        <div className="text-center py-8">
-                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
-                            <svg
-                              width="32"
-                              height="32"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="text-accent"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          </div>
-                          <h3 className="font-sans text-xl text-white mb-2">You&apos;re on the list!</h3>
-                          <p className="font-mono text-xs text-muted-foreground">
-                            We&apos;ll notify you when early access is available.
-                          </p>
-                        </div>
-                      )}
+                    /* Success confirmation - for localhost/preview */
+                    <div className="text-center py-6">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-accent"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                      <h3 className="font-sans text-xl text-white mb-2">You&apos;re on the list!</h3>
+                      <p className="font-mono text-xs text-muted-foreground mb-4">
+                        We&apos;ll notify you when early access is available.
+                      </p>
+                      <p className="font-mono text-[10px] text-accent/60">
+                        (Clerk signup will appear on production domain)
+                      </p>
                     </div>
                   )}
                 </div>
 
                 {/* Footer */}
                 <div className="relative px-6 pb-6 text-center">
-                  {/* Clerk logo to footer */}
-                  <div className="flex items-center justify-center gap-2 mb-3 pb-3 border-b border-white/5">
-                    <Image
-                      src="/images/inverted-full.png"
-                      alt="Secured by Clerk"
-                      width={80}
-                      height={24}
-                      className="opacity-70"
-                    />
-                  </div>
                   <p className="font-mono text-[10px] tracking-wider text-muted-foreground/60">
-                    By joining, you agree to receive updates about <span className="text-accent">JETT</span> Optical
-                    technology.
+                    By joining, you agree to receive updates about <span className="text-accent">JOE</span> AI spatial
+                    encryption technology.
                   </p>
                 </div>
 
@@ -316,7 +284,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                   }}
                 />
               </div>
-            </HoverBorderGradient>
+            </div>
           </motion.div>
         </>
       )}

@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "AI-Native Product Builder | Portfolio",
-  description: "System Architect & Interface Designer crafting intelligent digital experiences",
+  title: "JOE AI - DePIN | Spatial Encryption",
+  description: "Quantum-resistant spatial encryption for decentralized networks",
   generator: "v0.app",
 }
 
