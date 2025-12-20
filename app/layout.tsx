@@ -22,6 +22,12 @@ export const metadata: Metadata = {
   title: "AI-Native Product Builder | Portfolio",
   description: "System Architect & Interface Designer crafting intelligent digital experiences",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-icon.png",
+  },
 }
 
 export const viewport: Viewport = {

@@ -247,3 +247,41 @@
 .cl-socialButtonsIconButton__twitter {
   filter: brightness(0) invert(1) !important;
 }
+
+/* ===========================================
+   CLERK - HIDE INTERNAL BRANDING ELEMENTS
+   =========================================== */
+
+/* Hide Clerk logo/branding */
+.cl-logoBox,
+.cl-logoMark,
+.cl-internal-logoBox,
+.cl-internal-logoMark {
+  display: none !important;
+}
+
+/* Hide "Already have an account? Sign in" link */
+.cl-footerAction,
+.cl-footerAction__signIn,
+.cl-signUp-footerAction {
+  display: none !important;
+}
+
+/* Hide Clerk footer with "Secured by Clerk" */
+.cl-footer,
+.cl-internal-footer,
+.cl-signUp-footer,
+.cl-card__footer {
+  display: none !important;
+}
+
+/* Hide Clerk's internal close button (we have our own) */
+.cl-modalCloseButton {
+  display: none !important;
+}
+
+/* Ensure card has no extra padding for hidden elements */
+.cl-card,
+.cl-cardBox {
+  padding-bottom: 1rem !important;
+}

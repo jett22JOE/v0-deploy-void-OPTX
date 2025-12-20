@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { SignUp } from "@clerk/nextjs"
 import { useEffect, useCallback, useState } from "react"
 import Image from "next/image"
-import { ClerkCustomClose } from "./clerk-custom-close"
 import { HoverBorderGradient } from "./ui/hover-border-gradient"
 
 interface WaitlistModalProps {
@@ -58,7 +57,6 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
     <AnimatePresence>
       {isOpen && (
         <>
-          {isProductionDomain && <ClerkCustomClose />}
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -169,25 +167,6 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                     </div>
                   </div>
 
-                  {/* Clerk verification badge */}
-                  {isProductionDomain && (
-                    <div className="flex items-center justify-center gap-2 mb-6 pb-4 border-b border-white/5">
-                      <Image src="/images/clerk-logo.svg" alt="Clerk" width={60} height={18} className="opacity-90" />
-                      <span className="font-mono text-[10px] tracking-wider text-muted-foreground">
-                        Verified Security
-                      </span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-accent">
-                        <path
-                          d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                  )}
-
                   {isProductionDomain ? (
                     <div className="clerk-waitlist-container">
                       <SignUp
@@ -291,17 +270,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="relative px-6 pb-6 text-center">
-                  {/* Clerk logo to footer */}
-                  <div className="flex items-center justify-center gap-2 mb-3 pb-3 border-b border-white/5">
-                    <Image
-                      src="/images/inverted-full.png"
-                      alt="Secured by Clerk"
-                      width={80}
-                      height={24}
-                      className="opacity-70"
-                    />
-                  </div>
+                <div className="relative px-6 pb-6 pt-2 text-center">
                   <p className="font-mono text-[10px] tracking-wider text-muted-foreground/60">
                     By joining, you agree to receive updates about <span className="text-accent">JETT</span> Optical
                     technology.
