@@ -90,11 +90,11 @@ JETT Optics is an advanced gaze-based authentication and interaction platform th
 - **Convex Database:** Cloud-hosted (no VPN needed)
 
 **For Remote Development (Mac/Other Devices):**
-```bash
+\`\`\`bash
 # No installation needed - just access the URLs above!
 # Backend API available at https://api.jettoptics.ai
 # Perfect for React Native iOS development
-```
+\`\`\`
 
 ---
 
@@ -125,62 +125,62 @@ JETT Optics is an advanced gaze-based authentication and interaction platform th
 #### One-Time Setup
 
 1. **Clone the repository:**
-   ```powershell
+   \`\`\`powershell
    git clone <repository-url>
    cd jett-optical-auth
-   ```
+   \`\`\`
 
 2. **Activate conda environment:**
-   ```powershell
+   \`\`\`powershell
    conda activate josh-spatial
-   ```
+   \`\`\`
 
 3. **Install Python dependencies:**
-   ```powershell
+   \`\`\`powershell
    pip install -r requirements.txt
-   ```
+   \`\`\`
 
 4. **Create environment file:**
-   ```powershell
+   \`\`\`powershell
    cp .env.example .env
-   ```
+   \`\`\`
 
 5. **Generate secure SECRET_KEY:**
-   ```powershell
+   \`\`\`powershell
    python -c "import secrets; print(secrets.token_urlsafe(32))"
-   ```
+   \`\`\`
    Copy the output and update `SECRET_KEY` in `.env`
 
 6. **Configure environment variables:**
    Add to `.env`:
-   ```
+   \`\`\`
    XAI_API_KEY=your_xai_api_key
    GROK_API_KEY=your_grok_api_key
    DATABASE_URL=sqlite:///./jett_optical.db
-   ```
+   \`\`\`
 
 #### Start All Services (3 Terminals)
 
 **Terminal 1: Python Backend (HEDGEHOG)**
-```powershell
+\`\`\`powershell
 conda activate josh-spatial
 cd C:\Users\joshu\jett-optical-auth
 python hedgehog_server.py
-```
+\`\`\`
 Server starts on **http://localhost:8000**
 Check: http://localhost:8000/docs
 
 **Terminal 2: Convex Real-time Database**
-```powershell
+\`\`\`powershell
 cd C:\Users\joshu\jett-optical-auth\frontend
 npx convex dev
-```
+\`\`\`
 
 **Terminal 3: Next.js Frontend**
-```powershell
+\`\`\`powershell
 cd C:\Users\joshu\jett-optical-auth\frontend
 npm run dev
-```
+\`\`\`
 Frontend starts on **http://localhost:3000**
 
 #### Windows Auto-Boot Configuration
@@ -208,10 +208,10 @@ The system includes automatic boot configuration for Windows:
 
 **After Reboot:**
 Launch Claude Code and verify HEDGEHOG MCP connection:
-```bash
+\`\`\`bash
 claude mcp list
 # Should show: ✓ hedgehog-mcp: Connected
-```
+\`\`\`
 
 ---
 
@@ -220,41 +220,41 @@ claude mcp list
 #### One-Time Setup
 
 1. **Clone the repository:**
-   ```bash
+   \`\`\`bash
    cd ~
    git clone <repository-url>
    cd jett-optical-auth
-   ```
+   \`\`\`
 
 2. **Create and activate conda environment:**
-   ```bash
+   \`\`\`bash
    conda create -n jOSH-spatial python=3.11
    conda activate jOSH-spatial
-   ```
+   \`\`\`
 
 3. **Install Python dependencies:**
-   ```bash
+   \`\`\`bash
    pip install -r requirements.txt
    pip install numpy scipy opencv-python
-   ```
+   \`\`\`
 
 4. **Setup activation script:**
-   ```bash
+   \`\`\`bash
    chmod +x setup-env.sh
    ./setup-env.sh
-   ```
+   \`\`\`
 
 5. **Create environment file:**
-   ```bash
+   \`\`\`bash
    cp .env.example .env
-   ```
+   \`\`\`
    Update with your API keys and configuration.
 
 #### Quick Activation (Every New Terminal)
 
-```bash
+\`\`\`bash
 source activate-josh
-```
+\`\`\`
 
 This single command:
 - Activates the conda environment
@@ -265,39 +265,39 @@ This single command:
 #### Available Commands After Activation
 
 **Grok Queries:**
-```bash
+\`\`\`bash
 grok "your question"              # Query with full project context
 grok-quick "your question"        # Quick query (no context)
 grok-search "search query"        # Web search with Grok
 grok-cto "strategic query"        # CTO-level analysis (saves report)
-```
+\`\`\`
 
 **Development Shortcuts:**
-```bash
+\`\`\`bash
 josh-status    # Check HEDGEHOG status
 josh-logs      # View MCP logs
 josh-db        # Access database
 dojo           # Start frontend dev server
 convex         # Start Convex
 joe            # Start Python backend
-```
+\`\`\`
 
 **Git Shortcuts:**
-```bash
+\`\`\`bash
 gst            # git status
 glog           # git log --oneline --graph
-```
+\`\`\`
 
 #### Start All Services (MacOS)
 
 Use the automated startup script:
-```bash
+\`\`\`bash
 chmod +x macos-services-startup.sh
 ./macos-services-startup.sh
-```
+\`\`\`
 
 Or manually:
-```bash
+\`\`\`bash
 # Terminal 1: Python Backend
 conda activate jOSH-spatial
 python hedgehog_server.py
@@ -307,12 +307,12 @@ cd frontend && npx convex dev
 
 # Terminal 3: Next.js
 cd frontend && npm run dev
-```
+\`\`\`
 
 Check service status:
-```bash
+\`\`\`bash
 ./check-services-status.sh
-```
+\`\`\`
 
 ---
 
@@ -396,21 +396,21 @@ jOSH-Spatial uses Cloudflare Tunnel to provide secure remote access to your Wind
 ### Quick Start Tunnel
 
 **On Windows PC (Server Host):**
-```powershell
+\`\`\`powershell
 # Start all services
 cd scripts/cloudflare
 .\start-all-servers.ps1      # Starts FastAPI, Convex, Next.js
 
 # Start Cloudflare Tunnel
 .\start-cloudflare-tunnel.ps1  # Exposes services via HTTPS
-```
+\`\`\`
 
 **On Mac/Remote Device:**
-```bash
+\`\`\`bash
 # Access the services (no setup needed!)
 open https://app.jettoptics.ai
 curl https://api.jettoptics.ai/health
-```
+\`\`\`
 
 ### Configuration Files
 - **Tunnel Config:** `C:\Users\joshu\.cloudflared\config.yml`
@@ -418,10 +418,10 @@ curl https://api.jettoptics.ai/health
 - **Setup Guide:** `scripts/cloudflare/CLOUDFLARE_TUNNEL_SETUP.md`
 
 ### DNS Records (Cloudflare Dashboard)
-```
+\`\`\`
 Type: CNAME  |  Name: app  |  Target: 544e44cf-b610-47bd-8014-c52e203a1de8.cfargotunnel.com
 Type: CNAME  |  Name: api  |  Target: 544e44cf-b610-47bd-8014-c52e203a1de8.cfargotunnel.com
-```
+\`\`\`
 
 ### Benefits
 - ✅ **Secure HTTPS** - Automatic SSL certificates
@@ -435,48 +435,48 @@ Type: CNAME  |  Name: api  |  Target: 544e44cf-b610-47bd-8014-c52e203a1de8.cfarg
 ## 🔑 Authentication Flow
 
 ### 1. Signup
-```bash
+\`\`\`bash
 curl -X POST http://localhost:8000/auth/signup \
   -H "Content-Type: application/json" \
   -d '{"username": "josh", "email": "josh@example.com", "password": "securepass123"}'
-```
+\`\`\`
 
 ### 2. Login
-```bash
+\`\`\`bash
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "username=josh&password=securepass123"
-```
+\`\`\`
 
 Response:
-```json
+\`\`\`json
 {
   "access_token": "eyJhbGc...",
   "refresh_token": "eyJhbGc...",
   "token_type": "bearer",
   "expires_in": 900
 }
-```
+\`\`\`
 
 ### 3. Use Access Token
-```bash
+\`\`\`bash
 curl http://localhost:8000/auth/me \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
+\`\`\`
 
 ### 4. Refresh Token (when access token expires)
-```bash
+\`\`\`bash
 curl -X POST http://localhost:8000/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refresh_token": "YOUR_REFRESH_TOKEN"}'
-```
+\`\`\`
 
 ---
 
 ## 💬 WebSocket Chat Example
 
 ### Connect to WebSocket (requires JWT):
-```javascript
+\`\`\`javascript
 // Node.js/Browser
 const token = "YOUR_ACCESS_TOKEN";
 const ws = new WebSocket(`ws://localhost:8000/chat?token=${token}`);
@@ -490,14 +490,14 @@ ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
   console.log("Received:", data);
 };
-```
+\`\`\`
 
 ---
 
 ## 📊 Tracking Data Example
 
 ### Post Gaze Tracking Data:
-```bash
+\`\`\`bash
 curl -X POST http://localhost:8000/tracking-data \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
@@ -510,19 +510,19 @@ curl -X POST http://localhost:8000/tracking-data \
     "event_type": "gaze_update",
     "confidence": 0.91
   }'
-```
+\`\`\`
 
 ### Get Tracking History:
-```bash
+\`\`\`bash
 curl http://localhost:8000/tracking-data?limit=10 \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
+\`\`\`
 
 ---
 
 ## 🗂️ Project Structure
 
-```
+\`\`\`
 jett-optical-auth/
 ├── README.md                          # This file - Complete project documentation
 ├── hedgehog_server.py                 # Main FastAPI backend server
@@ -597,7 +597,7 @@ jett-optical-auth/
     ├── test_mcp_server.py             # MCP server tests
     ├── test_otp_flow.py               # OTP generation tests
     └── test_grok_integration.py       # Grok API integration tests
-```
+\`\`\`
 
 ---
 
@@ -605,22 +605,22 @@ jett-optical-auth/
 
 ### Run in Debug Mode:
 Set `DEBUG=True` in `.env`, then:
-```powershell
+\`\`\`powershell
 python hedgehog_server.py
-```
+\`\`\`
 Server will auto-reload on file changes.
 
 ### View Database:
-```powershell
+\`\`\`powershell
 sqlite3 jett_optical.db
 .tables
 SELECT * FROM users;
-```
+\`\`\`
 
 ### Generate New Secret Key:
-```powershell
+\`\`\`powershell
 python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
+\`\`\`
 
 ---
 
@@ -644,21 +644,21 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 ### Environment Variables
 
 **Required for Backend:**
-```env
+\`\`\`env
 SECRET_KEY=<your-secret-key>
 XAI_API_KEY=<your-xai-api-key>
 GROK_API_KEY=<your-grok-api-key>
 DATABASE_URL=postgresql://user:pass@host:5432/jett_optical
 DEBUG=False
-```
+\`\`\`
 
 **Required for Frontend:**
-```env
+\`\`\`env
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_CONVEX_URL=https://...convex.cloud
 NEXT_PUBLIC_PYTHON_API_URL=http://localhost:8000
-```
+\`\`\`
 
 ### Database Configuration
 
@@ -764,7 +764,7 @@ NEXT_PUBLIC_PYTHON_API_URL=http://localhost:8000
 ### Testing & Verification
 
 **Health Checks:**
-```bash
+\`\`\`bash
 # Backend health
 curl http://localhost:8000/health
 
@@ -773,15 +773,15 @@ open http://localhost:8000/docs
 
 # Frontend
 open http://localhost:3000
-```
+\`\`\`
 
 **Test Gaze Classification:**
-```bash
+\`\`\`bash
 curl -X POST http://localhost:8000/tracking-data \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"cog_value": 0.85, "env_value": 0.62, "emo_value": 0.73, "gaze_x": 0.45, "gaze_y": 0.32}'
-```
+\`\`\`
 
 **Performance Metrics:**
 - Database operations: < 50ms

@@ -6,7 +6,7 @@
 
 For production deployment, replace development keys with production keys:
 
-```bash
+\`\`\`bash
 # Development (current)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
@@ -14,17 +14,17 @@ CLERK_SECRET_KEY=sk_test_...
 # Production (required for deployment)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 CLERK_SECRET_KEY=sk_live_...
-```
+\`\`\`
 
 ### Optional Clerk Configuration
 
 These variables should only be set on the server (not prefixed with NEXT_PUBLIC_):
 
-```bash
+\`\`\`bash
 # Server-side only - do not expose to client
 CLERK_TELEMETRY_DEBUG=false
 CLERK_TELEMETRY_DISABLED=true
-```
+\`\`\`
 
 ### Getting Production Keys
 
@@ -38,10 +38,10 @@ CLERK_TELEMETRY_DISABLED=true
 
 Ensure Convex deployment URL is set:
 
-```bash
+\`\`\`bash
 NEXT_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
 CONVEX_DEPLOYMENT=prod:your-deployment
-```
+\`\`\`
 
 ## Pre-Deployment Checklist
 
