@@ -91,3 +91,68 @@ export const listUsers = query({
     return await ctx.db.query("users").withIndex("by_created_at").order("desc").take(limit)
   },
 })
+
+export const syncProfile = mutation({
+  args: {
+    clerkUserId: v.string(),
+    email: v.string(),
+    name: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now()
+
+    // First, try to find by clerkUserId
+    let user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .first()
+
+    // If not found by clerkUserId, try by email
+    if (!user) {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", args.email))
+        .first()
+    }
+
+    if (user) {
+      // Update existing user
+      await ctx.db.patch(user._id, {
+        clerkUserId: args.clerkUserId,
+        email: args.email,
+        name: args.name ?? user.name,
+        avatarUrl: args.avatarUrl ?? user.avatarUrl,
+        lastLoginAt: now,
+        updatedAt: now,
+        emailVerified: true,
+      })
+      return user._id
+    } else {
+      // Create new user
+      return await ctx.db.insert("users", {
+        clerkUserId: args.clerkUserId,
+        email: args.email,
+        name: args.name,
+        avatarUrl: args.avatarUrl,
+        authProvider: "clerk",
+        authProviderId: args.clerkUserId,
+        createdAt: now,
+        updatedAt: now,
+        lastLoginAt: now,
+        isActive: true,
+        emailVerified: true,
+      })
+    }
+  },
+})
+
+export const getUserByClerkId = query({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .first()
+  },
+})

@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AI-Native Product Builder | Portfolio",
   description: "System Architect & Interface Designer crafting intelligent digital experiences",
-    generator: 'v0.app'
+  generator: "v0.app",
 }
 
 export const viewport: Viewport = {

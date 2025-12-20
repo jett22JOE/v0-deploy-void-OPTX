@@ -1,18 +1,24 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { ClerkProvider } from "@clerk/nextjs"
 
 export function ClerkProviderWrapper({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return <>{children}</>
-  }
-
-  return <>{children}</>
+  return (
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#b55200",
+          colorText: "#ffffff",
+          colorTextSecondary: "#a1a1aa",
+          colorBackground: "#0a0a0a",
+          colorInputBackground: "rgba(255, 255, 255, 0.05)",
+          colorInputText: "#ffffff",
+          borderRadius: "0.5rem",
+        },
+      }}
+    >
+      {children}
+    </ClerkProvider>
+  )
 }

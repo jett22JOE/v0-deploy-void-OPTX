@@ -57,10 +57,9 @@ export default function LoadingPage() {
       </Link>
 
       <h1
-        className="absolute top-6 right-6 z-20 font-mono text-xs md:text-sm tracking-widest text-white uppercase"
+        className="absolute top-6 right-6 z-20 font-mono text-xs md:text-sm tracking-widest text-white uppercase animate-pulse-glow"
         style={{
           fontFamily: "var(--font-orbitron), sans-serif",
-          animation: "pulse-glow 2s ease-in-out infinite",
         }}
       >
         Loading...
@@ -79,11 +78,21 @@ export default function LoadingPage() {
                 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-black
                 hover:shadow-[0_0_30px_rgba(181,82,0,0.3)] active:shadow-[0_0_30px_rgba(181,82,0,0.3)]"
             >
-              <span className="absolute inset-[-1000%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#b55200_0%,#ff8c00_25%,#b55200_50%,#ff8c00_75%,#b55200_100%)]" />
               <span
-                className="relative inline-flex w-full h-full px-8 py-3 rounded-full 
-                backdrop-blur-md bg-black/90 
+                className="absolute inset-[-1000%]"
+                style={{
+                  animation: "spin 3s linear infinite",
+                  background:
+                    "conic-gradient(from 90deg at 50% 50%, #b55200 0%, #ff8c00 25%, #b55200 50%, #ff8c00 75%, #b55200 100%)",
+                }}
+              />
+              <span
+                className="relative inline-flex w-full h-full px-8 py-3 rounded-full bg-black/90 
                 group-hover:bg-white/10 group-active:bg-white/10 transition-all duration-300"
+                style={{
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                }}
               >
                 <span className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300" />
                 <span className="relative font-mono text-xs tracking-[0.2em] uppercase text-white group-hover:text-accent group-active:text-accent transition-colors duration-300">
@@ -112,27 +121,6 @@ export default function LoadingPage() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         }}
       />
-
-      <style jsx>{`
-        @keyframes pulse-glow {
-          0%, 100% {
-            opacity: 1;
-            text-shadow: 0 0 20px rgba(181, 82, 0, 0.6), 0 0 40px rgba(181, 82, 0, 0.3);
-          }
-          50% {
-            opacity: 0.85;
-            text-shadow: 0 0 30px rgba(181, 82, 0, 0.8), 0 0 50px rgba(181, 82, 0, 0.5);
-          }
-        }
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
 
       <WaitlistModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>

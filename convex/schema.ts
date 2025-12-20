@@ -6,6 +6,7 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     name: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
     // Auth provider info (for future Clerk integration)
     authProviderId: v.optional(v.string()),
     authProvider: v.optional(v.string()), // "clerk", "google", etc.
@@ -22,6 +23,7 @@ export default defineSchema({
   })
     .index("by_email", ["email"])
     .index("by_auth_provider", ["authProviderId"])
+    .index("by_clerk_user", ["clerkUserId"])
     .index("by_created_at", ["createdAt"]),
 
   waitlist: defineTable({

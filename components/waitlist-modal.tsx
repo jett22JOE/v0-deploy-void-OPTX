@@ -1,8 +1,10 @@
 "use client"
 
+import type React from "react"
+
 import { motion, AnimatePresence } from "framer-motion"
 import { SignUp } from "@clerk/nextjs"
-import { useEffect, useCallback } from "react"
+import { useEffect, useCallback, useState } from "react"
 import Image from "next/image"
 import { ClerkCustomClose } from "./clerk-custom-close"
 
@@ -12,6 +14,18 @@ interface WaitlistModalProps {
 }
 
 export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
+  const [isProductionDomain, setIsProductionDomain] = useState(false)
+  const [email, setEmail] = useState("")
+  const [submitted, setSubmitted] = useState(false)
+
+  useEffect(() => {
+    // Check if we're on the allowed Clerk domain
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname
+      setIsProductionDomain(hostname === "jettoptics.ai" || hostname.endsWith(".jettoptics.ai"))
+    }
+  }, [])
+
   // Handle escape key
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -33,11 +47,17 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
     }
   }, [isOpen, handleKeyDown])
 
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // For now, just show success - you can add actual submission logic later
+    setSubmitted(true)
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          <ClerkCustomClose />
+          {isProductionDomain && <ClerkCustomClose />}
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -141,50 +161,105 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                   </div>
                 </div>
 
-                {/* Clerk SignUp */}
-                <div className="clerk-waitlist-container">
-                  <SignUp
-                    appearance={{
-                      elements: {
-                        rootBox: "w-full",
-                        card: "bg-transparent shadow-none p-0",
-                        cardBox: "bg-transparent shadow-none",
-                        header: "hidden",
-                        headerTitle: "hidden",
-                        headerSubtitle: "hidden",
-                        socialButtonsBlockButton:
-                          "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent/50 transition-all",
-                        socialButtonsBlockButtonText: "font-mono text-xs text-white",
-                        dividerLine: "bg-white/10",
-                        dividerText: "font-mono text-xs text-muted-foreground",
-                        formFieldLabel: "font-mono text-xs text-muted-foreground",
-                        formFieldInput:
-                          "bg-white/5 border-white/10 focus:border-accent/50 font-mono text-sm text-white placeholder:text-muted-foreground",
-                        formButtonPrimary: "bg-accent hover:bg-accent/80 font-mono text-xs tracking-wider uppercase",
-                        footerAction: "hidden",
-                        footer: "hidden",
-                        identityPreview: "bg-white/5 border-white/10",
-                        identityPreviewText: "font-mono text-xs text-white",
-                        identityPreviewEditButton: "text-accent hover:text-accent/80",
-                        formFieldSuccessText: "text-accent font-mono text-xs",
-                        formFieldErrorText: "text-red-500 font-mono text-xs",
-                        otpCodeFieldInput: "bg-white/5 border-white/10 text-white font-mono",
-                        formResendCodeLink: "text-accent hover:text-accent/80 font-mono text-xs",
-                      },
-                      variables: {
-                        colorPrimary: "#b55200",
-                        colorText: "#ffffff",
-                        colorTextSecondary: "#a1a1aa",
-                        colorBackground: "transparent",
-                        colorInputBackground: "rgba(255, 255, 255, 0.05)",
-                        colorInputText: "#ffffff",
-                        borderRadius: "0.5rem",
-                      },
-                    }}
-                    routing="hash"
-                    signInUrl="/sign-in"
-                  />
-                </div>
+                {isProductionDomain ? (
+                  <div className="clerk-waitlist-container">
+                    <SignUp
+                      appearance={{
+                        elements: {
+                          rootBox: "w-full",
+                          card: "bg-transparent shadow-none p-0",
+                          cardBox: "bg-transparent shadow-none",
+                          header: "hidden",
+                          headerTitle: "hidden",
+                          headerSubtitle: "hidden",
+                          socialButtonsBlockButton:
+                            "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent/50 transition-all",
+                          socialButtonsBlockButtonText: "font-mono text-xs text-white",
+                          dividerLine: "bg-white/10",
+                          dividerText: "font-mono text-xs text-muted-foreground",
+                          formFieldLabel: "font-mono text-xs text-muted-foreground",
+                          formFieldInput:
+                            "bg-white/5 border-white/10 focus:border-accent/50 font-mono text-sm text-white placeholder:text-muted-foreground",
+                          formButtonPrimary: "bg-accent hover:bg-accent/80 font-mono text-xs tracking-wider uppercase",
+                          footerAction: "hidden",
+                          footer: "hidden",
+                          identityPreview: "bg-white/5 border-white/10",
+                          identityPreviewText: "font-mono text-xs text-white",
+                          identityPreviewEditButton: "text-accent hover:text-accent/80",
+                          formFieldSuccessText: "text-accent font-mono text-xs",
+                          formFieldErrorText: "text-red-500 font-mono text-xs",
+                          otpCodeFieldInput: "bg-white/5 border-white/10 text-white font-mono",
+                          formResendCodeLink: "text-accent hover:text-accent/80 font-mono text-xs",
+                        },
+                        variables: {
+                          colorPrimary: "#b55200",
+                          colorText: "#ffffff",
+                          colorTextSecondary: "#a1a1aa",
+                          colorBackground: "transparent",
+                          colorInputBackground: "rgba(255, 255, 255, 0.05)",
+                          colorInputText: "#ffffff",
+                          borderRadius: "0.5rem",
+                        },
+                      }}
+                      routing="hash"
+                      signInUrl="/sign-in"
+                    />
+                  </div>
+                ) : (
+                  /* Fallback email form for non-production domains */
+                  <div className="space-y-4">
+                    {!submitted ? (
+                      <form onSubmit={handleEmailSubmit} className="space-y-4">
+                        <div>
+                          <label htmlFor="email" className="block font-mono text-xs text-muted-foreground mb-2">
+                            Email Address
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            placeholder="your@email.com"
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+                              font-mono text-sm text-white placeholder:text-muted-foreground
+                              focus:outline-none focus:border-accent/50 transition-colors"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="w-full px-4 py-3 bg-accent hover:bg-accent/80 rounded-lg
+                            font-mono text-xs tracking-wider uppercase text-white
+                            transition-colors duration-300"
+                        >
+                          Join Waitlist
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
+                          <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-accent"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </div>
+                        <h3 className="font-sans text-xl text-white mb-2">You&apos;re on the list!</h3>
+                        <p className="font-mono text-xs text-muted-foreground">
+                          We&apos;ll notify you when early access is available.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Footer */}
