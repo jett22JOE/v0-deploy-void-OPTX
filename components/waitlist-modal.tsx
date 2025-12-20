@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { SignUp } from "@clerk/nextjs"
 import { useEffect, useCallback, useState } from "react"
 import Image from "next/image"
 
@@ -13,17 +12,8 @@ interface WaitlistModalProps {
 }
 
 export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
-  const [isProductionDomain, setIsProductionDomain] = useState(false)
   const [email, setEmail] = useState("")
-  const [step, setStep] = useState<"waitlist" | "signup">("waitlist")
-
-  useEffect(() => {
-    // Check if we're on the allowed Clerk domain
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname
-      setIsProductionDomain(hostname === "jettoptics.ai" || hostname.endsWith(".jettoptics.ai"))
-    }
-  }, [])
+  const [submitted, setSubmitted] = useState(false)
 
   // Handle escape key
   const handleKeyDown = useCallback(
@@ -48,8 +38,8 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Move to signup step after waitlist submission
-    setStep("signup")
+    // Show success state
+    setSubmitted(true)
   }
 
   return (
@@ -163,7 +153,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                   </div>
 
 
-                  {step === "waitlist" ? (
+                  {!submitted ? (
                     /* Waitlist form */
                     <div className="space-y-4">
                       <form onSubmit={handleEmailSubmit} className="space-y-4">
@@ -193,54 +183,8 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                         </button>
                       </form>
                     </div>
-                  ) : isProductionDomain ? (
-                    /* Clerk signup form - only on production */
-                    <div className="clerk-waitlist-container">
-                      <SignUp
-                        appearance={{
-                          elements: {
-                            rootBox: "w-full",
-                            card: "bg-transparent shadow-none p-0",
-                            cardBox: "bg-transparent shadow-none",
-                            header: "hidden",
-                            headerTitle: "hidden",
-                            headerSubtitle: "hidden",
-                            socialButtonsBlockButton:
-                              "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent/50 transition-all",
-                            socialButtonsBlockButtonText: "font-mono text-xs text-white",
-                            dividerLine: "bg-white/10",
-                            dividerText: "font-mono text-xs text-muted-foreground",
-                            formFieldLabel: "font-mono text-xs text-muted-foreground",
-                            formFieldInput:
-                              "bg-white/5 border-white/10 focus:border-accent/50 font-mono text-sm text-white placeholder:text-muted-foreground",
-                            formButtonPrimary:
-                              "bg-accent hover:bg-accent/80 font-mono text-xs tracking-wider uppercase",
-                            footerAction: "hidden",
-                            footer: "hidden",
-                            identityPreview: "bg-white/5 border-white/10",
-                            identityPreviewText: "font-mono text-xs text-white",
-                            identityPreviewEditButton: "text-accent hover:text-accent/80",
-                            formFieldSuccessText: "text-accent font-mono text-xs",
-                            formFieldErrorText: "text-red-500 font-mono text-xs",
-                            otpCodeFieldInput: "bg-white/5 border-white/10 text-white font-mono",
-                            formResendCodeLink: "text-accent hover:text-accent/80 font-mono text-xs",
-                          },
-                          variables: {
-                            colorPrimary: "#b55200",
-                            colorText: "#ffffff",
-                            colorTextSecondary: "#a1a1aa",
-                            colorBackground: "transparent",
-                            colorInputBackground: "rgba(255, 255, 255, 0.05)",
-                            colorInputText: "#ffffff",
-                            borderRadius: "0.5rem",
-                          },
-                        }}
-                        routing="hash"
-                        signInUrl="/sign-in"
-                      />
-                    </div>
                   ) : (
-                    /* Success confirmation - for localhost/preview */
+                    /* Success confirmation */
                     <div className="text-center py-6">
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
                         <svg
@@ -258,11 +202,8 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                         </svg>
                       </div>
                       <h3 className="font-sans text-xl text-white mb-2">You&apos;re on the list!</h3>
-                      <p className="font-mono text-xs text-muted-foreground mb-4">
+                      <p className="font-mono text-xs text-muted-foreground">
                         We&apos;ll notify you when early access is available.
-                      </p>
-                      <p className="font-mono text-[10px] text-accent/60">
-                        (Clerk signup will appear on production domain)
                       </p>
                     </div>
                   )}
