@@ -19,10 +19,10 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "JETT OPTICS | Spatial Encryption",
+  title: "JOE AI | DePIN - Spatial Encryption",
   description: "Quantum-resistant, hands-free optical encryption technology. Join the waitlist for early access to the future of secure communication.",
-  keywords: ["quantum encryption", "optical security", "spatial encryption", "JETT OPTICS", "quantum-resistant"],
-  authors: [{ name: "JETT OPTICS" }],
+  keywords: ["quantum encryption", "optical security", "spatial encryption", "JOE AI", "DePIN", "quantum-resistant"],
+  authors: [{ name: "JOE AI" }],
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -30,14 +30,14 @@ export const metadata: Metadata = {
     apple: "/apple-icon.png",
   },
   openGraph: {
-    title: "JETT OPTICS | Spatial Encryption",
+    title: "JOE AI | DePIN - Spatial Encryption",
     description: "Quantum-resistant, hands-free optical encryption technology.",
     type: "website",
-    siteName: "JETT OPTICS",
+    siteName: "JOE AI",
   },
   twitter: {
     card: "summary_large_image",
-    title: "JETT OPTICS | Spatial Encryption",
+    title: "JOE AI | DePIN - Spatial Encryption",
     description: "Quantum-resistant, hands-free optical encryption technology.",
   },
 }
