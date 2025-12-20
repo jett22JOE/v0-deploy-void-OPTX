@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 const techItems = [
   "NEXT.JS",
@@ -70,7 +70,15 @@ function MarqueeRow({ items, direction = "left" }: { items: string[]; direction?
 }
 
 export function TechMarquee() {
+  const [mounted, setMounted] = useState(false)
+
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     const script = document.createElement("script")
     script.src = "https://platform.twitter.com/widgets.js"
     script.async = true
@@ -78,9 +86,11 @@ export function TechMarquee() {
     document.body.appendChild(script)
 
     return () => {
-      document.body.removeChild(script)
+      if (document.body.contains(script)) {
+        document.body.removeChild(script)
+      }
     }
-  }, [])
+  }, [mounted])
 
   return (
     <section className="relative py-24 overflow-hidden md:py-32">
@@ -108,15 +118,17 @@ export function TechMarquee() {
         className="flex justify-center px-8 md:px-12 mt-16"
       >
         <div className="max-w-md">
-          <blockquote className="twitter-tweet" data-theme="dark">
-            <p lang="en" dir="ltr">
-              Email Waitlist coming coon!{" "}
-              <a href="https://twitter.com/search?q=%24OPTX&amp;src=ctag&amp;ref_src=twsrc%5Etfw">$OPTX</a>{" "}
-              <a href="https://t.co/OYbaplvLiO">pic.twitter.com/OYbaplvLiO</a>
-            </p>
-            &mdash; Jett Optics (@jettoptx){" "}
-            <a href="https://twitter.com/jettoptx/status/1997753289551892917?ref_src=twsrc%5Etfw">December 7, 2025</a>
-          </blockquote>
+          {mounted && (
+            <blockquote className="twitter-tweet" data-theme="dark">
+              <p lang="en" dir="ltr">
+                Email Waitlist coming coon!{" "}
+                <a href="https://twitter.com/search?q=%24OPTX&amp;src=ctag&amp;ref_src=twsrc%5Etfw">$OPTX</a>{" "}
+                <a href="https://t.co/OYbaplvLiO">pic.twitter.com/OYbaplvLiO</a>
+              </p>
+              &mdash; Jett Optics (@jettoptx){" "}
+              <a href="https://twitter.com/jettoptx/status/1997753289551892917?ref_src=twsrc%5Etfw">December 7, 2025</a>
+            </blockquote>
+          )}
         </div>
       </motion.div>
     </section>
