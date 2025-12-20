@@ -19,14 +19,26 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "AI-Native Product Builder | Portfolio",
-  description: "System Architect & Interface Designer crafting intelligent digital experiences",
-  generator: "v0.app",
+  title: "JETT OPTICS | Spatial Encryption",
+  description: "Quantum-resistant, hands-free optical encryption technology. Join the waitlist for early access to the future of secure communication.",
+  keywords: ["quantum encryption", "optical security", "spatial encryption", "JETT OPTICS", "quantum-resistant"],
+  authors: [{ name: "JETT OPTICS" }],
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
     ],
     apple: "/apple-icon.png",
+  },
+  openGraph: {
+    title: "JETT OPTICS | Spatial Encryption",
+    description: "Quantum-resistant, hands-free optical encryption technology.",
+    type: "website",
+    siteName: "JETT OPTICS",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JETT OPTICS | Spatial Encryption",
+    description: "Quantum-resistant, hands-free optical encryption technology.",
   },
 }
 
