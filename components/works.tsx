@@ -182,7 +182,7 @@ export function Works() {
                     transition={{ duration: 0.8 }}
                     className="max-w-4xl py-12 md:py-24 border-t border-white/10"
                   >
-                    <p className="font-mono text-xs tracking-[0.3em] text-accent mb-6">OVERVIEW - JOE AI </p>
+                    <p className="font-mono text-xs tracking-[0.3em] text-accent mb-6">02 - JOE AI </p>
                     <h2 className="font-sans text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-8 text-white leading-[1.15]">
                       <MatrixText text="Building the Future of" speed={30} />
                       <br />
