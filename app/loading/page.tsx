@@ -150,15 +150,14 @@ export default function LoadingPage() {
                   "rgb(255, 140, 0)",
                   "rgb(181, 82, 0)",
                 ]}
-                noiseIntensity={0.12}
-                speed={0.08}
+                noiseIntensity={0.1}
               >
                 {/* Inner content container */}
                 <div
                   className="rounded-xl bg-[#1a1625] overflow-hidden clerk-waitlist-wrapper"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* CSS to override Clerk fonts to mono */}
+                  {/* CSS to override Clerk fonts to mono and fix placeholder */}
                   <style jsx global>{`
                     .clerk-waitlist-wrapper .cl-rootBox,
                     .clerk-waitlist-wrapper .cl-card,
@@ -178,6 +177,12 @@ export default function LoadingPage() {
                     }
                     .clerk-waitlist-wrapper .cl-headerSubtitle {
                       letter-spacing: 0.02em !important;
+                    }
+                    .clerk-waitlist-wrapper .cl-formFieldInput::placeholder {
+                      content: "Email address" !important;
+                    }
+                    .clerk-waitlist-wrapper input[placeholder]::placeholder {
+                      font-size: 14px !important;
                     }
                   `}</style>
                   {isClerkEnabled ? (
