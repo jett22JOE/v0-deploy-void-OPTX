@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { SignUp } from "@clerk/nextjs"
+import { Waitlist } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 
 export default function LoadingPage() {
@@ -138,10 +138,7 @@ export default function LoadingPage() {
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
-            <SignUp
-              routing="hash"
-              forceRedirectUrl="/loading"
-            />
+            <Waitlist />
           </motion.div>
         )}
       </AnimatePresence>
