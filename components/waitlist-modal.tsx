@@ -113,13 +113,13 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed inset-0 z-[201] flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-[201] flex items-start md:items-center justify-center p-4 pt-16 md:pt-4 overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-labelledby="waitlist-title"
           >
             <div
-              className="w-full max-w-lg bg-[#0a0a0a]/80 rounded-2xl border border-white/10 p-0 backdrop-blur-lg"
+              className="w-full max-w-lg bg-[#0a0a0a]/80 rounded-2xl border border-white/10 p-0 backdrop-blur-lg my-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div
@@ -211,9 +211,34 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                         <p className="font-mono text-xs text-red-400 text-center mb-4">{error}</p>
                       )}
 
-                      {/* Clerk SignUp on production with OAuth (Google, X, Apple) */}
+                      {/* Clerk SignUp on production with OAuth (Google, X) */}
                       {isClerkEnabled ? (
-                        <div className="w-full flex justify-center [&_.cl-rootBox]:w-full [&_.cl-card]:bg-transparent [&_.cl-card]:shadow-none [&_.cl-card]:border-none [&_.cl-headerTitle]:hidden [&_.cl-headerSubtitle]:hidden [&_.cl-socialButtonsBlockButton]:bg-white/5 [&_.cl-socialButtonsBlockButton]:border-white/10 [&_.cl-socialButtonsBlockButton]:text-white [&_.cl-socialButtonsBlockButton:hover]:bg-white/10 [&_.cl-dividerLine]:bg-white/10 [&_.cl-dividerText]:text-muted-foreground [&_.cl-formButtonPrimary]:bg-accent [&_.cl-formButtonPrimary:hover]:bg-accent/90 [&_.cl-formFieldInput]:bg-white/5 [&_.cl-formFieldInput]:border-white/10 [&_.cl-formFieldInput]:text-white [&_.cl-formFieldLabel]:text-muted-foreground [&_.cl-footerActionLink]:text-accent [&_.cl-footerActionLink:hover]:text-accent/80 [&_.cl-identityPreviewEditButton]:text-accent [&_.cl-formResendCodeLink]:text-accent [&_.cl-footer]:hidden">
+                        <div className="w-full flex justify-center clerk-signup-container">
+                          <style jsx global>{`
+                            .clerk-signup-container .cl-rootBox { width: 100%; }
+                            .clerk-signup-container .cl-card { background: transparent !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+                            .clerk-signup-container .cl-headerTitle,
+                            .clerk-signup-container .cl-headerSubtitle { display: none !important; }
+                            .clerk-signup-container .cl-socialButtonsBlockButton { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+                            .clerk-signup-container .cl-socialButtonsBlockButton:hover { background: rgba(255,255,255,0.1) !important; }
+                            .clerk-signup-container .cl-dividerLine { background: rgba(255,255,255,0.1) !important; }
+                            .clerk-signup-container .cl-dividerText { color: #a1a1aa !important; }
+                            .clerk-signup-container .cl-formButtonPrimary { background: #b55200 !important; }
+                            .clerk-signup-container .cl-formButtonPrimary:hover { background: rgba(181,82,0,0.9) !important; }
+                            .clerk-signup-container .cl-formFieldInput { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+                            .clerk-signup-container .cl-formFieldLabel { color: #a1a1aa !important; }
+                            .clerk-signup-container .cl-footerActionLink { color: #b55200 !important; }
+                            .clerk-signup-container .cl-footerActionLink:hover { color: rgba(181,82,0,0.8) !important; }
+                            .clerk-signup-container .cl-identityPreviewEditButton,
+                            .clerk-signup-container .cl-formResendCodeLink { color: #b55200 !important; }
+                            .clerk-signup-container .cl-footer { display: none !important; }
+                            /* Hide the broken Apple OAuth button with cancel icon */
+                            .clerk-signup-container .cl-socialButtonsBlockButton[data-provider="apple"] { display: none !important; }
+                            /* Also hide via aria-label fallback */
+                            .clerk-signup-container .cl-socialButtonsBlockButton[aria-label*="Apple"] { display: none !important; }
+                            /* Style the internal card content */
+                            .clerk-signup-container .cl-internal-b3fm6y { background: transparent !important; }
+                          `}</style>
                           <SignUp
                             appearance={{
                               elements: {
