@@ -8,17 +8,32 @@ import Image from "next/image"
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient"
 import { useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { SignUp } from "@clerk/nextjs"
 
 interface WaitlistModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
+type Step = "email" | "signup" | "success"
+
+// Check if we're on production domain where Clerk is enabled
+function useIsClerkEnabled() {
+  const [isEnabled, setIsEnabled] = useState(false)
+  useEffect(() => {
+    const hostname = window.location.hostname
+    const isProduction = hostname === "jettoptics.ai" || hostname.endsWith(".jettoptics.ai")
+    setIsEnabled(isProduction)
+  }, [])
+  return isEnabled
+}
+
 export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
   const [email, setEmail] = useState("")
-  const [submitted, setSubmitted] = useState(false)
+  const [step, setStep] = useState<Step>("email")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isClerkEnabled = useIsClerkEnabled()
 
   const addToWaitlist = useMutation(api.waitlist.addToWaitlist)
 
@@ -43,6 +58,16 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
     }
   }, [isOpen, handleKeyDown])
 
+  
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setStep("email")
+      setEmail("")
+      setError(null)
+    }
+  }, [isOpen])
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -53,7 +78,12 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
         email,
         source: "waitlist-modal",
       })
-      setSubmitted(true)
+      // Move to Clerk signup step on production, or success on localhost
+      if (isClerkEnabled) {
+        setStep("signup")
+      } else {
+        setStep("success")
+      }
     } catch (err) {
       if (err instanceof Error && err.message.includes("already registered")) {
         setError("This email is already on the waitlist!")
@@ -151,69 +181,110 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                   </h2>
 
                   {/* Tagline */}
-                  <p className="font-mono text-xs tracking-wider text-muted-foreground">Spatial Encryption</p>
+                  <p className="font-mono text-xs tracking-wider text-muted-foreground">
+                    {step === "email" && "Spatial Encryption"}
+                    {step === "signup" && "Create Your Account"}
+                    {step === "success" && "Welcome to the Future"}
+                  </p>
                 </div>
 
                 {/* Content */}
                 <div className="relative px-6 py-6">
-                  {/* Value proposition */}
-                  <div className="mb-6 space-y-3">
-                    <p className="font-mono text-xs text-center text-muted-foreground leading-relaxed">
-                      Join the waitlist for early access to quantum-resistant, decentralized spatial encryption.
-                    </p>
+                  {step === "email" && (
+                    <>
+                      {/* Value proposition */}
+                      <div className="mb-6 space-y-3">
+                        <p className="font-mono text-xs text-center text-muted-foreground leading-relaxed">
+                          Join the waitlist for early access to quantum-resistant, decentralized spatial encryption.
+                        </p>
 
-                    {/* Feature pills */}
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {["Quantum-Resistant", "DePIN", "Evolve"].map((feature) => (
-                        <span
-                          key={feature}
-                          className="font-mono text-[10px] tracking-wider px-3 py-1 border border-white/20 rounded-full text-muted-foreground"
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-
-                  {!submitted ? (
-                    /* Waitlist form */
-                    <div className="space-y-4">
-                      <form onSubmit={handleEmailSubmit} className="space-y-4">
-                        <div>
-                          <label htmlFor="email" className="block font-mono text-xs text-muted-foreground mb-2">
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            disabled={isLoading}
-                            placeholder="your@email.com"
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg
-                              font-mono text-sm text-white placeholder:text-muted-foreground
-                              focus:outline-none focus:border-accent/50 transition-colors
-                              disabled:opacity-50 disabled:cursor-not-allowed"
-                          />
+                        {/* Feature pills */}
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {["Quantum-Resistant", "DePIN", "Evolve"].map((feature) => (
+                            <span
+                              key={feature}
+                              className="font-mono text-[10px] tracking-wider px-3 py-1 border border-white/20 rounded-full text-muted-foreground"
+                            >
+                              {feature}
+                            </span>
+                          ))}
                         </div>
-                        {error && (
-                          <p className="font-mono text-xs text-red-400 text-center">{error}</p>
-                        )}
-                        <HoverBorderGradient
-                          as="button"
-                          type="submit"
-                          disabled={isLoading}
-                          containerClassName="w-full rounded-lg"
-                          className="w-full px-4 py-3 bg-[#0a0a0a] rounded-lg font-mono text-xs tracking-wider uppercase text-white disabled:opacity-50"
-                          duration={0.8}
-                        >
-                          {isLoading ? "Joining..." : "Join Waitlist"}
-                        </HoverBorderGradient>
-                      </form>
+                      </div>
+
+                      {/* Waitlist form */}
+                      <div className="space-y-4">
+                        <form onSubmit={handleEmailSubmit} className="space-y-4">
+                          <div>
+                            <label htmlFor="email" className="block font-mono text-xs text-muted-foreground mb-2">
+                              Email Address
+                            </label>
+                            <input
+                              type="email"
+                              id="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              required
+                              disabled={isLoading}
+                              placeholder="your@email.com"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg
+                                font-mono text-sm text-white placeholder:text-muted-foreground
+                                focus:outline-none focus:border-accent/50 transition-colors
+                                disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                          </div>
+                          {error && (
+                            <p className="font-mono text-xs text-red-400 text-center">{error}</p>
+                          )}
+                          <HoverBorderGradient
+                            as="button"
+                            type="submit"
+                            disabled={isLoading}
+                            containerClassName="w-full rounded-lg"
+                            className="w-full px-4 py-3 bg-[#0a0a0a] rounded-lg font-mono text-xs tracking-wider uppercase text-white disabled:opacity-50"
+                            duration={0.8}
+                          >
+                            {isLoading ? "Joining..." : "Join Waitlist"}
+                          </HoverBorderGradient>
+                        </form>
+                      </div>
+                    </>
+                  )}
+
+                  {step === "signup" && isClerkEnabled && (
+                    <div className="flex flex-col items-center">
+                      <p className="font-mono text-xs text-center text-muted-foreground mb-4">
+                        Complete your account setup to secure your spot.
+                      </p>
+                      <div className="w-full flex justify-center [&_.cl-rootBox]:w-full [&_.cl-card]:bg-transparent [&_.cl-card]:shadow-none [&_.cl-headerTitle]:text-white [&_.cl-headerSubtitle]:text-muted-foreground [&_.cl-formButtonPrimary]:bg-accent [&_.cl-formButtonPrimary:hover]:bg-accent/90 [&_.cl-footerActionLink]:text-accent">
+                        <SignUp
+                          appearance={{
+                            elements: {
+                              rootBox: "w-full",
+                              card: "bg-transparent shadow-none border-none",
+                              headerTitle: "text-white",
+                              headerSubtitle: "text-muted-foreground",
+                              formButtonPrimary: "bg-accent hover:bg-accent/90",
+                              formFieldInput: "bg-white/5 border-white/10 text-white",
+                              formFieldLabel: "text-muted-foreground",
+                              footerActionLink: "text-accent hover:text-accent/80",
+                              identityPreviewEditButton: "text-accent",
+                              formResendCodeLink: "text-accent",
+                            },
+                          }}
+                          initialValues={{ emailAddress: email }}
+                          forceRedirectUrl="/"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setStep("email")}
+                        className="mt-4 font-mono text-xs text-muted-foreground hover:text-white transition-colors"
+                      >
+                        ← Back to email
+                      </button>
                     </div>
-                  ) : (
+                  )}
+
+                  {step === "success" && (
                     /* Success confirmation */
                     <div className="text-center py-6">
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
@@ -231,21 +302,29 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </div>
-                      <h3 className="font-sans text-xl text-white mb-2">You&apos;re on the list!</h3>
-                      <p className="font-mono text-xs text-muted-foreground">
-                        We&apos;ll notify you when early access is available.
+                      <h3 className="font-sans text-xl text-white mb-2">You&apos;re all set!</h3>
+                      <p className="font-mono text-xs text-muted-foreground mb-4">
+                        Your account is created and you&apos;re on the waitlist.
                       </p>
+                      <button
+                        onClick={onClose}
+                        className="font-mono text-xs text-accent hover:text-accent/80 transition-colors"
+                      >
+                        Close
+                      </button>
                     </div>
                   )}
                 </div>
 
                 {/* Footer */}
-                <div className="relative px-6 pb-6 text-center">
-                  <p className="font-mono text-[10px] tracking-wider text-muted-foreground/60">
-                    By joining, you agree to receive updates about <span className="text-accent">JOE</span> AI spatial
-                    encryption technology.
-                  </p>
-                </div>
+                {step === "email" && (
+                  <div className="relative px-6 pb-6 text-center">
+                    <p className="font-mono text-[10px] tracking-wider text-muted-foreground/60">
+                      By joining, you agree to receive updates about <span className="text-accent">JOE</span> AI spatial
+                      encryption technology.
+                    </p>
+                  </div>
+                )}
 
                 {/* Noise texture */}
                 <div
