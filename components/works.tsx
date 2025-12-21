@@ -168,26 +168,52 @@ export function Works() {
 
         {/* Projects List */}
         <div ref={containerRef} onMouseMove={handleMouseMove} onTouchStart={handleTouchStart} className="relative">
-          {projects.map((project, index) => (
-            <motion.div
-              key={project.title}
-              id={project.title === "Agent" ? "joe-agent" : undefined}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
-              className="relative border-t border-white/10 py-6 md:py-12"
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onTouchStart={(e) => {
-                handleTouchStart(e)
-                setHoveredIndex(index)
-              }}
-              onTouchEnd={() => {
-                // Delay hiding so user can see the image
-                setTimeout(() => setHoveredIndex(null), 1500)
-              }}
-            >
+          {projects.map((project, index) => {
+            // Insert Overview Section before JOE Agent (index 3)
+            const isJoeAgentIndex = index === 3
+            return (
+              <div key={project.title}>
+                {isJoeAgentIndex && (
+                  <motion.div
+                    id="joe-agent"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8 }}
+                    className="max-w-4xl py-12 md:py-24 border-t border-white/10"
+                  >
+                    <p className="font-mono text-xs tracking-[0.3em] text-accent mb-6">OVERVIEW - JOE AI </p>
+                    <h2 className="font-sans text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-8 text-white leading-[1.15]">
+                      <MatrixText text="Building the Future of" speed={30} />
+                      <br />
+                      <span className="italic text-orange-500">
+                        <MatrixText text="Spatial Security" speed={30} />
+                      </span>
+                    </h2>
+                    <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed max-w-2xl">
+                      A collection of cutting-edge projects exploring the intersection of cryptography, computer vision, and
+                      decentralized systems. Each initiative pushes the boundaries of spatial authentication and optical
+                      encryption technologies.
+                    </p>
+                  </motion.div>
+                )}
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                  className="relative border-t border-white/10 py-6 md:py-12"
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  onTouchStart={(e) => {
+                    handleTouchStart(e)
+                    setHoveredIndex(index)
+                  }}
+                  onTouchEnd={() => {
+                    // Delay hiding so user can see the image
+                    setTimeout(() => setHoveredIndex(null), 1500)
+                  }}
+                >
               <div
                 data-cursor-hover
                 className="group flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer"
@@ -255,8 +281,10 @@ export function Works() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
-          ))}
+                </motion.div>
+              </div>
+            )
+          })}
 
           {/* Floating Image */}
           <motion.div
@@ -299,29 +327,6 @@ export function Works() {
             <div className="absolute inset-0 mix-blend-overlay bg-gradient-to-b from-accent/20 via-transparent to-accent/20" />
           </motion.div>
         </div>
-
-        {/* Overview Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="max-w-4xl mt-12 pt-12 md:mt-24 md:pt-24 border-t border-white/10"
-        >
-          <p className="font-mono text-xs tracking-[0.3em] text-accent mb-6">OVERVIEW - JOE AI </p>
-          <h2 className="font-sans text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-8 text-white leading-[1.15]">
-            <MatrixText text="Building the Future of" speed={30} />
-            <br />
-            <span className="italic text-orange-500">
-              <MatrixText text="Spatial Security" speed={30} />
-            </span>
-          </h2>
-          <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed max-w-2xl">
-            A collection of cutting-edge projects exploring the intersection of cryptography, computer vision, and
-            decentralized systems. Each initiative pushes the boundaries of spatial authentication and optical
-            encryption technologies.
-          </p>
-        </motion.div>
 
         {/* Bottom Border */}
         <div className="border-t border-white/10 mt-12 md:mt-24" />
