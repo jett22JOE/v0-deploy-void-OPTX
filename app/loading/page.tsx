@@ -4,12 +4,12 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { WaitlistModal } from "@/components/waitlist-modal"
+import { SignUp } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 
 export default function LoadingPage() {
   const [showButton, setShowButton] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showSignUp, setShowSignUp] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -65,44 +65,86 @@ export default function LoadingPage() {
         Loading...
       </h1>
 
-      <div className="absolute top-[20vh] left-1/2 -translate-x-1/2 md:top-[calc(50%_-_320px)] z-20 flex flex-col items-center gap-6">
-        <AnimatePresence>
-          {showButton && (
-            <motion.button
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              onClick={() => setIsModalOpen(true)}
-              className="group relative rounded-full overflow-hidden p-[1px] transition-all duration-300 
-                focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-black
-                hover:shadow-[0_0_30px_rgba(181,82,0,0.3)] active:shadow-[0_0_30px_rgba(181,82,0,0.3)]"
-            >
-              <span
-                className="absolute inset-[-1000%]"
-                style={{
-                  animation: "spin 3s linear infinite",
-                  background:
-                    "conic-gradient(from 90deg at 50% 50%, #b55200 0%, #ff8c00 25%, #b55200 50%, #ff8c00 75%, #b55200 100%)",
-                }}
-              />
-              <span
-                className="relative inline-flex w-full h-full px-8 py-3 rounded-full bg-black/90 
-                group-hover:bg-white/10 group-active:bg-white/10 transition-all duration-300"
-                style={{
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                }}
+      {/* Join Waitlist Button - shows when not signed up */}
+      {!showSignUp && (
+        <div className="absolute top-[20vh] left-1/2 -translate-x-1/2 md:top-[calc(50%_-_320px)] z-20 flex flex-col items-center gap-6">
+          <AnimatePresence>
+            {showButton && (
+              <motion.button
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                onClick={() => setShowSignUp(true)}
+                className="group relative rounded-full overflow-hidden p-[1px] transition-all duration-300
+                  focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-black
+                  hover:shadow-[0_0_30px_rgba(181,82,0,0.3)] active:shadow-[0_0_30px_rgba(181,82,0,0.3)]"
               >
-                <span className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300" />
-                <span className="relative font-mono text-xs tracking-[0.2em] uppercase text-white group-hover:text-accent group-active:text-accent transition-colors duration-300">
-                  Join Waitlist
+                <span
+                  className="absolute inset-[-1000%]"
+                  style={{
+                    animation: "spin 3s linear infinite",
+                    background:
+                      "conic-gradient(from 90deg at 50% 50%, #b55200 0%, #ff8c00 25%, #b55200 50%, #ff8c00 75%, #b55200 100%)",
+                  }}
+                />
+                <span
+                  className="relative inline-flex w-full h-full px-8 py-3 rounded-full bg-black/90
+                  group-hover:bg-white/10 group-active:bg-white/10 transition-all duration-300"
+                  style={{
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                  }}
+                >
+                  <span className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300" />
+                  <span className="relative font-mono text-xs tracking-[0.2em] uppercase text-white group-hover:text-accent group-active:text-accent transition-colors duration-300">
+                    Join Waitlist
+                  </span>
                 </span>
-              </span>
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Clerk SignUp - Shades of Purple theme with orange accent */}
+      <AnimatePresence>
+        {showSignUp && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="absolute z-30 flex items-center justify-center"
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowSignUp(false)}
+              className="absolute -top-12 right-0 z-40 p-2 rounded-lg hover:bg-white/10 transition-colors"
+              aria-label="Close"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <SignUp
+              routing="hash"
+              forceRedirectUrl="/loading"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <video
         ref={videoRef}
@@ -121,8 +163,6 @@ export default function LoadingPage() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         }}
       />
-
-      <WaitlistModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   )
 }
