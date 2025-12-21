@@ -79,10 +79,19 @@ export function TechMarquee() {
   useEffect(() => {
     if (!mounted) return
 
+    // Load Twitter widget script
     const script = document.createElement("script")
     script.src = "https://platform.twitter.com/widgets.js"
     script.async = true
     script.charset = "utf-8"
+
+    script.onload = () => {
+      // Force Twitter to render widgets with dark theme
+      if ((window as unknown as { twttr?: { widgets?: { load: () => void } } }).twttr?.widgets) {
+        (window as unknown as { twttr: { widgets: { load: () => void } } }).twttr.widgets.load()
+      }
+    }
+
     document.body.appendChild(script)
 
     return () => {

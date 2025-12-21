@@ -1,26 +1,15 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type EncryptedTextProps = {
   text: string;
   className?: string;
-  /**
-   * Time in milliseconds between revealing each subsequent real character.
-   * Lower is faster. Defaults to 50ms per character.
-   */
   revealDelayMs?: number;
-  /** Optional custom character set to use for the gibberish effect. */
   charset?: string;
-  /**
-   * Time in milliseconds between gibberish flips for unrevealed characters.
-   * Lower is more jittery. Defaults to 50ms.
-   */
   flipDelayMs?: number;
-  /** CSS class for styling the encrypted/scrambled characters */
   encryptedClassName?: string;
-  /** CSS class for styling the revealed characters */
   revealedClassName?: string;
 };
 
@@ -28,21 +17,7 @@ const DEFAULT_CHARSET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-={}[];:,.<>/?";
 
 function generateRandomCharacter(charset: string): string {
-  const index = Math.floor(Math.random() * charset.length);
-  return charset.charAt(index);
-}
-
-function generateGibberishPreservingSpaces(
-  original: string,
-  charset: string,
-): string {
-  if (!original) return "";
-  let result = "";
-  for (let i = 0; i < original.length; i += 1) {
-    const ch = original[i];
-    result += ch === " " ? " " : generateRandomCharacter(charset);
-  }
-  return result;
+  return charset.charAt(Math.floor(Math.random() * charset.length));
 }
 
 export const EncryptedText: React.FC<EncryptedTextProps> = ({
@@ -55,76 +30,89 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
   revealedClassName,
 }) => {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
-
-  const [revealCount, setRevealCount] = useState<number>(0);
-  const animationFrameRef = useRef<number | null>(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
+  const [isMounted, setIsMounted] = useState(false);
+  const [revealCount, setRevealCount] = useState(0);
+  const [scrambleChars, setScrambleChars] = useState<string[]>([]);
+  const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
-  const lastFlipTimeRef = useRef<number>(0);
-  const scrambleCharsRef = useRef<string[]>(
-    text ? generateGibberishPreservingSpaces(text, charset).split("") : [],
-  );
 
+  // Generate initial scramble
+  const generateScramble = useCallback(() => {
+    return text.split("").map((ch) =>
+      ch === " " ? " " : generateRandomCharacter(charset)
+    );
+  }, [text, charset]);
+
+  // Initialize on mount
   useEffect(() => {
-    if (!isInView) return;
+    setIsMounted(true);
+  }, []);
 
-    // Reset state for a fresh animation whenever dependencies change
-    const initial = text
-      ? generateGibberishPreservingSpaces(text, charset)
-      : "";
-    scrambleCharsRef.current = initial.split("");
-    startTimeRef.current = performance.now();
-    lastFlipTimeRef.current = startTimeRef.current;
+  // Handle animation
+  useEffect(() => {
+    if (!isMounted || !isInView) {
+      // Reset when out of view
+      if (!isInView && revealCount > 0) {
+        setRevealCount(0);
+        setScrambleChars(generateScramble());
+      }
+      return;
+    }
+
+    // Start fresh animation
     setRevealCount(0);
+    setScrambleChars(generateScramble());
+    startTimeRef.current = performance.now();
 
-    let isCancelled = false;
+    let lastFlipTime = performance.now();
 
-    const update = (now: number) => {
-      if (isCancelled) return;
-
-      const elapsedMs = now - startTimeRef.current;
-      const totalLength = text.length;
-      const currentRevealCount = Math.min(
-        totalLength,
-        Math.floor(elapsedMs / Math.max(1, revealDelayMs)),
+    const animate = (now: number) => {
+      const elapsed = now - startTimeRef.current;
+      const newRevealCount = Math.min(
+        text.length,
+        Math.floor(elapsed / revealDelayMs)
       );
 
-      setRevealCount(currentRevealCount);
+      setRevealCount(newRevealCount);
 
-      if (currentRevealCount >= totalLength) {
-        return;
-      }
-
-      // Re-randomize unrevealed scramble characters on an interval
-      const timeSinceLastFlip = now - lastFlipTimeRef.current;
-      if (timeSinceLastFlip >= Math.max(0, flipDelayMs)) {
-        for (let index = 0; index < totalLength; index += 1) {
-          if (index >= currentRevealCount) {
-            if (text[index] !== " ") {
-              scrambleCharsRef.current[index] =
-                generateRandomCharacter(charset);
-            } else {
-              scrambleCharsRef.current[index] = " ";
+      // Flip unrevealed characters
+      if (now - lastFlipTime >= flipDelayMs) {
+        setScrambleChars((prev) =>
+          prev.map((ch, i) => {
+            if (i >= newRevealCount && text[i] !== " ") {
+              return generateRandomCharacter(charset);
             }
-          }
-        }
-        lastFlipTimeRef.current = now;
+            return ch;
+          })
+        );
+        lastFlipTime = now;
       }
 
-      animationFrameRef.current = requestAnimationFrame(update);
+      if (newRevealCount < text.length) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
     };
 
-    animationFrameRef.current = requestAnimationFrame(update);
+    animationRef.current = requestAnimationFrame(animate);
 
     return () => {
-      isCancelled = true;
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isInView, text, revealDelayMs, charset, flipDelayMs]);
+  }, [isMounted, isInView, text, revealDelayMs, flipDelayMs, charset, generateScramble]);
 
   if (!text) return null;
+
+  // Server render: plain text
+  if (!isMounted) {
+    return (
+      <span ref={ref} className={cn(className, revealedClassName)}>
+        {text}
+      </span>
+    );
+  }
 
   return (
     <motion.span
@@ -139,8 +127,7 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
           ? char
           : char === " "
             ? " "
-            : (scrambleCharsRef.current[index] ??
-              generateRandomCharacter(charset));
+            : (scrambleChars[index] || generateRandomCharacter(charset));
 
         return (
           <span
