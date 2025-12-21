@@ -211,7 +211,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                         <p className="font-mono text-xs text-red-400 text-center mb-4">{error}</p>
                       )}
 
-                      {/* Clerk SignUp on production with OAuth (Google, X) */}
+                      {/* Clerk SignUp on production with OAuth (Google, X, Apple) */}
                       {isClerkEnabled ? (
                         <div className="w-full flex justify-center clerk-signup-container">
                           <style jsx global>{`
@@ -232,10 +232,6 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                             .clerk-signup-container .cl-identityPreviewEditButton,
                             .clerk-signup-container .cl-formResendCodeLink { color: #b55200 !important; }
                             .clerk-signup-container .cl-footer { display: none !important; }
-                            /* Hide the broken Apple OAuth button with cancel icon */
-                            .clerk-signup-container .cl-socialButtonsBlockButton[data-provider="apple"] { display: none !important; }
-                            /* Also hide via aria-label fallback */
-                            .clerk-signup-container .cl-socialButtonsBlockButton[aria-label*="Apple"] { display: none !important; }
                             /* Style the internal card content */
                             .clerk-signup-container .cl-internal-b3fm6y { background: transparent !important; }
                           `}</style>
