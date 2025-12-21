@@ -6,6 +6,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Waitlist } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
+import { NoiseBackground } from "@/components/ui/noise-background"
 
 // Check if Clerk is available on this domain
 function useIsClerkEnabled() {
@@ -133,7 +134,7 @@ export default function LoadingPage() {
               onClick={() => setShowSignUp(false)}
             />
 
-            {/* Modal container with animated border */}
+            {/* Modal container with noise background */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -142,23 +143,21 @@ export default function LoadingPage() {
               className="fixed inset-0 z-[200] flex items-center justify-center p-4"
               onClick={() => setShowSignUp(false)}
             >
-              {/* Animated border wrapper */}
-              <div
-                className="relative rounded-2xl p-[2px] overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
+              <NoiseBackground
+                containerClassName="rounded-2xl"
+                gradientColors={[
+                  "rgb(181, 82, 0)",
+                  "rgb(255, 140, 0)",
+                  "rgb(181, 82, 0)",
+                ]}
+                noiseIntensity={0.12}
+                speed={0.08}
               >
-                {/* Animated gradient border */}
-                <span
-                  className="absolute inset-[-200%]"
-                  style={{
-                    animation: "spin 4s linear infinite",
-                    background:
-                      "conic-gradient(from 90deg at 50% 50%, #b55200 0%, #ff8c00 25%, #b55200 50%, #ff8c00 75%, #b55200 100%)",
-                  }}
-                />
-
                 {/* Inner content container */}
-                <div className="relative rounded-2xl bg-[#1a1625] overflow-hidden clerk-waitlist-wrapper">
+                <div
+                  className="rounded-xl bg-[#1a1625] overflow-hidden clerk-waitlist-wrapper"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {/* CSS to override Clerk fonts to mono */}
                   <style jsx global>{`
                     .clerk-waitlist-wrapper .cl-rootBox,
@@ -193,7 +192,7 @@ export default function LoadingPage() {
                     </div>
                   )}
                 </div>
-              </div>
+              </NoiseBackground>
             </motion.div>
           </>
         )}
