@@ -194,7 +194,7 @@ export default function LoadingPage() {
                     }
                   `}</style>
                   {isClerkEnabled ? (
-                    <Waitlist afterJoinWaitlistUrl="/" />
+                    <Waitlist />
                   ) : (
                     /* Fallback for preview/non-production URLs */
                     <div className="p-8 text-center">
