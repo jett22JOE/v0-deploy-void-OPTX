@@ -8,7 +8,7 @@ import Image from "next/image"
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient"
 import { useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
-import { SignUpButton, useUser } from "@clerk/nextjs"
+import { SignUpButton, useAuth } from "@clerk/nextjs"
 
 interface WaitlistModalProps {
   isOpen: boolean
@@ -28,11 +28,34 @@ function useIsClerkEnabled() {
   return isEnabled
 }
 
+// Safe hook to get Clerk auth state - returns false when Clerk is not available
+function useSafeClerkAuth(isClerkEnabled: boolean) {
+  const [isSignedIn, setIsSignedIn] = useState(false)
+
+  // Only try to use Clerk auth when enabled (client-side only)
+  let clerkAuth: { isSignedIn: boolean | undefined; userId: string | null | undefined } = { isSignedIn: undefined, userId: undefined }
+  try {
+    // This will throw during SSG, so we catch it
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    clerkAuth = useAuth()
+  } catch {
+    // Clerk not available (SSG or non-production)
+  }
+
+  useEffect(() => {
+    if (isClerkEnabled && clerkAuth.isSignedIn) {
+      setIsSignedIn(true)
+    }
+  }, [isClerkEnabled, clerkAuth.isSignedIn])
+
+  return { isSignedIn: isClerkEnabled && isSignedIn }
+}
+
 export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
   const [step, setStep] = useState<Step>("auth")
   const [error, setError] = useState<string | null>(null)
   const isClerkEnabled = useIsClerkEnabled()
-  const { user, isSignedIn } = useUser()
+  const { isSignedIn } = useSafeClerkAuth(isClerkEnabled)
 
   // Fallback email form state for localhost
   const [email, setEmail] = useState("")
@@ -75,12 +98,8 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
     if (isOpen && isSignedIn && step === "auth" && isClerkEnabled) {
       // User just signed in, move to waitlist step
       setStep("waitlist")
-      // Pre-fill email from Clerk user
-      if (user?.primaryEmailAddress?.emailAddress) {
-        setEmail(user.primaryEmailAddress.emailAddress)
-      }
     }
-  }, [isOpen, isSignedIn, step, user, isClerkEnabled])
+  }, [isOpen, isSignedIn, step, isClerkEnabled])
 
   // Handle waitlist submission (both production and localhost)
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
