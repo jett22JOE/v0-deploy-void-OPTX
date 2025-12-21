@@ -130,12 +130,12 @@ export function TechMarquee() {
           {mounted && (
             <blockquote className="twitter-tweet" data-theme="dark">
               <p lang="en" dir="ltr">
-                Email Waitlist coming coon!{" "}
+                Email Waitlist is Live!{" "}
                 <a href="https://twitter.com/search?q=%24OPTX&amp;src=ctag&amp;ref_src=twsrc%5Etfw">$OPTX</a>{" "}
-                <a href="https://t.co/OYbaplvLiO">pic.twitter.com/OYbaplvLiO</a>
+                <a href="https://t.co/a6FEG0OFEf">pic.twitter.com/a6FEG0OFEf</a>
               </p>
               &mdash; Jett Optics (@jettoptx){" "}
-              <a href="https://twitter.com/jettoptx/status/1997753289551892917?ref_src=twsrc%5Etfw">December 7, 2025</a>
+              <a href="https://twitter.com/jettoptx/status/2002594926337618391?ref_src=twsrc%5Etfw">December 21, 2025</a>
             </blockquote>
           )}
         </div>
