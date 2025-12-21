@@ -34,27 +34,27 @@ export const NoiseBackground = ({
         } as React.CSSProperties
       }
     >
-      {/* Animated gradient border - works on all devices */}
-      <motion.div
+      {/* Static gradient border */}
+      <div
         className="absolute inset-0"
         style={{
-          background: `conic-gradient(from 0deg at 50% 50%, ${gradientColors[0]}, ${gradientColors[1]}, ${gradientColors[2]}, ${gradientColors[0]})`,
-        }}
-        animate={{
-          rotate: [0, 360],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "linear",
+          background: `linear-gradient(135deg, ${gradientColors[0]}, ${gradientColors[1]}, ${gradientColors[0]})`,
         }}
       />
 
-      {/* Glow effect */}
-      <div
-        className="absolute inset-0 opacity-60 blur-md"
+      {/* Pulsing glow effect - smooth animation */}
+      <motion.div
+        className="absolute inset-0 blur-md"
         style={{
-          background: `conic-gradient(from 0deg at 50% 50%, ${gradientColors[0]}, ${gradientColors[1]}, ${gradientColors[2]}, ${gradientColors[0]})`,
+          background: `linear-gradient(135deg, ${gradientColors[0]}, ${gradientColors[1]}, ${gradientColors[0]})`,
+        }}
+        animate={{
+          opacity: [0.4, 0.7, 0.4],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut",
         }}
       />
 

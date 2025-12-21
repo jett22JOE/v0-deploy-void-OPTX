@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Waitlist } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
@@ -24,6 +25,7 @@ export default function LoadingPage() {
   const [showSignUp, setShowSignUp] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isClerkEnabled = useIsClerkEnabled()
+  const router = useRouter()
 
   useEffect(() => {
     // Show button after a delay or when video has played
@@ -33,6 +35,15 @@ export default function LoadingPage() {
 
     return () => clearTimeout(timer)
   }, [])
+
+  // Handle successful waitlist submission
+  const handleSuccess = useCallback(() => {
+    localStorage.setItem('waitlist_joined', 'true')
+    // Redirect to home after short delay
+    setTimeout(() => {
+      router.push('/')
+    }, 1500)
+  }, [router])
 
   // Fix autocapitalize on mobile for email inputs and detect successful waitlist submission
   useEffect(() => {
@@ -51,15 +62,31 @@ export default function LoadingPage() {
       const detectSuccess = () => {
         const wrapper = document.querySelector('.clerk-waitlist-wrapper')
         if (wrapper) {
-          // Look for success indicators in the Clerk component
           const successText = wrapper.textContent?.toLowerCase() || ''
+          // Check for common success indicators from Clerk
           if (successText.includes("you're on the list") ||
-              successText.includes("waitlist") && successText.includes("joined") ||
+              successText.includes("check your email") ||
               successText.includes("thank you") ||
-              successText.includes("we'll be in touch")) {
-            localStorage.setItem('waitlist_joined', 'true')
+              successText.includes("we'll be in touch") ||
+              successText.includes("successfully joined")) {
+            handleSuccess()
+            return true
           }
         }
+        return false
+      }
+
+      // Use MutationObserver for more reliable detection
+      const wrapper = document.querySelector('.clerk-waitlist-wrapper')
+      let observer: MutationObserver | null = null
+
+      if (wrapper) {
+        observer = new MutationObserver(() => {
+          if (detectSuccess()) {
+            observer?.disconnect()
+          }
+        })
+        observer.observe(wrapper, { childList: true, subtree: true, characterData: true })
       }
 
       // Run immediately and after delays (for Clerk's async rendering)
@@ -67,16 +94,21 @@ export default function LoadingPage() {
       const timer = setTimeout(fixAutocapitalize, 500)
       const timer2 = setTimeout(fixAutocapitalize, 1000)
 
-      // Check for success state periodically while modal is open
-      const successCheckInterval = setInterval(detectSuccess, 500)
+      // Also check periodically as backup
+      const successCheckInterval = setInterval(() => {
+        if (detectSuccess()) {
+          clearInterval(successCheckInterval)
+        }
+      }, 1000)
 
       return () => {
         clearTimeout(timer)
         clearTimeout(timer2)
         clearInterval(successCheckInterval)
+        observer?.disconnect()
       }
     }
-  }, [showSignUp])
+  }, [showSignUp, handleSuccess])
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
@@ -222,19 +254,17 @@ export default function LoadingPage() {
                     .clerk-waitlist-wrapper .cl-headerSubtitle {
                       letter-spacing: 0.02em !important;
                     }
-                    .clerk-waitlist-wrapper .cl-formFieldInput::placeholder {
-                      content: "Email address" !important;
-                    }
-                    .clerk-waitlist-wrapper input[placeholder]::placeholder {
-                      font-size: 14px !important;
-                    }
-                    /* Disable auto-capitalize for email input */
+                    /* Smaller input text */
                     .clerk-waitlist-wrapper .cl-formFieldInput,
                     .clerk-waitlist-wrapper input[type="email"],
                     .clerk-waitlist-wrapper input {
+                      font-size: 13px !important;
                       text-transform: none !important;
-                      autocapitalize: off !important;
                       -webkit-text-transform: none !important;
+                    }
+                    .clerk-waitlist-wrapper .cl-formFieldInput::placeholder,
+                    .clerk-waitlist-wrapper input::placeholder {
+                      font-size: 13px !important;
                     }
                   `}</style>
                   {isClerkEnabled ? (
