@@ -162,7 +162,7 @@ export function Works() {
         >
           <p className="font-mono text-xs tracking-[0.3em] mb-4 text-accent">01 — Spatial Encryption </p>
           <h2 className="font-sans text-3xl md:text-5xl font-light italic">
-            <MatrixText text="How Web3 will Spatially Handshake with Computer Vision" speed={30} />
+            <MatrixText text="Evolutionary Web3 Optics for Artificial Spaces" speed={30} />
           </h2>
         </motion.div>
 

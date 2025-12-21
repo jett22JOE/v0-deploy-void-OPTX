@@ -30,7 +30,7 @@ const concepts = [
   "EMO",
   "ENV",
   "MCP",
-  "KNOT",
+  "E2E",
 ]
 
 function MarqueeRow({ items, direction = "left" }: { items: string[]; direction?: "left" | "right" }) {
