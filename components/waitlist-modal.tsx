@@ -8,14 +8,14 @@ import Image from "next/image"
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient"
 import { useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
-import { SignUp } from "@clerk/nextjs"
+import { SignUpButton, useUser } from "@clerk/nextjs"
 
 interface WaitlistModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-type Step = "signup" | "success"
+type Step = "auth" | "waitlist" | "success"
 
 // Check if we're on production domain where Clerk is enabled
 function useIsClerkEnabled() {
@@ -29,9 +29,10 @@ function useIsClerkEnabled() {
 }
 
 export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
-  const [step, setStep] = useState<Step>("signup")
+  const [step, setStep] = useState<Step>("auth")
   const [error, setError] = useState<string | null>(null)
   const isClerkEnabled = useIsClerkEnabled()
+  const { user, isSignedIn } = useUser()
 
   // Fallback email form state for localhost
   const [email, setEmail] = useState("")
@@ -63,14 +64,26 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setStep("signup")
+      setStep("auth")
       setError(null)
       setEmail("")
     }
   }, [isOpen])
 
-  // Fallback email submit for localhost
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  // When user signs in via Clerk, move to waitlist step
+  useEffect(() => {
+    if (isOpen && isSignedIn && step === "auth" && isClerkEnabled) {
+      // User just signed in, move to waitlist step
+      setStep("waitlist")
+      // Pre-fill email from Clerk user
+      if (user?.primaryEmailAddress?.emailAddress) {
+        setEmail(user.primaryEmailAddress.emailAddress)
+      }
+    }
+  }, [isOpen, isSignedIn, step, user, isClerkEnabled])
+
+  // Handle waitlist submission (both production and localhost)
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
@@ -78,7 +91,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
     try {
       await addToWaitlistSimple({
         email,
-        source: "waitlist-modal",
+        source: isClerkEnabled ? "clerk-oauth" : "waitlist-modal",
       })
       setStep("success")
     } catch (err) {
@@ -89,6 +102,18 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
       }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Get tagline based on step
+  const getTagline = () => {
+    switch (step) {
+      case "auth":
+        return "Create Your Account"
+      case "waitlist":
+        return "Join the Waitlist"
+      case "success":
+        return "Welcome to the Future"
     }
   }
 
@@ -179,14 +204,14 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
 
                   {/* Tagline */}
                   <p className="font-mono text-xs tracking-wider text-muted-foreground">
-                    {step === "signup" && "Join the Waitlist"}
-                    {step === "success" && "Welcome to the Future"}
+                    {getTagline()}
                   </p>
                 </div>
 
                 {/* Content */}
                 <div className="relative px-6 py-6">
-                  {step === "signup" && (
+                  {/* Step 1: Auth (Clerk SignUp button on production, email form on localhost) */}
+                  {step === "auth" && (
                     <>
                       {/* Value proposition */}
                       <div className="mb-6 space-y-3">
@@ -211,58 +236,27 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                         <p className="font-mono text-xs text-red-400 text-center mb-4">{error}</p>
                       )}
 
-                      {/* Clerk SignUp on production with OAuth (Google, X, Apple) */}
+                      {/* Production: Clerk SignUpButton opens native modal */}
                       {isClerkEnabled ? (
-                        <div className="w-full flex justify-center clerk-signup-container">
-                          <style jsx global>{`
-                            .clerk-signup-container .cl-rootBox { width: 100%; }
-                            .clerk-signup-container .cl-card { background: transparent !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
-                            .clerk-signup-container .cl-headerTitle,
-                            .clerk-signup-container .cl-headerSubtitle { display: none !important; }
-                            .clerk-signup-container .cl-socialButtonsBlockButton { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
-                            .clerk-signup-container .cl-socialButtonsBlockButton:hover { background: rgba(255,255,255,0.1) !important; }
-                            .clerk-signup-container .cl-dividerLine { background: rgba(255,255,255,0.1) !important; }
-                            .clerk-signup-container .cl-dividerText { color: #a1a1aa !important; }
-                            .clerk-signup-container .cl-formButtonPrimary { background: #b55200 !important; }
-                            .clerk-signup-container .cl-formButtonPrimary:hover { background: rgba(181,82,0,0.9) !important; }
-                            .clerk-signup-container .cl-formFieldInput { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
-                            .clerk-signup-container .cl-formFieldLabel { color: #a1a1aa !important; }
-                            .clerk-signup-container .cl-footerActionLink { color: #b55200 !important; }
-                            .clerk-signup-container .cl-footerActionLink:hover { color: rgba(181,82,0,0.8) !important; }
-                            .clerk-signup-container .cl-identityPreviewEditButton,
-                            .clerk-signup-container .cl-formResendCodeLink { color: #b55200 !important; }
-                            .clerk-signup-container .cl-footer { display: none !important; }
-                            /* Style the internal card content */
-                            .clerk-signup-container .cl-internal-b3fm6y { background: transparent !important; }
-                            /* Hide broken Apple OAuth button until properly configured */
-                            .clerk-signup-container .cl-socialButtonsBlockButton:nth-child(2) { display: none !important; }
-                          `}</style>
-                          <SignUp
-                            appearance={{
-                              elements: {
-                                rootBox: "w-full",
-                                card: "bg-transparent shadow-none border-none p-0",
-                                headerTitle: "hidden",
-                                headerSubtitle: "hidden",
-                                socialButtonsBlockButton: "bg-white/5 border-white/10 text-white hover:bg-white/10",
-                                dividerLine: "bg-white/10",
-                                dividerText: "text-muted-foreground",
-                                formButtonPrimary: "bg-accent hover:bg-accent/90",
-                                formFieldInput: "bg-white/5 border-white/10 text-white",
-                                formFieldLabel: "text-muted-foreground",
-                                footerActionLink: "text-accent hover:text-accent/80",
-                                identityPreviewEditButton: "text-accent",
-                                formResendCodeLink: "text-accent",
-                                footer: "hidden",
-                              },
-                            }}
-                            forceRedirectUrl={typeof window !== 'undefined' ? window.location.href : '/loading'}
-                          />
+                        <div className="space-y-4">
+                          <SignUpButton mode="modal">
+                            <HoverBorderGradient
+                              as="button"
+                              containerClassName="w-full rounded-lg"
+                              className="w-full px-4 py-3 bg-[#0a0a0a] rounded-lg font-mono text-xs tracking-wider uppercase text-white"
+                              duration={0.8}
+                            >
+                              Sign Up with Google, X, or Apple
+                            </HoverBorderGradient>
+                          </SignUpButton>
+                          <p className="font-mono text-[10px] text-center text-muted-foreground/60">
+                            After signing up, you&apos;ll be added to the waitlist
+                          </p>
                         </div>
                       ) : (
-                        /* Fallback email form for localhost */
+                        /* Localhost: Direct email form to waitlist */
                         <div className="space-y-4">
-                          <form onSubmit={handleEmailSubmit} className="space-y-4">
+                          <form onSubmit={handleWaitlistSubmit} className="space-y-4">
                             <div>
                               <label htmlFor="email" className="block font-mono text-xs text-muted-foreground mb-2">
                                 Email Address
@@ -300,8 +294,69 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                     </>
                   )}
 
+                  {/* Step 2: Waitlist form after Clerk auth (production only) */}
+                  {step === "waitlist" && (
+                    <div className="space-y-4">
+                      <div className="text-center mb-4">
+                        <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-accent/20 flex items-center justify-center">
+                          <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-accent"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </div>
+                        <p className="font-mono text-xs text-muted-foreground">
+                          Account created! Now join our waitlist.
+                        </p>
+                      </div>
+
+                      {error && (
+                        <p className="font-mono text-xs text-red-400 text-center mb-4">{error}</p>
+                      )}
+
+                      <form onSubmit={handleWaitlistSubmit} className="space-y-4">
+                        <div>
+                          <label htmlFor="waitlist-email" className="block font-mono text-xs text-muted-foreground mb-2">
+                            Confirm Email for Waitlist
+                          </label>
+                          <input
+                            type="email"
+                            id="waitlist-email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            disabled={isLoading}
+                            placeholder="your@email.com"
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg
+                              font-mono text-sm text-white placeholder:text-muted-foreground
+                              focus:outline-none focus:border-accent/50 transition-colors
+                              disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
+                        </div>
+                        <HoverBorderGradient
+                          as="button"
+                          type="submit"
+                          disabled={isLoading}
+                          containerClassName="w-full rounded-lg"
+                          className="w-full px-4 py-3 bg-[#0a0a0a] rounded-lg font-mono text-xs tracking-wider uppercase text-white disabled:opacity-50"
+                          duration={0.8}
+                        >
+                          {isLoading ? "Joining..." : "Join Waitlist"}
+                        </HoverBorderGradient>
+                      </form>
+                    </div>
+                  )}
+
+                  {/* Step 3: Success */}
                   {step === "success" && (
-                    /* Success confirmation */
                     <div className="text-center py-6">
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
                         <svg
@@ -320,7 +375,9 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                       </div>
                       <h3 className="font-sans text-xl text-white mb-2">You&apos;re all set!</h3>
                       <p className="font-mono text-xs text-muted-foreground mb-4">
-                        Your account is created and you&apos;re on the waitlist.
+                        {isClerkEnabled
+                          ? "Your account is created and you're on the waitlist."
+                          : "You're on the waitlist. We'll be in touch!"}
                       </p>
                       <button
                         onClick={onClose}
@@ -333,7 +390,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                 </div>
 
                 {/* Footer */}
-                {step === "signup" && (
+                {(step === "auth" || step === "waitlist") && (
                   <div className="relative px-6 pb-6 text-center">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground/60">
                       By joining, you agree to receive updates about <span className="text-accent">JOE</span> AI spatial

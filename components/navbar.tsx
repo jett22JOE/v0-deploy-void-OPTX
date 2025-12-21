@@ -179,8 +179,8 @@ export function Navbar() {
                     backdropFilter: "blur(16px)",
                     WebkitBackdropFilter: "blur(16px)",
                     background: isLogoHovered
-                      ? "radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 0%, rgba(255, 255, 255, 1) 100%)"
-                      : "radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 37%, rgba(255, 255, 255, 1) 100%)",
+                      ? "radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 4%, rgba(255, 255, 255, 1) 100%)"
+                      : "radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 8%, rgba(255, 255, 255, 1) 100%)",
                   }}
                 >
                   {/* Logo */}
