@@ -12,7 +12,7 @@ export function ClerkProviderWrapper({ children }: { children: React.ReactNode }
   useEffect(() => {
     setMounted(true)
     const hostname = window.location.hostname
-    const isProduction = hostname === "jettoptics.ai" || hostname.endsWith(".jettoptics.ai")
+    const isProduction = hostname === "jettoptics.ai" || hostname.endsWith(".jettoptics.ai") || hostname === "localhost"
     setIsProductionDomain(isProduction)
   }, [])
 
