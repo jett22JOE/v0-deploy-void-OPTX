@@ -7,10 +7,22 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Waitlist } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 
+// Check if Clerk is available on this domain
+function useIsClerkEnabled() {
+  const [isEnabled, setIsEnabled] = useState(false)
+  useEffect(() => {
+    const hostname = window.location.hostname
+    const isClerkDomain = hostname === "jettoptics.ai" || hostname.endsWith(".jettoptics.ai") || hostname === "localhost"
+    setIsEnabled(isClerkDomain)
+  }, [])
+  return isEnabled
+}
+
 export default function LoadingPage() {
   const [showButton, setShowButton] = useState(false)
   const [showSignUp, setShowSignUp] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const isClerkEnabled = useIsClerkEnabled()
 
   useEffect(() => {
     // Show button after a delay or when video has played
@@ -169,7 +181,17 @@ export default function LoadingPage() {
                       letter-spacing: 0.02em !important;
                     }
                   `}</style>
-                  <Waitlist afterJoinWaitlistUrl="/" />
+                  {isClerkEnabled ? (
+                    <Waitlist afterJoinWaitlistUrl="/" />
+                  ) : (
+                    /* Fallback for preview/non-production URLs */
+                    <div className="p-8 text-center">
+                      <p className="font-mono text-sm text-white mb-2">Waitlist Preview</p>
+                      <p className="font-mono text-xs text-white/60">
+                        Visit <span className="text-accent">jettoptics.ai</span> to join the waitlist
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
