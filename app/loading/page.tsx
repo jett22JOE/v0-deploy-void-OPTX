@@ -34,7 +34,7 @@ export default function LoadingPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Fix autocapitalize on mobile for email inputs
+  // Fix autocapitalize on mobile for email inputs and detect successful waitlist submission
   useEffect(() => {
     if (showSignUp) {
       const fixAutocapitalize = () => {
@@ -46,13 +46,34 @@ export default function LoadingPage() {
           input.setAttribute('inputmode', 'email')
         })
       }
-      // Run immediately and after a delay (for Clerk's async rendering)
+
+      // Detect when Clerk shows success state (user submitted email)
+      const detectSuccess = () => {
+        const wrapper = document.querySelector('.clerk-waitlist-wrapper')
+        if (wrapper) {
+          // Look for success indicators in the Clerk component
+          const successText = wrapper.textContent?.toLowerCase() || ''
+          if (successText.includes("you're on the list") ||
+              successText.includes("waitlist") && successText.includes("joined") ||
+              successText.includes("thank you") ||
+              successText.includes("we'll be in touch")) {
+            localStorage.setItem('waitlist_joined', 'true')
+          }
+        }
+      }
+
+      // Run immediately and after delays (for Clerk's async rendering)
       fixAutocapitalize()
       const timer = setTimeout(fixAutocapitalize, 500)
       const timer2 = setTimeout(fixAutocapitalize, 1000)
+
+      // Check for success state periodically while modal is open
+      const successCheckInterval = setInterval(detectSuccess, 500)
+
       return () => {
         clearTimeout(timer)
         clearTimeout(timer2)
+        clearInterval(successCheckInterval)
       }
     }
   }, [showSignUp])

@@ -1,17 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, Check } from "lucide-react"
 import { MatrixText } from "./matrix-text"
 import { useRouter } from "next/navigation"
 
 export function WaitlistButton() {
   const [isHovered, setIsHovered] = useState(false)
+  const [hasJoinedWaitlist, setHasJoinedWaitlist] = useState(false)
   const router = useRouter()
 
+  useEffect(() => {
+    const joined = localStorage.getItem("waitlist_joined") === "true"
+    setHasJoinedWaitlist(joined)
+  }, [])
+
   const handleClick = () => {
-    router.push("/loading")
+    if (!hasJoinedWaitlist) {
+      router.push("/loading")
+    }
   }
 
   return (
@@ -35,13 +43,17 @@ export function WaitlistButton() {
             animate={{ color: isHovered ? "#050505" : "#fafafa" }}
             transition={{ duration: 0.3 }}
           >
-            <MatrixText text="Join Waitlist" speed={40} />
+            <MatrixText text={hasJoinedWaitlist ? "You're On The List" : "Join Waitlist"} speed={40} />
           </motion.h2>
           <motion.div
             animate={{ rotate: isHovered ? 45 : 0, color: isHovered ? "#050505" : "#fafafa" }}
             transition={{ duration: 0.3 }}
           >
-            <ArrowUpRight className="w-12 h-12 md:w-16 md:h-16" />
+            {hasJoinedWaitlist ? (
+              <Check className="w-12 h-12 md:w-16 md:h-16" />
+            ) : (
+              <ArrowUpRight className="w-12 h-12 md:w-16 md:h-16" />
+            )}
           </motion.div>
         </div>
       </div>
