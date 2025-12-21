@@ -107,39 +107,73 @@ export default function LoadingPage() {
         </div>
       )}
 
-      {/* Clerk SignUp - Shades of Purple theme with orange accent */}
+      {/* Clerk Waitlist Modal with animated border */}
       <AnimatePresence>
         {showSignUp && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="absolute z-30 flex items-center justify-center"
-          >
-            {/* Close button */}
-            <button
+          <>
+            {/* Backdrop - click to close */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[199] bg-black/60 backdrop-blur-sm"
               onClick={() => setShowSignUp(false)}
-              className="absolute -top-12 right-0 z-40 p-2 rounded-lg hover:bg-white/10 transition-colors"
-              aria-label="Close"
+            />
+
+            {/* Modal container with animated border */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+              onClick={() => setShowSignUp(false)}
             >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white/60 hover:text-white transition-colors"
+              {/* Animated border wrapper */}
+              <div
+                className="relative rounded-2xl p-[2px] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
               >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-            <Waitlist afterJoinWaitlistUrl="/" />
-          </motion.div>
+                {/* Animated gradient border */}
+                <span
+                  className="absolute inset-[-200%]"
+                  style={{
+                    animation: "spin 4s linear infinite",
+                    background:
+                      "conic-gradient(from 90deg at 50% 50%, #b55200 0%, #ff8c00 25%, #b55200 50%, #ff8c00 75%, #b55200 100%)",
+                  }}
+                />
+
+                {/* Inner content container */}
+                <div className="relative rounded-2xl bg-[#1a1625] overflow-hidden clerk-waitlist-wrapper">
+                  {/* CSS to override Clerk fonts to mono */}
+                  <style jsx global>{`
+                    .clerk-waitlist-wrapper .cl-rootBox,
+                    .clerk-waitlist-wrapper .cl-card,
+                    .clerk-waitlist-wrapper .cl-headerTitle,
+                    .clerk-waitlist-wrapper .cl-headerSubtitle,
+                    .clerk-waitlist-wrapper .cl-formFieldLabel,
+                    .clerk-waitlist-wrapper .cl-formFieldInput,
+                    .clerk-waitlist-wrapper .cl-formButtonPrimary,
+                    .clerk-waitlist-wrapper .cl-footerActionText,
+                    .clerk-waitlist-wrapper .cl-footerActionLink,
+                    .clerk-waitlist-wrapper .cl-internal-b3fm6y,
+                    .clerk-waitlist-wrapper * {
+                      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+                    }
+                    .clerk-waitlist-wrapper .cl-headerTitle {
+                      letter-spacing: 0.05em !important;
+                    }
+                    .clerk-waitlist-wrapper .cl-headerSubtitle {
+                      letter-spacing: 0.02em !important;
+                    }
+                  `}</style>
+                  <Waitlist afterJoinWaitlistUrl="/" />
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
