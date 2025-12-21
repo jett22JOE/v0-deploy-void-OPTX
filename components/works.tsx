@@ -110,7 +110,7 @@ const projects = [
       </>
     ),
     tags: ["pSNN", "TensorFlow.js", "OpenXR", "AGT"],
-    image: "/abstract-memory-storage-visualization.jpg",
+    image: "/images/neuro-apps.jpeg",
     scope: "jOSH", // updated scope to "jOSH"
     description:
       "Next-generation computing applications inspired by the human brain's neural architecture. This initiative explores how neuromorphic chips can process gaze vectors and optical data with unprecedented efficiency, enabling real-time spatial encryption at the edge. Joe_Operating_System_Hedgehog | Agentic Computing.",
