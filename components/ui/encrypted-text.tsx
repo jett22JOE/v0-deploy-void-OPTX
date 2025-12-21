@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type EncryptedTextProps = {
@@ -30,54 +29,82 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
   revealedClassName,
 }) => {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: false, amount: 0.3 });
   const [isMounted, setIsMounted] = useState(false);
+  const [isInView, setIsInView] = useState(false);
   const [revealCount, setRevealCount] = useState(0);
-  const [tick, setTick] = useState(0); // Force re-render for scramble
+  const [scrambleKey, setScrambleKey] = useState(0);
 
+  // Mount check
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Intersection Observer for visibility detection
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !ref.current) return;
 
-    // Reset when scrolling out
-    if (!isInView) {
-      setRevealCount(0);
-      return;
-    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+          } else {
+            setIsInView(false);
+            setRevealCount(0);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
 
-    // Start animation when in view
+    observer.observe(ref.current);
+
+    return () => observer.disconnect();
+  }, [isMounted]);
+
+  // Animation logic
+  useEffect(() => {
+    if (!isMounted || !isInView) return;
+
+    // Reset for fresh animation
+    setRevealCount(0);
     const startTime = performance.now();
-    let lastFlip = startTime;
-    let rafId: number;
+    let lastFlipTime = startTime;
+    let animationId: number;
 
-    const animate = (now: number) => {
-      const elapsed = now - startTime;
-      const revealed = Math.min(text.length, Math.floor(elapsed / revealDelayMs));
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const newRevealCount = Math.min(
+        text.length,
+        Math.floor(elapsed / revealDelayMs)
+      );
 
-      setRevealCount(revealed);
+      setRevealCount(newRevealCount);
 
-      // Flip scramble characters
-      if (now - lastFlip >= flipDelayMs) {
-        setTick(t => t + 1);
-        lastFlip = now;
+      // Update scramble characters periodically
+      if (currentTime - lastFlipTime >= flipDelayMs) {
+        setScrambleKey((k) => k + 1);
+        lastFlipTime = currentTime;
       }
 
-      if (revealed < text.length) {
-        rafId = requestAnimationFrame(animate);
+      // Continue animation if not fully revealed
+      if (newRevealCount < text.length) {
+        animationId = requestAnimationFrame(animate);
       }
     };
 
-    rafId = requestAnimationFrame(animate);
+    animationId = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(rafId);
-  }, [isMounted, isInView, text.length, revealDelayMs, flipDelayMs]);
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, [isMounted, isInView, text, revealDelayMs, flipDelayMs]);
 
   if (!text) return null;
 
-  // Server: render plain text
+  // Server-side render: plain text to avoid hydration mismatch
   if (!isMounted) {
     return (
       <span ref={ref} className={cn(className, revealedClassName)}>
@@ -87,29 +114,29 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
   }
 
   return (
-    <motion.span
-      ref={ref}
-      className={cn(className)}
-      aria-label={text}
-    >
-      {text.split("").map((char, i) => {
-        const revealed = i < revealCount;
-        // Use tick to force new random chars
-        const displayChar = revealed
-          ? char
-          : char === " "
-            ? " "
-            : getRandomChar(charset);
+    <span ref={ref} className={cn(className)} aria-label={text}>
+      {text.split("").map((char, index) => {
+        const isRevealed = index < revealCount;
+
+        let displayChar: string;
+        if (isRevealed) {
+          displayChar = char;
+        } else if (char === " ") {
+          displayChar = " ";
+        } else {
+          // Use scrambleKey to force re-render with new random chars
+          displayChar = getRandomChar(charset);
+        }
 
         return (
           <span
-            key={i}
-            className={cn(revealed ? revealedClassName : encryptedClassName)}
+            key={`${index}-${isRevealed ? "r" : scrambleKey}`}
+            className={cn(isRevealed ? revealedClassName : encryptedClassName)}
           >
             {displayChar}
           </span>
         );
       })}
-    </motion.span>
+    </span>
   );
 };

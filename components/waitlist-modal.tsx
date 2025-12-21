@@ -116,7 +116,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
 
                   {/* Brand label */}
                   <p className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase mb-2">
-                    JOE AI — DEPIN
+                    JOE AI - AUTH
                   </p>
 
                   {/* Title */}
@@ -141,7 +141,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
 
                     {/* Feature pills */}
                     <div className="flex flex-wrap justify-center gap-2">
-                      {["Quantum-Resistant", "DePIN", "Decentralized"].map((feature) => (
+                      {["Quantum-Resistant", "DePIN", "Evolve"].map((feature) => (
                         <span
                           key={feature}
                           className="font-mono text-[10px] tracking-wider px-3 py-1 border border-white/20 rounded-full text-muted-foreground"
