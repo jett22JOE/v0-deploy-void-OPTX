@@ -34,6 +34,29 @@ export default function LoadingPage() {
     return () => clearTimeout(timer)
   }, [])
 
+  // Fix autocapitalize on mobile for email inputs
+  useEffect(() => {
+    if (showSignUp) {
+      const fixAutocapitalize = () => {
+        const inputs = document.querySelectorAll('.clerk-waitlist-wrapper input')
+        inputs.forEach((input) => {
+          input.setAttribute('autocapitalize', 'off')
+          input.setAttribute('autocorrect', 'off')
+          input.setAttribute('spellcheck', 'false')
+          input.setAttribute('inputmode', 'email')
+        })
+      }
+      // Run immediately and after a delay (for Clerk's async rendering)
+      fixAutocapitalize()
+      const timer = setTimeout(fixAutocapitalize, 500)
+      const timer2 = setTimeout(fixAutocapitalize, 1000)
+      return () => {
+        clearTimeout(timer)
+        clearTimeout(timer2)
+      }
+    }
+  }, [showSignUp])
+
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
       <DottedGlowBackground
