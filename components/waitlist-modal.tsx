@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useCallback, useState } from "react"
 import Image from "next/image"
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient"
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 interface WaitlistModalProps {
   isOpen: boolean
@@ -15,6 +17,10 @@ interface WaitlistModalProps {
 export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
   const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const addToWaitlist = useMutation(api.waitlist.addToWaitlist)
 
   // Handle escape key
   const handleKeyDown = useCallback(
@@ -37,10 +43,26 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
     }
   }, [isOpen, handleKeyDown])
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Show success state
-    setSubmitted(true)
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      await addToWaitlist({
+        email,
+        source: "waitlist-modal",
+      })
+      setSubmitted(true)
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("already registered")) {
+        setError("This email is already on the waitlist!")
+      } else {
+        setError("Something went wrong. Please try again.")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -168,20 +190,26 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            disabled={isLoading}
                             placeholder="your@email.com"
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg
                               font-mono text-sm text-white placeholder:text-muted-foreground
-                              focus:outline-none focus:border-accent/50 transition-colors"
+                              focus:outline-none focus:border-accent/50 transition-colors
+                              disabled:opacity-50 disabled:cursor-not-allowed"
                           />
                         </div>
+                        {error && (
+                          <p className="font-mono text-xs text-red-400 text-center">{error}</p>
+                        )}
                         <HoverBorderGradient
                           as="button"
                           type="submit"
+                          disabled={isLoading}
                           containerClassName="w-full rounded-lg"
-                          className="w-full px-4 py-3 bg-[#0a0a0a] rounded-lg font-mono text-xs tracking-wider uppercase text-white"
+                          className="w-full px-4 py-3 bg-[#0a0a0a] rounded-lg font-mono text-xs tracking-wider uppercase text-white disabled:opacity-50"
                           duration={0.8}
                         >
-                          Join Waitlist
+                          {isLoading ? "Joining..." : "Join Waitlist"}
                         </HoverBorderGradient>
                       </form>
                     </div>
