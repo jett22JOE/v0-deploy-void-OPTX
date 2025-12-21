@@ -248,7 +248,7 @@ export function Works() {
                     className="overflow-hidden"
                   >
                     <div className="pt-6 md:pt-8 md:pl-24 max-w-3xl">
-                      <p className="font-sans text-base md:text-lg text-muted-foreground leading-relaxed">
+                      <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed">
                         {project.description}
                       </p>
                     </div>
@@ -316,7 +316,7 @@ export function Works() {
               <MatrixText text="Spatial Security" speed={30} />
             </span>
           </h2>
-          <p className="font-sans text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+          <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed max-w-2xl">
             A collection of cutting-edge projects exploring the intersection of cryptography, computer vision, and
             decentralized systems. Each initiative pushes the boundaries of spatial authentication and optical
             encryption technologies.

@@ -6,7 +6,7 @@ import { MatrixText } from "./matrix-text"
 
 const statements = [
   "Your gaze becomes the key. Your attention becomes value.",
-  "Cognitive. Emotional. Environmental. Three vectors, infinite keys.",
+  "Cognitive. Emotional. Environmental. Three vectors, infinite knots.",
   "Tensors that adapt. Patterns that authenticate. Trust that evolves.",
   "Every interaction is an encryption. Every fixation, proof-of-you.",
   "Quantum-resistant. Hands-free. Inevitable.",

@@ -233,7 +233,7 @@ export default function LoadingPage() {
                   className="rounded-xl bg-[#1a1625] overflow-hidden clerk-waitlist-wrapper"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* CSS to override Clerk fonts to mono and fix placeholder */}
+                  {/* CSS to override Clerk fonts to Geist Mono */}
                   <style jsx global>{`
                     .clerk-waitlist-wrapper .cl-rootBox,
                     .clerk-waitlist-wrapper .cl-card,
@@ -246,7 +246,7 @@ export default function LoadingPage() {
                     .clerk-waitlist-wrapper .cl-footerActionLink,
                     .clerk-waitlist-wrapper .cl-internal-b3fm6y,
                     .clerk-waitlist-wrapper * {
-                      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+                      font-family: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
                     }
                     .clerk-waitlist-wrapper .cl-headerTitle {
                       letter-spacing: 0.05em !important;
