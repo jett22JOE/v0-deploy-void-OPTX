@@ -234,6 +234,11 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                             .clerk-signup-container .cl-footer { display: none !important; }
                             /* Style the internal card content */
                             .clerk-signup-container .cl-internal-b3fm6y { background: transparent !important; }
+                            /* Hide broken Apple OAuth button until properly configured */
+                            .clerk-signup-container .cl-socialButtonsBlockButton:has(svg[aria-label*="apple" i]),
+                            .clerk-signup-container .cl-socialButtonsBlockButton:has(svg[aria-label*="Apple"]),
+                            .clerk-signup-container button[aria-label*="Apple"],
+                            .clerk-signup-container button[aria-label*="apple"] { display: none !important; }
                           `}</style>
                           <SignUp
                             appearance={{
