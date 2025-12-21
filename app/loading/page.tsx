@@ -184,6 +184,14 @@ export default function LoadingPage() {
                     .clerk-waitlist-wrapper input[placeholder]::placeholder {
                       font-size: 14px !important;
                     }
+                    /* Disable auto-capitalize for email input */
+                    .clerk-waitlist-wrapper .cl-formFieldInput,
+                    .clerk-waitlist-wrapper input[type="email"],
+                    .clerk-waitlist-wrapper input {
+                      text-transform: none !important;
+                      autocapitalize: off !important;
+                      -webkit-text-transform: none !important;
+                    }
                   `}</style>
                   {isClerkEnabled ? (
                     <Waitlist afterJoinWaitlistUrl="/" />
