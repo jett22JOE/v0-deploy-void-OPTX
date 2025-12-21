@@ -22,7 +22,8 @@ export function HoverBorderGradient({
     className?: string
     duration?: number
     clockwise?: boolean
-  } & React.HTMLAttributes<HTMLElement>
+  } & React.HTMLAttributes<HTMLElement> &
+    React.ButtonHTMLAttributes<HTMLButtonElement>
 >) {
   const [hovered, setHovered] = useState<boolean>(false)
   const [direction, setDirection] = useState<Direction>("TOP")
@@ -37,13 +38,13 @@ export function HoverBorderGradient({
   }
 
   const movingMap: Record<Direction, string> = {
-    TOP: "radial-gradient(20.7% 50% at 50% 0%, hsl(22, 100%, 36%) 0%, rgba(181, 82, 0, 0) 100%)",
-    LEFT: "radial-gradient(16.6% 43.1% at 0% 50%, hsl(22, 100%, 36%) 0%, rgba(181, 82, 0, 0) 100%)",
-    BOTTOM: "radial-gradient(20.7% 50% at 50% 100%, hsl(22, 100%, 36%) 0%, rgba(181, 82, 0, 0) 100%)",
-    RIGHT: "radial-gradient(16.2% 41.199999999999996% at 100% 50%, hsl(22, 100%, 36%) 0%, rgba(181, 82, 0, 0) 100%)",
+    TOP: "radial-gradient(30% 70% at 50% 0%, hsl(22, 100%, 45%) 0%, rgba(255, 120, 20, 0) 100%)",
+    LEFT: "radial-gradient(25% 60% at 0% 50%, hsl(22, 100%, 45%) 0%, rgba(255, 120, 20, 0) 100%)",
+    BOTTOM: "radial-gradient(30% 70% at 50% 100%, hsl(22, 100%, 45%) 0%, rgba(255, 120, 20, 0) 100%)",
+    RIGHT: "radial-gradient(25% 60% at 100% 50%, hsl(22, 100%, 45%) 0%, rgba(255, 120, 20, 0) 100%)",
   }
 
-  const highlight = "radial-gradient(75% 181.15942028985506% at 50% 50%, #b55200 0%, rgba(181, 82, 0, 0) 100%)"
+  const highlight = "radial-gradient(100% 200% at 50% 50%, #ff6b00 0%, rgba(255, 107, 0, 0) 100%)"
 
   useEffect(() => {
     if (!hovered) {
@@ -70,7 +71,7 @@ export function HoverBorderGradient({
       <motion.div
         className={cn("flex-none inset-0 overflow-hidden absolute z-0 rounded-[inherit]")}
         style={{
-          filter: "blur(2px)",
+          filter: "blur(3px)",
           position: "absolute",
           width: "100%",
           height: "100%",

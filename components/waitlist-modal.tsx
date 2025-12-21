@@ -5,6 +5,7 @@ import type React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useCallback, useState } from "react"
 import Image from "next/image"
+import { HoverBorderGradient } from "@/components/ui/hover-border-gradient"
 
 interface WaitlistModalProps {
   isOpen: boolean
@@ -173,14 +174,15 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                               focus:outline-none focus:border-accent/50 transition-colors"
                           />
                         </div>
-                        <button
+                        <HoverBorderGradient
+                          as="button"
                           type="submit"
-                          className="w-full px-4 py-3 bg-accent hover:bg-accent/80 rounded-lg
-                            font-mono text-xs tracking-wider uppercase text-white
-                            transition-colors duration-300"
+                          containerClassName="w-full rounded-lg"
+                          className="w-full px-4 py-3 bg-[#0a0a0a] rounded-lg font-mono text-xs tracking-wider uppercase text-white"
+                          duration={0.8}
                         >
                           Join Waitlist
-                        </button>
+                        </HoverBorderGradient>
                       </form>
                     </div>
                   ) : (
