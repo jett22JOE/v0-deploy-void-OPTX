@@ -93,33 +93,7 @@ export function Navbar() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4"
       >
-        <nav
-          className={`relative flex items-center justify-between px-4 py-3 md:px-6 md:py-4 rounded-2xl transition-all duration-500 ${
-            isScrolled
-              ? "bg-white/[0.02] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)]"
-              : "bg-transparent"
-          }`}
-          style={{
-            WebkitBackdropFilter: isScrolled ? "blur(40px) saturate(180%)" : "none",
-          }}
-        >
-          {/* Polyglassmorphism gradient overlay */}
-          {isScrolled && (
-            <>
-              {/* Top highlight edge */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-t-2xl" />
-              {/* Subtle color tint layers */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/[0.03] via-transparent to-purple-500/[0.02] pointer-events-none" />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-blue-500/[0.02] via-transparent to-accent/[0.03] pointer-events-none" />
-              {/* Noise texture */}
-              <div
-                className="absolute inset-0 rounded-2xl opacity-[0.015] pointer-events-none"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                }}
-              />
-            </>
-          )}
+        <nav className="relative flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
           {/* Left: DAPP Branding */}
           <a
             href="#"
@@ -144,21 +118,42 @@ export function Navbar() {
             <span className="font-mono text-xs tracking-widest text-muted-foreground">DAPP</span>
           </a>
 
-          {/* Center: Navigation Links (Desktop only, visible inline) */}
-          <ul className="hidden md:flex items-center gap-2">
-            {navLinks.map((link, index) => (
-              <li key={link.label}>
-                <button
-                  onClick={() => scrollToSection(link.href)}
-                  className="group relative font-mono text-xs tracking-wider text-muted-foreground hover:text-foreground transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/[0.05]"
-                >
-                  <span className="text-accent mr-1">0{index + 1}</span>
-                  {link.label.toUpperCase()}
-                  <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-foreground to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </button>
-              </li>
-            ))}
-          </ul>
+          {/* Center: Navigation Links with glass pill (Desktop only) */}
+          <div
+            className={`hidden md:block relative rounded-2xl transition-all duration-500 ${
+              isScrolled
+                ? "backdrop-blur-xl border border-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
+                : "bg-transparent"
+            }`}
+            style={{
+              WebkitBackdropFilter: isScrolled ? "blur(20px) saturate(120%)" : "none",
+              backgroundColor: isScrolled ? "rgba(0, 0, 0, 0.15)" : "transparent",
+            }}
+          >
+            {/* Polyglassmorphism gradient overlay */}
+            {isScrolled && (
+              <>
+                {/* Top highlight edge - subtle */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-t-2xl" />
+                {/* Very subtle color tint */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.02] via-transparent to-white/[0.01] pointer-events-none" />
+              </>
+            )}
+            <ul className="relative flex items-center gap-2 px-2 py-1">
+              {navLinks.map((link, index) => (
+                <li key={link.label}>
+                  <button
+                    onClick={() => scrollToSection(link.href)}
+                    className="group relative font-mono text-xs tracking-wider text-muted-foreground hover:text-foreground transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/[0.05]"
+                  >
+                    <span className="text-accent mr-1">0{index + 1}</span>
+                    {link.label.toUpperCase()}
+                    <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-foreground to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           {/* Right: Logo Button */}
           <div className="relative">
@@ -169,28 +164,33 @@ export function Navbar() {
                 onMouseEnter={() => setIsLogoHovered(true)}
                 onMouseLeave={() => setIsLogoHovered(false)}
                 onMouseMove={handleMouseMove}
-                className="flex items-center gap-3 group relative"
-                style={{ cursor: isLogoHovered ? "none" : "pointer" }}
+                className="flex items-center group relative"
+                style={{
+                  cursor: isLogoHovered ? "none" : "pointer",
+                }}
               >
                 <div
-                  className={`relative w-11 h-11 overflow-hidden rounded-xl flex items-center justify-center transition-all duration-300 ${
+                  className={`relative w-11 h-11 overflow-hidden rounded-xl flex items-center justify-center transition-all duration-500 border border-accent/40 ${
                     isLogoHovered
-                      ? "bg-white/[0.08] border-white/20 shadow-[0_4px_16px_rgba(181,82,0,0.2)]"
-                      : "bg-white/[0.03] border-white/[0.08]"
-                  } border backdrop-blur-sm`}
+                      ? "shadow-[0_0_20px_rgba(181,82,0,0.5),0_0_40px_rgba(181,82,0,0.2)]"
+                      : "shadow-[0_0_15px_rgba(181,82,0,0.3),0_0_30px_rgba(181,82,0,0.1)]"
+                  }`}
+                  style={{
+                    backdropFilter: "blur(16px)",
+                    WebkitBackdropFilter: "blur(16px)",
+                    background: isLogoHovered
+                      ? "radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 0%, rgba(255, 255, 255, 1) 100%)"
+                      : "radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 37%, rgba(255, 255, 255, 1) 100%)",
+                  }}
                 >
-                  {/* Glassmorphism inner glow */}
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  {/* Static Logo */}
-                  <div className="relative flex items-center justify-center z-10">
-                    <Image
-                      src="/images/jettoptics-logo.png"
-                      alt="JettOptics Logo"
-                      width={28}
-                      height={28}
-                      className="object-contain"
-                    />
-                  </div>
+                  {/* Logo */}
+                  <Image
+                    src="/images/jettoptics-logo.png"
+                    alt="JettOptics Logo"
+                    width={28}
+                    height={28}
+                    className="object-contain relative z-10"
+                  />
                 </div>
               </Link>
             </div>
@@ -201,9 +201,15 @@ export function Navbar() {
               className="md:hidden relative"
               aria-label="Toggle menu"
             >
-              <div className="relative w-11 h-11 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] flex items-center justify-center transition-all duration-300 active:bg-white/[0.08] active:scale-95">
-                {/* Glassmorphism inner glow */}
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-accent/10 via-transparent to-transparent" />
+              <div
+                className="relative w-11 h-11 overflow-hidden rounded-xl flex items-center justify-center transition-all duration-500 active:scale-95 border border-accent/40 shadow-[0_0_15px_rgba(181,82,0,0.3),0_0_30px_rgba(181,82,0,0.1)]"
+                style={{
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  background: "radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 28%, rgba(236, 227, 218, 1) 100%)",
+                }}
+              >
+                {/* Logo */}
                 <Image
                   src="/images/jettoptics-logo.png"
                   alt="JettOptics Logo"
