@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +16,8 @@ type EncryptedTextProps = {
 const DEFAULT_CHARSET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-={}[];:,.<>/?";
 
-function generateRandomCharacter(charset: string): string {
-  return charset.charAt(Math.floor(Math.random() * charset.length));
+function getRandomChar(charset: string): string {
+  return charset[Math.floor(Math.random() * charset.length)];
 }
 
 export const EncryptedText: React.FC<EncryptedTextProps> = ({
@@ -33,79 +33,51 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
   const isInView = useInView(ref, { once: false, amount: 0.3 });
   const [isMounted, setIsMounted] = useState(false);
   const [revealCount, setRevealCount] = useState(0);
-  const [scrambleChars, setScrambleChars] = useState<string[]>([]);
-  const animationRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
+  const [tick, setTick] = useState(0); // Force re-render for scramble
 
-  // Generate initial scramble
-  const generateScramble = useCallback(() => {
-    return text.split("").map((ch) =>
-      ch === " " ? " " : generateRandomCharacter(charset)
-    );
-  }, [text, charset]);
-
-  // Initialize on mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Handle animation
   useEffect(() => {
-    if (!isMounted || !isInView) {
-      // Reset when out of view
-      if (!isInView && revealCount > 0) {
-        setRevealCount(0);
-        setScrambleChars(generateScramble());
-      }
+    if (!isMounted) return;
+
+    // Reset when scrolling out
+    if (!isInView) {
+      setRevealCount(0);
       return;
     }
 
-    // Start fresh animation
-    setRevealCount(0);
-    setScrambleChars(generateScramble());
-    startTimeRef.current = performance.now();
-
-    let lastFlipTime = performance.now();
+    // Start animation when in view
+    const startTime = performance.now();
+    let lastFlip = startTime;
+    let rafId: number;
 
     const animate = (now: number) => {
-      const elapsed = now - startTimeRef.current;
-      const newRevealCount = Math.min(
-        text.length,
-        Math.floor(elapsed / revealDelayMs)
-      );
+      const elapsed = now - startTime;
+      const revealed = Math.min(text.length, Math.floor(elapsed / revealDelayMs));
 
-      setRevealCount(newRevealCount);
+      setRevealCount(revealed);
 
-      // Flip unrevealed characters
-      if (now - lastFlipTime >= flipDelayMs) {
-        setScrambleChars((prev) =>
-          prev.map((ch, i) => {
-            if (i >= newRevealCount && text[i] !== " ") {
-              return generateRandomCharacter(charset);
-            }
-            return ch;
-          })
-        );
-        lastFlipTime = now;
+      // Flip scramble characters
+      if (now - lastFlip >= flipDelayMs) {
+        setTick(t => t + 1);
+        lastFlip = now;
       }
 
-      if (newRevealCount < text.length) {
-        animationRef.current = requestAnimationFrame(animate);
+      if (revealed < text.length) {
+        rafId = requestAnimationFrame(animate);
       }
     };
 
-    animationRef.current = requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
 
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [isMounted, isInView, text, revealDelayMs, flipDelayMs, charset, generateScramble]);
+    return () => cancelAnimationFrame(rafId);
+  }, [isMounted, isInView, text.length, revealDelayMs, flipDelayMs]);
 
   if (!text) return null;
 
-  // Server render: plain text
+  // Server: render plain text
   if (!isMounted) {
     return (
       <span ref={ref} className={cn(className, revealedClassName)}>
@@ -119,20 +91,20 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
       ref={ref}
       className={cn(className)}
       aria-label={text}
-      role="text"
     >
-      {text.split("").map((char, index) => {
-        const isRevealed = index < revealCount;
-        const displayChar = isRevealed
+      {text.split("").map((char, i) => {
+        const revealed = i < revealCount;
+        // Use tick to force new random chars
+        const displayChar = revealed
           ? char
           : char === " "
             ? " "
-            : (scrambleChars[index] || generateRandomCharacter(charset));
+            : getRandomChar(charset);
 
         return (
           <span
-            key={index}
-            className={cn(isRevealed ? revealedClassName : encryptedClassName)}
+            key={i}
+            className={cn(revealed ? revealedClassName : encryptedClassName)}
           >
             {displayChar}
           </span>
