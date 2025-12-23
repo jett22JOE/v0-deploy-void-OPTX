@@ -19,16 +19,17 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Jett Optics | Optical Spatial Encryption - Gaze-Based Post-Quantum Security",
-  description: "Pioneer of optical spatial encryption using AGT gaze tensors, knot polynomials, and proof-of-attention on Solana. Quantum-resistant biometric authentication for Web3 and DePIN networks. $OPTX token.",
+  title: "Jett Optics | Spatial Encryption | DePIN",
+  description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography. Post-quantum biometric authentication for Web3 and DePIN networks. $OPTX token.",
   keywords: [
-    "optical spatial encryption",
+    "spatial encryption",
+    "DePIN",
     "gaze-based encryption",
     "AGT tensors",
     "adaptive gaze tensors",
     "proof-of-attention",
     "post-quantum cryptography",
-    "knot cryptography",
+    "Markov chain cryptography",
     "biometric authentication",
     "eye tracking security",
     "Solana DePIN",
@@ -61,8 +62,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://www.jettoptics.ai",
     siteName: "Jett Optics",
-    title: "Jett Optics | Optical Spatial Encryption - Gaze-Based Post-Quantum Security",
-    description: "Pioneer of optical spatial encryption using AGT gaze tensors and proof-of-attention on Solana. Quantum-resistant biometric authentication for Web3.",
+    title: "Jett Optics | Spatial Encryption | DePIN",
+    description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography. Post-quantum biometric authentication for Web3 and DePIN.",
     images: [
       {
         url: "/icons/lightLOGOjettoptics.jpeg",
@@ -76,8 +77,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@jettoptx",
     creator: "@jettoptx",
-    title: "Jett Optics | Optical Spatial Encryption",
-    description: "Gaze-based post-quantum security using AGT tensors and proof-of-attention on Solana. $OPTX",
+    title: "Jett Optics | Spatial Encryption | DePIN",
+    description: "Post-quantum security using AGT gaze tensors and Markov chains. Proof-of-attention on Solana. $OPTX",
     images: ["/icons/lightLOGOjettoptics.jpeg"],
   },
   icons: {
@@ -105,7 +106,7 @@ const organizationSchema = {
   alternateName: "JettOptics",
   url: "https://www.jettoptics.ai",
   logo: "https://www.jettoptics.ai/icons/lightLOGOjettoptics.jpeg",
-  description: "Pioneer of optical spatial encryption using AGT gaze tensors and proof-of-attention on Solana.",
+  description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography for DePIN networks.",
   foundingDate: "2024",
   sameAs: [
     "https://twitter.com/jettoptx",
@@ -124,7 +125,7 @@ const websiteSchema = {
   "@type": "WebSite",
   name: "Jett Optics",
   url: "https://www.jettoptics.ai",
-  description: "Optical spatial encryption for Web3 and DePIN networks",
+  description: "Spatial encryption for Web3 and DePIN networks",
   potentialAction: {
     "@type": "SearchAction",
     target: "https://www.jettoptics.ai/?q={search_term_string}",

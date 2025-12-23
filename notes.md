@@ -1,7 +1,9 @@
 # SEO Implementation Notes - Jett Optics
 
 ## Overview
-This document outlines all SEO implementations for jettoptics.ai, targeting the keyword **"optical spatial encryption"** and related terms.
+This document outlines all SEO implementations for jettoptics.ai, targeting the keywords **"Spatial Encryption"** and **"DePIN"** along with related terms.
+
+**IMPORTANT: IP Protection** - All public-facing SEO content references AGT gaze tensors and Markov chain cryptography only. Knot polynomial methodology is proprietary IP and is NOT disclosed in any public materials.
 
 ---
 
@@ -9,35 +11,36 @@ This document outlines all SEO implementations for jettoptics.ai, targeting the 
 
 ### Title Tag
 ```
-Jett Optics | Optical Spatial Encryption - Gaze-Based Post-Quantum Security
+Jett Optics | Spatial Encryption | DePIN
 ```
-- Includes primary keyword "optical spatial encryption"
+- Includes primary keywords "Spatial Encryption" and "DePIN"
 - Brand name first for recognition
-- Describes unique value proposition
+- Clean, memorable browser tab title
 
 ### Meta Description
 ```
-Pioneer of optical spatial encryption using AGT gaze tensors and knot polynomial cryptography.
-Experience the future of post-quantum authentication with proof-of-attention consensus.
+Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography.
+Post-quantum biometric authentication for Web3 and DePIN networks. $OPTX token.
 ```
 - 160 characters optimized for SERP display
 - Includes primary and secondary keywords
-- Clear call-to-action implied
+- References Markov chains (public methodology)
+- NO mention of knot polynomials (proprietary IP)
 
 ### Keywords Meta Tag
-- optical spatial encryption
+- spatial encryption
+- DePIN
 - gaze-based encryption
 - AGT tensors
-- knot polynomial cryptography
-- post-quantum authentication
+- Markov chain cryptography
+- post-quantum cryptography
 - proof-of-attention
-- spatial computing security
-- eye tracking encryption
 - biometric authentication
-- decentralized identity
-- OPTX token
-- gaze authentication
+- eye tracking security
+- Solana DePIN
+- $OPTX token
 - quantum-resistant encryption
+- Web3 authentication
 
 ---
 
@@ -45,13 +48,13 @@ Experience the future of post-quantum authentication with proof-of-attention con
 
 | Property | Value |
 |----------|-------|
-| og:title | Jett Optics - Optical Spatial Encryption |
-| og:description | Revolutionary gaze-based post-quantum authentication using AGT tensors and knot polynomial cryptography |
+| og:title | Jett Optics \| Spatial Encryption \| DePIN |
+| og:description | Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography. Post-quantum biometric authentication for Web3 and DePIN. |
 | og:url | https://www.jettoptics.ai |
 | og:site_name | Jett Optics |
 | og:type | website |
 | og:locale | en_US |
-| og:image | /og-image.png |
+| og:image | /icons/lightLOGOjettoptics.jpeg |
 
 **What it does:** When your site is shared on Facebook, LinkedIn, Discord, etc., these tags control how the preview card appears.
 
@@ -62,10 +65,10 @@ Experience the future of post-quantum authentication with proof-of-attention con
 | Property | Value |
 |----------|-------|
 | twitter:card | summary_large_image |
-| twitter:title | Jett Optics - Optical Spatial Encryption |
-| twitter:description | Revolutionary gaze-based post-quantum authentication |
-| twitter:image | /og-image.png |
-| twitter:creator | @jaboris_optx |
+| twitter:title | Jett Optics \| Spatial Encryption \| DePIN |
+| twitter:description | Post-quantum security using AGT gaze tensors and Markov chains. Proof-of-attention on Solana. $OPTX |
+| twitter:image | /icons/lightLOGOjettoptics.jpeg |
+| twitter:creator | @jettoptx |
 
 **What it does:** Controls how your site appears when shared on Twitter/X with a large image card format.
 
@@ -80,10 +83,11 @@ Experience the future of post-quantum authentication with proof-of-attention con
   "@type": "Organization",
   "name": "Jett Optics",
   "url": "https://www.jettoptics.ai",
-  "logo": "https://www.jettoptics.ai/images/jettoptics-logo.png",
-  "description": "Pioneer of optical spatial encryption...",
+  "logo": "https://www.jettoptics.ai/icons/lightLOGOjettoptics.jpeg",
+  "description": "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography for DePIN networks.",
   "sameAs": [
-    "https://twitter.com/jaboris_optx",
+    "https://twitter.com/jettoptx",
+    "https://github.com/jett22JOE",
     "https://share.google/DXSrM5IAmV9bOMxgK"
   ]
 }
@@ -96,7 +100,7 @@ Experience the future of post-quantum authentication with proof-of-attention con
   "@type": "WebSite",
   "name": "Jett Optics",
   "url": "https://www.jettoptics.ai",
-  "description": "Optical spatial encryption platform..."
+  "description": "Spatial encryption for Web3 and DePIN networks"
 }
 ```
 
@@ -112,19 +116,21 @@ Experience the future of post-quantum authentication with proof-of-attention con
 
 **URL:** https://www.jettoptics.ai/optical-spatial-encryption
 
-**Purpose:** Dedicated landing page targeting the primary keyword with ~1000 words of authoritative content.
+**Purpose:** Dedicated landing page targeting the primary keywords with ~1000 words of authoritative content.
 
 ### Content Sections:
-1. Introduction to Optical Spatial Encryption
+1. Introduction to Spatial Encryption
 2. How AGT Gaze Tensors Work
-3. Knot Polynomial Cryptography Explained
+3. Markov Chain Cryptography for Quantum Resistance
 4. Proof-of-Attention Consensus
-5. $OPTX Token Ecosystem
-6. Post-Quantum Security
-7. The Future of Authentication
+5. $OPTX Token and DePIN Integration
+6. Comparison to Traditional Methods
+7. The Future of Spatial Security
+
+**IP Protection:** Article discusses Markov chain cryptography only. NO mention of knot polynomial methodology.
 
 **What it does:**
-- Establishes topical authority for "optical spatial encryption"
+- Establishes topical authority for "spatial encryption" and "DePIN"
 - Provides in-depth content for long-tail keyword ranking
 - Internal linking opportunity from homepage
 - Indexable content for Google to understand your technology

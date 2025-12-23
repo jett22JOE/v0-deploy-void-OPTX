@@ -3,16 +3,16 @@ import Link from "next/link"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Optical Spatial Encryption: Gaze-Powered Post-Quantum Security | Jett Optics",
-  description: "Learn how optical spatial encryption uses AGT gaze tensors, knot polynomials, and proof-of-attention to create quantum-resistant biometric authentication. The future of Web3 security.",
+  title: "Spatial Encryption: Post-Quantum Gaze Security | Jett Optics | DePIN",
+  description: "Learn how spatial encryption uses AGT gaze tensors, Markov chains, and proof-of-attention to create post-quantum biometric authentication. The future of Web3 and DePIN security.",
   keywords: [
-    "optical spatial encryption",
-    "what is optical spatial encryption",
+    "spatial encryption",
+    "DePIN",
     "gaze-based encryption",
     "AGT tensors explained",
     "proof-of-attention blockchain",
     "post-quantum cryptography",
-    "knot cryptography Alexander polynomial",
+    "Markov chain cryptography",
     "biometric authentication Web3",
     "eye tracking security",
     "$OPTX token",
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "article",
-    title: "Optical Spatial Encryption: Gaze-Powered Post-Quantum Security",
-    description: "How AGT gaze tensors and knot polynomials create unbreakable biometric authentication for Web3.",
+    title: "Spatial Encryption: Post-Quantum Gaze Security | DePIN",
+    description: "How AGT gaze tensors and Markov chains create post-quantum biometric authentication for Web3 and DePIN.",
     url: "https://www.jettoptics.ai/optical-spatial-encryption",
     images: ["/icons/lightLOGOjettoptics.jpeg"],
     publishedTime: "2025-01-15T00:00:00Z",
@@ -127,38 +127,36 @@ export default function OpticalSpatialEncryptionPage() {
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed">
               The tensor representation captures not just where you look, but <em>how</em> you look—the velocity,
               acceleration, and micro-corrections that form your unique visual signature. This signature is then
-              processed through knot polynomials to create mutation-resistant cryptographic hashes.
+              processed through Markov chain state transitions to create mutation-resistant cryptographic hashes.
             </p>
           </section>
 
-          {/* Knot Theory */}
+          {/* Markov Chain Cryptography */}
           <section className="mb-12">
             <h2 className="font-sans text-2xl md:text-3xl font-light mb-6 text-white">
-              Knot Polynomials for Quantum Resistance
+              Markov Chain Cryptography for Quantum Resistance
             </h2>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
-              Why knots? In topology, knot invariants like the Alexander and Conway polynomials can distinguish
-              between knots that appear similar but are fundamentally different. Jett Optics applies this principle
-              to gaze trajectories:
+              Jett Optics leverages Markov chain state transitions to transform gaze trajectories into post-quantum
+              cryptographic primitives. Your eye movement sequence forms a probabilistic state machine where each
+              fixation and saccade represents a transition.
             </p>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
-              Your eye movement path through 3D space-time forms a trajectory that can be encoded as a mathematical knot.
-              The polynomial invariants of this knot serve as cryptographic primitives that are:
+              The transition probabilities and state sequences create cryptographic signatures that are:
             </p>
             <ul className="space-y-2 mb-6">
               <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Collision-resistant</strong>—different gaze patterns produce different polynomials
+                • <strong className="text-white">Collision-resistant</strong>—different gaze patterns produce statistically unique state sequences
               </li>
               <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Mutation-resistant</strong>—small changes to input create large polynomial differences
+                • <strong className="text-white">Mutation-resistant</strong>—small changes to input create divergent probabilistic outcomes
               </li>
               <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Quantum-resistant</strong>—no known quantum algorithm efficiently inverts knot polynomials
+                • <strong className="text-white">Quantum-resistant</strong>—the stochastic nature resists quantum algorithmic attacks
               </li>
             </ul>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed">
-              This approach draws on research in topological quantum computing while remaining practical for
-              real-time authentication on mobile devices via ARKit, MediaPipe, and OpenXR.
+              This approach enables practical real-time authentication on mobile devices via ARKit, MediaPipe, and OpenXR.
             </p>
           </section>
 
@@ -311,8 +309,8 @@ export default function OpticalSpatialEncryptionPage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Article",
-            headline: "Optical Spatial Encryption: Gaze-Powered Post-Quantum Security",
-            description: "Learn how optical spatial encryption uses AGT gaze tensors, knot polynomials, and proof-of-attention to create quantum-resistant biometric authentication.",
+            headline: "Spatial Encryption: Post-Quantum Gaze Security for DePIN",
+            description: "Learn how spatial encryption uses AGT gaze tensors, Markov chains, and proof-of-attention to create post-quantum biometric authentication for Web3 and DePIN.",
             image: "https://www.jettoptics.ai/icons/lightLOGOjettoptics.jpeg",
             author: {
               "@type": "Organization",
@@ -333,7 +331,7 @@ export default function OpticalSpatialEncryptionPage() {
               "@type": "WebPage",
               "@id": "https://www.jettoptics.ai/optical-spatial-encryption",
             },
-            keywords: "optical spatial encryption, gaze-based encryption, AGT tensors, proof-of-attention, post-quantum cryptography, $OPTX",
+            keywords: "spatial encryption, DePIN, gaze-based encryption, AGT tensors, proof-of-attention, post-quantum cryptography, Markov chains, $OPTX",
           }),
         }}
       />
