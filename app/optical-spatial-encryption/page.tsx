@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import Image from "next/image"
 import { SeoCTASection } from "@/components/seo-cta-section"
 
 export const metadata: Metadata = {
@@ -40,10 +40,15 @@ export default function OpticalSpatialEncryptionPage() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center gap-2 font-mono text-xs tracking-widest text-muted-foreground hover:text-accent transition-colors"
+            className="w-10 h-10 bg-white rounded-lg border border-accent/30 flex items-center justify-center p-1.5 hover:border-accent hover:shadow-[0_0_15px_rgba(181,82,0,0.3)] transition-all duration-300"
           >
-            <ArrowLeft className="w-4 h-4" />
-            BACK TO HOME
+            <Image
+              src="/images/jettoptics-logo.png"
+              alt="JettOptics - Back to Home"
+              width={32}
+              height={32}
+              className="w-full h-full object-contain"
+            />
           </Link>
           <Link
             href="/#spatial-encryption"
