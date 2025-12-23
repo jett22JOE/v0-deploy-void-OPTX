@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Waitlist } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
-import { NoiseBackground } from "@/components/ui/noise-background"
+import { LiquidMetalBorder } from "@/components/ui/liquid-metal-border"
 
 // Check if Clerk is available on this domain
 function useIsClerkEnabled() {
@@ -219,18 +219,23 @@ export default function LoadingPage() {
               className="fixed inset-0 z-[200] flex items-center justify-center p-4"
               onClick={() => setShowSignUp(false)}
             >
-              <NoiseBackground
+              <LiquidMetalBorder
                 containerClassName="rounded-2xl"
-                gradientColors={[
-                  "rgb(181, 82, 0)",
-                  "rgb(255, 140, 0)",
-                  "rgb(181, 82, 0)",
-                ]}
-                noiseIntensity={0.1}
+                borderWidth={4}
+                borderRadius={16}
+                repetition={1.5}
+                softness={0.5}
+                shiftRed={0.3}
+                shiftBlue={0.3}
+                distortion={0}
+                contour={0}
+                angle={100}
+                scale={1.5}
+                speed={0.6}
               >
                 {/* Inner content container */}
                 <div
-                  className="rounded-xl bg-[#1a1625] overflow-hidden clerk-waitlist-wrapper"
+                  className="overflow-hidden clerk-waitlist-wrapper"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* CSS to override Clerk fonts to Geist Mono */}
@@ -279,7 +284,7 @@ export default function LoadingPage() {
                     </div>
                   )}
                 </div>
-              </NoiseBackground>
+              </LiquidMetalBorder>
             </motion.div>
           </>
         )}
