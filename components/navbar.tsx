@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
+import { LiquidMetalCircle } from "@/components/ui/liquid-metal-circle"
 
 const navLinks = [
   { label: "SPATIAL UX", href: "#spatial-encryption" },
@@ -278,17 +279,28 @@ export function Navbar() {
                 transition={{ delay: 0.4, duration: 0.5 }}
                 className="mt-8"
               >
-                <Link href="/loading" className="relative w-40 h-40 rounded-lg block">
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent/30 via-orange-500/20 to-accent/30 rounded-lg blur-sm" />
-                  <div className="relative w-full h-full rounded-lg backdrop-blur-sm border border-accent/40 flex items-center justify-center p-3">
+                <Link href="/loading" className="block">
+                  <LiquidMetalCircle
+                    size={160}
+                    borderWidth={6}
+                    repetition={1.5}
+                    softness={0.5}
+                    shiftRed={0.3}
+                    shiftBlue={0.3}
+                    distortion={0}
+                    contour={0}
+                    angle={100}
+                    scale={1.5}
+                    speed={0.6}
+                  >
                     <Image
                       src="/images/jettoptics-logo.png"
                       alt="JettOptics Logo"
-                      width={128}
-                      height={128}
+                      width={120}
+                      height={120}
                       className="object-contain"
                     />
-                  </div>
+                  </LiquidMetalCircle>
                 </Link>
               </motion.div>
             </nav>

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Waitlist } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
-import { LiquidMetalBorder } from "@/components/ui/liquid-metal-border"
+import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
 
 // Check if Clerk is available on this domain
 function useIsClerkEnabled() {
@@ -219,19 +219,10 @@ export default function LoadingPage() {
               className="fixed inset-0 z-[200] flex items-center justify-center p-4"
               onClick={() => setShowSignUp(false)}
             >
-              <LiquidMetalBorder
+              <AnimatedMetalBorder
                 containerClassName="rounded-2xl"
                 borderWidth={4}
                 borderRadius={16}
-                repetition={1.5}
-                softness={0.5}
-                shiftRed={0.3}
-                shiftBlue={0.3}
-                distortion={0}
-                contour={0}
-                angle={100}
-                scale={1.5}
-                speed={0.6}
               >
                 {/* Inner content container */}
                 <div
@@ -284,7 +275,7 @@ export default function LoadingPage() {
                     </div>
                   )}
                 </div>
-              </LiquidMetalBorder>
+              </AnimatedMetalBorder>
             </motion.div>
           </>
         )}
