@@ -106,6 +106,7 @@ const organizationSchema = {
   sameAs: [
     "https://twitter.com/jettoptx",
     "https://github.com/jett22JOE",
+    "https://share.google/DXSrM5IAmV9bOMxgK",
   ],
   contactPoint: {
     "@type": "ContactPoint",
