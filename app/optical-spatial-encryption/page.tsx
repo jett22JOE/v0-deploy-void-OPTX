@@ -40,15 +40,21 @@ export default function OpticalSpatialEncryptionPage() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link
             href="/"
-            className="w-10 h-10 bg-white rounded-lg border border-accent/30 flex items-center justify-center p-1.5 hover:border-accent hover:shadow-[0_0_15px_rgba(181,82,0,0.3)] transition-all duration-300"
+            className="group flex items-center gap-2"
           >
-            <Image
-              src="/images/jettoptics-logo.png"
-              alt="JettOptics - Back to Home"
-              width={32}
-              height={32}
-              className="w-full h-full object-contain"
-            />
+            <div className="relative w-8 h-8 md:w-6 md:h-6 flex items-center justify-center">
+              <span className="relative flex h-full w-full">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+                <Image
+                  src="/images/astroknots-logo.png"
+                  alt="DAPP Logo"
+                  width={32}
+                  height={32}
+                  className="relative inline-flex rounded-full object-contain"
+                />
+              </span>
+            </div>
+            <span className="font-mono text-xs tracking-widest text-muted-foreground">DAPP</span>
           </Link>
           <Link
             href="/#spatial-encryption"
