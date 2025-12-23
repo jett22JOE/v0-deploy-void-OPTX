@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
+import { SeoCTASection } from "@/components/seo-cta-section"
 
 export const metadata: Metadata = {
   title: "Spatial Encryption: Post-Quantum Gaze Security | Jett Optics | DePIN",
@@ -284,32 +285,7 @@ export default function OpticalSpatialEncryptionPage() {
           </section>
 
           {/* CTA */}
-          <section className="mt-16 p-8 border border-accent/30 rounded-xl bg-accent/5">
-            <h3 className="font-sans text-xl md:text-2xl font-light mb-4 text-white">
-              Ready to Experience Spatial Encryption?
-            </h3>
-            <p className="font-mono text-sm text-muted-foreground mb-6">
-              Join the $OPTX waitlist and be among the first to authenticate with your eyes.
-            </p>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link
-                href="/loading"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-mono text-sm tracking-widest rounded-full hover:bg-accent/80 transition-colors"
-              >
-                JOIN WAITLIST
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <a
-                href="https://jett.vision/vision"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 border border-white/20 text-white font-mono text-sm tracking-widest rounded-full hover:bg-white/10 hover:border-white/40 transition-all"
-              >
-                VISION
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-          </section>
+          <SeoCTASection />
         </div>
       </article>
 
