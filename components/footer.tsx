@@ -77,15 +77,18 @@ export function Footer() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg border border-accent/30 flex items-center justify-center p-1.5">
+            <Link
+              href="/optical-spatial-encryption"
+              className="w-10 h-10 bg-white rounded-lg border border-accent/30 flex items-center justify-center p-1.5 hover:border-accent hover:shadow-[0_0_15px_rgba(181,82,0,0.3)] transition-all duration-300"
+            >
               <Image
                 src="/images/jettoptics-logo.png"
-                alt="JettOptics"
+                alt="JettOptics - Learn about Spatial Encryption"
                 width={32}
                 height={32}
                 className="w-full h-full object-contain"
               />
-            </div>
+            </Link>
             <p className="font-mono text-xs tracking-widest text-muted-foreground">© {new Date().getFullYear()}</p>
           </div>
         </div>
