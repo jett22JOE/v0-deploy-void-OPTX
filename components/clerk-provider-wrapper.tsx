@@ -28,6 +28,7 @@ export function ClerkProviderWrapper({ children }: { children: React.ReactNode }
 
   return (
     <ClerkProvider
+      waitlistUrl="/loading"
       appearance={{
         baseTheme: shadesOfPurple,
         variables: {

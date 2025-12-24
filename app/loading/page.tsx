@@ -6,12 +6,13 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Waitlist } from "@clerk/nextjs"
+import { toast } from "sonner"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
 
-// Check if Clerk is available on this domain
+// Check if Clerk is available on this domain (matches ClerkProviderWrapper logic)
 function useIsClerkEnabled() {
-  const [isEnabled, setIsEnabled] = useState(false)
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null)
   useEffect(() => {
     const hostname = window.location.hostname
     const isClerkDomain = hostname === "jettoptics.ai" || hostname.endsWith(".jettoptics.ai") || hostname === "localhost"
@@ -39,10 +40,16 @@ export default function LoadingPage() {
   // Handle successful waitlist submission
   const handleSuccess = useCallback(() => {
     localStorage.setItem('waitlist_joined', 'true')
-    // Redirect to home after short delay
+    // Show success toast
+    toast.success("You're on the list!", {
+      description: "We'll notify you when access is available.",
+      duration: 3000,
+    })
+    // Close modal and redirect to home after delay
+    setShowSignUp(false)
     setTimeout(() => {
       router.push('/')
-    }, 1500)
+    }, 2000)
   }, [router])
 
   // Fix autocapitalize on mobile for email inputs and detect successful waitlist submission
@@ -63,12 +70,24 @@ export default function LoadingPage() {
         const wrapper = document.querySelector('.clerk-waitlist-wrapper')
         if (wrapper) {
           const successText = wrapper.textContent?.toLowerCase() || ''
-          // Check for common success indicators from Clerk
+          // Check for common success indicators from Clerk Waitlist component
+          // Clerk 6.x may use different success messages
           if (successText.includes("you're on the list") ||
+              successText.includes("on the list") ||
               successText.includes("check your email") ||
               successText.includes("thank you") ||
               successText.includes("we'll be in touch") ||
-              successText.includes("successfully joined")) {
+              successText.includes("successfully") ||
+              successText.includes("you've joined") ||
+              successText.includes("we'll let you know") ||
+              successText.includes("waitlist") && successText.includes("joined")) {
+            handleSuccess()
+            return true
+          }
+          // Also check for Clerk's success UI elements
+          const successIcon = wrapper.querySelector('[data-localization-key*="success"]')
+          const successCard = wrapper.querySelector('.cl-card[data-state="success"]')
+          if (successIcon || successCard) {
             handleSuccess()
             return true
           }
@@ -263,7 +282,12 @@ export default function LoadingPage() {
                       font-size: 13px !important;
                     }
                   `}</style>
-                  {isClerkEnabled ? (
+                  {isClerkEnabled === null ? (
+                    /* Loading state while checking domain */
+                    <div className="p-8 text-center">
+                      <p className="font-mono text-sm text-white/60 animate-pulse">Loading...</p>
+                    </div>
+                  ) : isClerkEnabled ? (
                     <Waitlist />
                   ) : (
                     /* Fallback for preview/non-production URLs */
