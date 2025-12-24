@@ -7,8 +7,12 @@ const isPublicRoute = createRouteMatcher([
   "/seo(.*)",
   "/optical-spatial-encryption(.*)",
   "/api/webhook(.*)",
+  "/api/waitlist(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  // OAuth callback routes - critical for social login flows
+  "/sso-callback(.*)",
+  "/oauth-callback(.*)",
 ])
 
 // Clerk middleware for Next.js 16 - handles auth state and waitlist functionality

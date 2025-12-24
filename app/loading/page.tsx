@@ -183,10 +183,10 @@ export default function LoadingPage() {
               >
                 {/* Inner content container */}
                 <div
-                  className="overflow-hidden clerk-waitlist-wrapper"
+                  className="clerk-waitlist-wrapper rounded-2xl"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* CSS to override Clerk fonts to Geist Mono */}
+                  {/* CSS to override Clerk fonts to Geist Mono and fix layout */}
                   <style jsx global>{`
                     .clerk-waitlist-wrapper .cl-rootBox,
                     .clerk-waitlist-wrapper .cl-card,
@@ -219,6 +219,41 @@ export default function LoadingPage() {
                     .clerk-waitlist-wrapper .cl-formFieldInput::placeholder,
                     .clerk-waitlist-wrapper input::placeholder {
                       font-size: 13px !important;
+                    }
+                    /* Fix modal scrolling and max height */
+                    .clerk-waitlist-wrapper {
+                      max-height: 85vh;
+                      overflow-y: auto;
+                      scrollbar-width: thin;
+                      scrollbar-color: rgba(181, 82, 0, 0.5) transparent;
+                    }
+                    .clerk-waitlist-wrapper::-webkit-scrollbar {
+                      width: 6px;
+                    }
+                    .clerk-waitlist-wrapper::-webkit-scrollbar-track {
+                      background: transparent;
+                    }
+                    .clerk-waitlist-wrapper::-webkit-scrollbar-thumb {
+                      background: rgba(181, 82, 0, 0.5);
+                      border-radius: 3px;
+                    }
+                    /* Ensure header is visible with proper padding */
+                    .clerk-waitlist-wrapper .cl-card {
+                      padding-top: 1.5rem !important;
+                    }
+                    .clerk-waitlist-wrapper .cl-header {
+                      padding-top: 0.5rem !important;
+                    }
+                    /* Style social button sections with dividers */
+                    .clerk-waitlist-wrapper .cl-socialButtons {
+                      padding-bottom: 0.75rem !important;
+                    }
+                    /* Add subtle section styling for wallet buttons (Coinbase, MetaMask) */
+                    .clerk-waitlist-wrapper .cl-socialButtonsBlockButton[data-provider="coinbase_wallet"],
+                    .clerk-waitlist-wrapper .cl-socialButtonsBlockButton[data-provider="metamask"],
+                    .clerk-waitlist-wrapper .cl-socialButtonsIconButton[data-provider="coinbase_wallet"],
+                    .clerk-waitlist-wrapper .cl-socialButtonsIconButton[data-provider="metamask"] {
+                      border-color: rgba(181, 82, 0, 0.3) !important;
                     }
                   `}</style>
                   {isClerkEnabled === null || (isClerkEnabled && !clerkLoaded) ? (
