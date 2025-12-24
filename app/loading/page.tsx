@@ -66,28 +66,35 @@ export default function LoadingPage() {
       }
 
       // Detect when Clerk shows success state (user submitted email)
+      // IMPORTANT: Only trigger on actual success messages, not initial form text
       const detectSuccess = () => {
         const wrapper = document.querySelector('.clerk-waitlist-wrapper')
         if (wrapper) {
           const successText = wrapper.textContent?.toLowerCase() || ''
-          // Check for common success indicators from Clerk Waitlist component
-          // Clerk 6.x may use different success messages
-          if (successText.includes("you're on the list") ||
-              successText.includes("on the list") ||
-              successText.includes("check your email") ||
-              successText.includes("thank you") ||
-              successText.includes("we'll be in touch") ||
-              successText.includes("successfully") ||
-              successText.includes("you've joined") ||
-              successText.includes("we'll let you know") ||
-              successText.includes("waitlist") && successText.includes("joined")) {
+
+          // These phrases ONLY appear after successful submission, not in initial form
+          const definitiveSuccessPhrases = [
+            "thanks for joining",           // "Thanks for joining the waitlist!"
+            "you're on the list",           // Alternative success message
+            "you've been added",            // Alternative success message
+            "successfully joined",          // Alternative success message
+            "we'll be in touch when your spot is ready",  // Full success subtitle (not partial match)
+          ]
+
+          // Check for definitive success phrases
+          if (definitiveSuccessPhrases.some(phrase => successText.includes(phrase))) {
             handleSuccess()
             return true
           }
-          // Also check for Clerk's success UI elements
+
+          // Also check for Clerk's success UI elements (more reliable)
           const successIcon = wrapper.querySelector('[data-localization-key*="success"]')
           const successCard = wrapper.querySelector('.cl-card[data-state="success"]')
-          if (successIcon || successCard) {
+          // Check if the form is no longer visible (success state replaces form)
+          const formInput = wrapper.querySelector('input[type="email"], input[name="emailAddress"]')
+          const hasNoForm = !formInput && successText.includes("waitlist")
+
+          if (successIcon || successCard || hasNoForm) {
             handleSuccess()
             return true
           }
@@ -288,7 +295,9 @@ export default function LoadingPage() {
                       <p className="font-mono text-sm text-white/60 animate-pulse">Loading...</p>
                     </div>
                   ) : isClerkEnabled ? (
-                    <Waitlist />
+                    <Waitlist
+                      afterJoinWaitlistUrl="/"
+                    />
                   ) : (
                     /* Fallback for preview/non-production URLs */
                     <div className="p-8 text-center">
