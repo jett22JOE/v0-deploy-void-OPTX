@@ -2,13 +2,15 @@
 
 import type React from "react"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useRef, useState, useEffect, useCallback } from "react"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
+import { toast } from "sonner"
 import { SentientSphere } from "./sentient-sphere"
 
 export function Hero() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const containerRef = useRef<HTMLElement>(null)
   const [isHovered, setIsHovered] = useState(false)
 
@@ -39,6 +41,18 @@ export function Hero() {
     window.addEventListener("resize", checkMobile)
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
+
+  // Handle successful signup redirect
+  useEffect(() => {
+    if (searchParams.get("joined") === "true") {
+      toast.success("Welcome to Jett Optics!", {
+        description: "You're on the early access list. Check your email to verify.",
+        duration: 5000,
+      })
+      // Clear the query param without page reload
+      router.replace("/", { scroll: false })
+    }
+  }, [searchParams, router])
 
   const updateHoldProgress = useCallback(() => {
     if (holdStartTimeRef.current === null) return

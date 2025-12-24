@@ -1,13 +1,11 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Waitlist } from "@clerk/nextjs"
+import { SignUp } from "@clerk/nextjs"
 import { useClerk } from "@clerk/nextjs"
-import { toast } from "sonner"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
 
@@ -29,10 +27,8 @@ function useIsClerkEnabled() {
 export default function LoadingPage() {
   const [showButton, setShowButton] = useState(false)
   const [showSignUp, setShowSignUp] = useState(false)
-  const [hasHandledSuccess, setHasHandledSuccess] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isClerkEnabled = useIsClerkEnabled()
-  const router = useRouter()
 
   // Verify Clerk is loaded before allowing submission
   const { loaded: clerkLoaded } = useClerk()
@@ -46,34 +42,7 @@ export default function LoadingPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Handle successful waitlist submission
-  const handleSuccess = useCallback(() => {
-    if (hasHandledSuccess) return // Prevent double-firing
-
-    setHasHandledSuccess(true)
-    localStorage.setItem("waitlist_joined", "true")
-
-    // Show success toast
-    toast.success("You're on the list!", {
-      description: "We'll notify you when access is available.",
-      duration: 3000,
-    })
-
-    // Close modal and redirect to home after delay
-    setShowSignUp(false)
-    setTimeout(() => {
-      router.push("/")
-    }, 2000)
-  }, [router, hasHandledSuccess])
-
-  // Reset hasHandledSuccess when modal closes
-  useEffect(() => {
-    if (!showSignUp) {
-      setHasHandledSuccess(false)
-    }
-  }, [showSignUp])
-
-  // Fix autocapitalize on mobile for email inputs and detect successful waitlist submission
+  // Fix autocapitalize on mobile for email inputs
   useEffect(() => {
     if (showSignUp) {
       const fixAutocapitalize = () => {
@@ -86,79 +55,17 @@ export default function LoadingPage() {
         })
       }
 
-      // Detect when Clerk shows success state (user submitted email)
-      // IMPORTANT: Only trigger on actual success messages, not initial form text
-      const detectSuccess = () => {
-        if (hasHandledSuccess) return false
-
-        const wrapper = document.querySelector(".clerk-waitlist-wrapper")
-        if (wrapper) {
-          const successText = wrapper.textContent?.toLowerCase() || ""
-
-          // These phrases ONLY appear after successful submission, not in initial form
-          const definitiveSuccessPhrases = [
-            "thanks for joining", // "Thanks for joining the waitlist!"
-            "you're on the list", // Alternative success message
-            "you've been added", // Alternative success message
-            "successfully joined", // Alternative success message
-            "we'll be in touch when your spot is ready", // Full success subtitle
-          ]
-
-          // Check for definitive success phrases
-          if (definitiveSuccessPhrases.some((phrase) => successText.includes(phrase))) {
-            handleSuccess()
-            return true
-          }
-
-          // Also check for Clerk's success UI elements (more reliable)
-          const successIcon = wrapper.querySelector('[data-localization-key*="success"]')
-          const successCard = wrapper.querySelector('.cl-card[data-state="success"]')
-          // Check if the form is no longer visible (success state replaces form)
-          const formInput = wrapper.querySelector('input[type="email"], input[name="emailAddress"]')
-          const submitButton = wrapper.querySelector('button[type="submit"]')
-          const hasNoForm = !formInput && !submitButton && successText.includes("waitlist")
-
-          if (successIcon || successCard || hasNoForm) {
-            handleSuccess()
-            return true
-          }
-        }
-        return false
-      }
-
-      // Use MutationObserver for more reliable detection
-      const wrapper = document.querySelector(".clerk-waitlist-wrapper")
-      let observer: MutationObserver | null = null
-
-      if (wrapper) {
-        observer = new MutationObserver(() => {
-          if (detectSuccess()) {
-            observer?.disconnect()
-          }
-        })
-        observer.observe(wrapper, { childList: true, subtree: true, characterData: true })
-      }
-
       // Run immediately and after delays (for Clerk's async rendering)
       fixAutocapitalize()
       const timer = setTimeout(fixAutocapitalize, 500)
       const timer2 = setTimeout(fixAutocapitalize, 1000)
 
-      // Also check periodically as backup
-      const successCheckInterval = setInterval(() => {
-        if (detectSuccess()) {
-          clearInterval(successCheckInterval)
-        }
-      }, 1000)
-
       return () => {
         clearTimeout(timer)
         clearTimeout(timer2)
-        clearInterval(successCheckInterval)
-        observer?.disconnect()
       }
     }
-  }, [showSignUp, handleSuccess, hasHandledSuccess])
+  }, [showSignUp])
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
@@ -237,7 +144,7 @@ export default function LoadingPage() {
                 >
                   <span className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300" />
                   <span className="relative font-mono text-xs tracking-[0.2em] uppercase text-white group-hover:text-accent group-active:text-accent transition-colors duration-300">
-                    Join Waitlist
+                    Get Early Access
                   </span>
                 </span>
               </motion.button>
@@ -320,14 +227,49 @@ export default function LoadingPage() {
                       <p className="font-mono text-sm text-white/60 animate-pulse">Loading...</p>
                     </div>
                   ) : isClerkEnabled && clerkLoaded ? (
-                    /* Clerk Waitlist component - only render when Clerk is fully loaded */
-                    <Waitlist />
+                    /* Clerk SignUp component - full sign up with social logins */
+                    <SignUp
+                      routing="hash"
+                      forceRedirectUrl="/?joined=true"
+                      signInUrl="/sign-in"
+                      appearance={{
+                        variables: {
+                          colorPrimary: "#b55200",
+                          colorText: "#ffffff",
+                          colorTextSecondary: "#a1a1aa",
+                          colorBackground: "#0a0a0a",
+                          colorInputBackground: "#18181b",
+                          colorInputText: "#ffffff",
+                          borderRadius: "0.5rem",
+                        },
+                        elements: {
+                          rootBox: "w-full",
+                          card: "bg-[#0a0a0a]/95 shadow-none border-0 backdrop-blur-xl",
+                          headerTitle: "font-mono text-white",
+                          headerSubtitle: "font-mono text-sm text-zinc-400",
+                          formFieldLabel: "font-mono text-xs text-zinc-400",
+                          formFieldInput: "font-mono text-sm bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-500",
+                          formButtonPrimary: "font-mono bg-accent hover:bg-accent/90 text-white",
+                          footerActionLink: "text-accent hover:text-accent/80",
+                          socialButtonsBlockButton: "font-mono border-zinc-800 hover:bg-zinc-900/50 text-white",
+                          socialButtonsBlockButtonText: "font-mono text-sm",
+                          dividerLine: "bg-zinc-800",
+                          dividerText: "font-mono text-xs text-zinc-500",
+                          identityPreviewText: "font-mono text-white",
+                          identityPreviewEditButton: "text-accent",
+                          formFieldSuccessText: "text-green-400",
+                          formFieldErrorText: "text-red-400",
+                          alertText: "font-mono text-sm",
+                          otpCodeFieldInput: "font-mono bg-zinc-900/50 border-zinc-800 text-white",
+                        }
+                      }}
+                    />
                   ) : (
                     /* Fallback for preview/non-production URLs */
                     <div className="p-8 text-center">
-                      <p className="font-mono text-sm text-white mb-2">Waitlist Preview</p>
+                      <p className="font-mono text-sm text-white mb-2">Join Preview</p>
                       <p className="font-mono text-xs text-white/60">
-                        Visit <span className="text-accent">jettoptics.ai</span> to join the waitlist
+                        Visit <span className="text-accent">jettoptics.ai</span> to join
                       </p>
                     </div>
                   )}
