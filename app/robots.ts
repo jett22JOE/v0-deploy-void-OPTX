@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/_next/'],
       },
     ],
-    sitemap: 'https://www.jettoptics.ai/sitemap.xml',
+    sitemap: 'https://jettoptics.ai/sitemap.xml',
   }
 }

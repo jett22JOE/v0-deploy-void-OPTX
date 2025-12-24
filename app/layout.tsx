@@ -39,12 +39,12 @@ export const metadata: Metadata = {
     "quantum-resistant encryption",
     "Web3 authentication",
   ],
-  authors: [{ name: "Jett Optics", url: "https://www.jettoptics.ai" }],
+  authors: [{ name: "Jett Optics", url: "https://jettoptics.ai" }],
   creator: "Jett Optics",
   publisher: "Jett Optics",
-  metadataBase: new URL("https://www.jettoptics.ai"),
+  metadataBase: new URL("https://jettoptics.ai"),
   alternates: {
-    canonical: "https://www.jettoptics.ai",
+    canonical: "https://jettoptics.ai",
   },
   robots: {
     index: true,
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://www.jettoptics.ai",
+    url: "https://jettoptics.ai",
     siteName: "Jett Optics",
     title: "Jett Optics | Spatial Encryption | DePIN",
     description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography. Post-quantum biometric authentication for Web3 and DePIN.",
@@ -104,8 +104,8 @@ const organizationSchema = {
   "@type": "Organization",
   name: "Jett Optics",
   alternateName: "JettOptics",
-  url: "https://www.jettoptics.ai",
-  logo: "https://www.jettoptics.ai/icons/lightLOGOjettoptics.jpeg",
+  url: "https://jettoptics.ai",
+  logo: "https://jettoptics.ai/icons/lightLOGOjettoptics.jpeg",
   description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography for DePIN networks.",
   foundingDate: "2024",
   sameAs: [
@@ -116,7 +116,7 @@ const organizationSchema = {
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer service",
-    url: "https://www.jettoptics.ai",
+    url: "https://jettoptics.ai",
   },
 }
 
@@ -124,11 +124,11 @@ const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Jett Optics",
-  url: "https://www.jettoptics.ai",
+  url: "https://jettoptics.ai",
   description: "Spatial encryption for Web3 and DePIN networks",
   potentialAction: {
     "@type": "SearchAction",
-    target: "https://www.jettoptics.ai/?q={search_term_string}",
+    target: "https://jettoptics.ai/?q={search_term_string}",
     "query-input": "required name=search_term_string",
   },
 }
