@@ -6,16 +6,21 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Waitlist } from "@clerk/nextjs"
+import { useClerk } from "@clerk/nextjs"
 import { toast } from "sonner"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
 
-// Check if Clerk is available on this domain (matches ClerkProviderWrapper logic)
+// Check if Clerk is available on this domain
 function useIsClerkEnabled() {
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null)
   useEffect(() => {
     const hostname = window.location.hostname
-    const isClerkDomain = hostname === "jettoptics.ai" || hostname.endsWith(".jettoptics.ai") || hostname === "localhost"
+    const isClerkDomain =
+      hostname === "jettoptics.ai" ||
+      hostname.endsWith(".jettoptics.ai") ||
+      hostname === "localhost" ||
+      hostname === "127.0.0.1"
     setIsEnabled(isClerkDomain)
   }, [])
   return isEnabled
@@ -24,9 +29,13 @@ function useIsClerkEnabled() {
 export default function LoadingPage() {
   const [showButton, setShowButton] = useState(false)
   const [showSignUp, setShowSignUp] = useState(false)
+  const [hasHandledSuccess, setHasHandledSuccess] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isClerkEnabled = useIsClerkEnabled()
   const router = useRouter()
+
+  // Verify Clerk is loaded before allowing submission
+  const { loaded: clerkLoaded } = useClerk()
 
   useEffect(() => {
     // Show button after a delay or when video has played
@@ -39,50 +48,64 @@ export default function LoadingPage() {
 
   // Handle successful waitlist submission
   const handleSuccess = useCallback(() => {
-    localStorage.setItem('waitlist_joined', 'true')
+    if (hasHandledSuccess) return // Prevent double-firing
+
+    setHasHandledSuccess(true)
+    localStorage.setItem("waitlist_joined", "true")
+
     // Show success toast
     toast.success("You're on the list!", {
       description: "We'll notify you when access is available.",
       duration: 3000,
     })
+
     // Close modal and redirect to home after delay
     setShowSignUp(false)
     setTimeout(() => {
-      router.push('/')
+      router.push("/")
     }, 2000)
-  }, [router])
+  }, [router, hasHandledSuccess])
+
+  // Reset hasHandledSuccess when modal closes
+  useEffect(() => {
+    if (!showSignUp) {
+      setHasHandledSuccess(false)
+    }
+  }, [showSignUp])
 
   // Fix autocapitalize on mobile for email inputs and detect successful waitlist submission
   useEffect(() => {
     if (showSignUp) {
       const fixAutocapitalize = () => {
-        const inputs = document.querySelectorAll('.clerk-waitlist-wrapper input')
+        const inputs = document.querySelectorAll(".clerk-waitlist-wrapper input")
         inputs.forEach((input) => {
-          input.setAttribute('autocapitalize', 'off')
-          input.setAttribute('autocorrect', 'off')
-          input.setAttribute('spellcheck', 'false')
-          input.setAttribute('inputmode', 'email')
+          input.setAttribute("autocapitalize", "off")
+          input.setAttribute("autocorrect", "off")
+          input.setAttribute("spellcheck", "false")
+          input.setAttribute("inputmode", "email")
         })
       }
 
       // Detect when Clerk shows success state (user submitted email)
       // IMPORTANT: Only trigger on actual success messages, not initial form text
       const detectSuccess = () => {
-        const wrapper = document.querySelector('.clerk-waitlist-wrapper')
+        if (hasHandledSuccess) return false
+
+        const wrapper = document.querySelector(".clerk-waitlist-wrapper")
         if (wrapper) {
-          const successText = wrapper.textContent?.toLowerCase() || ''
+          const successText = wrapper.textContent?.toLowerCase() || ""
 
           // These phrases ONLY appear after successful submission, not in initial form
           const definitiveSuccessPhrases = [
-            "thanks for joining",           // "Thanks for joining the waitlist!"
-            "you're on the list",           // Alternative success message
-            "you've been added",            // Alternative success message
-            "successfully joined",          // Alternative success message
-            "we'll be in touch when your spot is ready",  // Full success subtitle (not partial match)
+            "thanks for joining", // "Thanks for joining the waitlist!"
+            "you're on the list", // Alternative success message
+            "you've been added", // Alternative success message
+            "successfully joined", // Alternative success message
+            "we'll be in touch when your spot is ready", // Full success subtitle
           ]
 
           // Check for definitive success phrases
-          if (definitiveSuccessPhrases.some(phrase => successText.includes(phrase))) {
+          if (definitiveSuccessPhrases.some((phrase) => successText.includes(phrase))) {
             handleSuccess()
             return true
           }
@@ -92,7 +115,8 @@ export default function LoadingPage() {
           const successCard = wrapper.querySelector('.cl-card[data-state="success"]')
           // Check if the form is no longer visible (success state replaces form)
           const formInput = wrapper.querySelector('input[type="email"], input[name="emailAddress"]')
-          const hasNoForm = !formInput && successText.includes("waitlist")
+          const submitButton = wrapper.querySelector('button[type="submit"]')
+          const hasNoForm = !formInput && !submitButton && successText.includes("waitlist")
 
           if (successIcon || successCard || hasNoForm) {
             handleSuccess()
@@ -103,7 +127,7 @@ export default function LoadingPage() {
       }
 
       // Use MutationObserver for more reliable detection
-      const wrapper = document.querySelector('.clerk-waitlist-wrapper')
+      const wrapper = document.querySelector(".clerk-waitlist-wrapper")
       let observer: MutationObserver | null = null
 
       if (wrapper) {
@@ -134,7 +158,7 @@ export default function LoadingPage() {
         observer?.disconnect()
       }
     }
-  }, [showSignUp, handleSuccess])
+  }, [showSignUp, handleSuccess, hasHandledSuccess])
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
@@ -268,7 +292,8 @@ export default function LoadingPage() {
                     .clerk-waitlist-wrapper .cl-footerActionLink,
                     .clerk-waitlist-wrapper .cl-internal-b3fm6y,
                     .clerk-waitlist-wrapper * {
-                      font-family: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+                      font-family: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular,
+                        "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
                     }
                     .clerk-waitlist-wrapper .cl-headerTitle {
                       letter-spacing: 0.05em !important;
@@ -289,15 +314,14 @@ export default function LoadingPage() {
                       font-size: 13px !important;
                     }
                   `}</style>
-                  {isClerkEnabled === null ? (
-                    /* Loading state while checking domain */
+                  {isClerkEnabled === null || (isClerkEnabled && !clerkLoaded) ? (
+                    /* Loading state while checking domain or waiting for Clerk to load */
                     <div className="p-8 text-center">
                       <p className="font-mono text-sm text-white/60 animate-pulse">Loading...</p>
                     </div>
-                  ) : isClerkEnabled ? (
-                    <Waitlist
-                      afterJoinWaitlistUrl="/"
-                    />
+                  ) : isClerkEnabled && clerkLoaded ? (
+                    /* Clerk Waitlist component - only render when Clerk is fully loaded */
+                    <Waitlist />
                   ) : (
                     /* Fallback for preview/non-production URLs */
                     <div className="p-8 text-center">
@@ -322,7 +346,10 @@ export default function LoadingPage() {
         playsInline
         className="relative z-[5] w-[90vw] h-[90vh] max-w-[800px] max-h-[600px] object-contain border-transparent opacity-50 border-8"
       >
-        <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/OPTXloading-AFybU8f6imhbRHtfXrwTvpU4IP1OXQ.mp4" type="video/mp4" />
+        <source
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/OPTXloading-AFybU8f6imhbRHtfXrwTvpU4IP1OXQ.mp4"
+          type="video/mp4"
+        />
       </video>
 
       <div
