@@ -27,6 +27,7 @@ function useIsClerkEnabled() {
 export default function LoadingPage() {
   const [showButton, setShowButton] = useState(false)
   const [showSignUp, setShowSignUp] = useState(false)
+  const [signUpError, setSignUpError] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isClerkEnabled = useIsClerkEnabled()
 
@@ -46,7 +47,7 @@ export default function LoadingPage() {
   useEffect(() => {
     if (showSignUp) {
       const fixAutocapitalize = () => {
-        const inputs = document.querySelectorAll(".clerk-waitlist-wrapper input")
+        const inputs = document.querySelectorAll(".clerk-signup-wrapper input")
         inputs.forEach((input) => {
           input.setAttribute("autocapitalize", "off")
           input.setAttribute("autocorrect", "off")
@@ -111,7 +112,7 @@ export default function LoadingPage() {
         Loading...
       </h1>
 
-      {/* Join Waitlist Button - shows when not signed up */}
+      {/* Get Early Access Button - shows when not signed up */}
       {!showSignUp && (
         <div className="absolute top-[20vh] left-1/2 -translate-x-1/2 md:top-[calc(50%_-_320px)] z-20 flex flex-col items-center gap-6">
           <AnimatePresence>
@@ -153,7 +154,7 @@ export default function LoadingPage() {
         </div>
       )}
 
-      {/* Clerk Waitlist Modal with animated border */}
+      {/* Clerk SignUp Modal with animated border */}
       <AnimatePresence>
         {showSignUp && (
           <>
@@ -183,76 +184,76 @@ export default function LoadingPage() {
               >
                 {/* Inner content container */}
                 <div
-                  className="clerk-waitlist-wrapper rounded-2xl"
+                  className="clerk-signup-wrapper rounded-2xl"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* CSS to override Clerk fonts to Geist Mono and fix layout */}
                   <style jsx global>{`
-                    .clerk-waitlist-wrapper .cl-rootBox,
-                    .clerk-waitlist-wrapper .cl-card,
-                    .clerk-waitlist-wrapper .cl-headerTitle,
-                    .clerk-waitlist-wrapper .cl-headerSubtitle,
-                    .clerk-waitlist-wrapper .cl-formFieldLabel,
-                    .clerk-waitlist-wrapper .cl-formFieldInput,
-                    .clerk-waitlist-wrapper .cl-formButtonPrimary,
-                    .clerk-waitlist-wrapper .cl-footerActionText,
-                    .clerk-waitlist-wrapper .cl-footerActionLink,
-                    .clerk-waitlist-wrapper .cl-internal-b3fm6y,
-                    .clerk-waitlist-wrapper * {
+                    .clerk-signup-wrapper .cl-rootBox,
+                    .clerk-signup-wrapper .cl-card,
+                    .clerk-signup-wrapper .cl-headerTitle,
+                    .clerk-signup-wrapper .cl-headerSubtitle,
+                    .clerk-signup-wrapper .cl-formFieldLabel,
+                    .clerk-signup-wrapper .cl-formFieldInput,
+                    .clerk-signup-wrapper .cl-formButtonPrimary,
+                    .clerk-signup-wrapper .cl-footerActionText,
+                    .clerk-signup-wrapper .cl-footerActionLink,
+                    .clerk-signup-wrapper .cl-internal-b3fm6y,
+                    .clerk-signup-wrapper * {
                       font-family: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular,
                         "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
                     }
-                    .clerk-waitlist-wrapper .cl-headerTitle {
+                    .clerk-signup-wrapper .cl-headerTitle {
                       letter-spacing: 0.05em !important;
                     }
-                    .clerk-waitlist-wrapper .cl-headerSubtitle {
+                    .clerk-signup-wrapper .cl-headerSubtitle {
                       letter-spacing: 0.02em !important;
                     }
                     /* Smaller input text */
-                    .clerk-waitlist-wrapper .cl-formFieldInput,
-                    .clerk-waitlist-wrapper input[type="email"],
-                    .clerk-waitlist-wrapper input {
+                    .clerk-signup-wrapper .cl-formFieldInput,
+                    .clerk-signup-wrapper input[type="email"],
+                    .clerk-signup-wrapper input {
                       font-size: 13px !important;
                       text-transform: none !important;
                       -webkit-text-transform: none !important;
                     }
-                    .clerk-waitlist-wrapper .cl-formFieldInput::placeholder,
-                    .clerk-waitlist-wrapper input::placeholder {
+                    .clerk-signup-wrapper .cl-formFieldInput::placeholder,
+                    .clerk-signup-wrapper input::placeholder {
                       font-size: 13px !important;
                     }
                     /* Fix modal scrolling and max height */
-                    .clerk-waitlist-wrapper {
+                    .clerk-signup-wrapper {
                       max-height: 85vh;
                       overflow-y: auto;
                       scrollbar-width: thin;
                       scrollbar-color: rgba(181, 82, 0, 0.5) transparent;
                     }
-                    .clerk-waitlist-wrapper::-webkit-scrollbar {
+                    .clerk-signup-wrapper::-webkit-scrollbar {
                       width: 6px;
                     }
-                    .clerk-waitlist-wrapper::-webkit-scrollbar-track {
+                    .clerk-signup-wrapper::-webkit-scrollbar-track {
                       background: transparent;
                     }
-                    .clerk-waitlist-wrapper::-webkit-scrollbar-thumb {
+                    .clerk-signup-wrapper::-webkit-scrollbar-thumb {
                       background: rgba(181, 82, 0, 0.5);
                       border-radius: 3px;
                     }
                     /* Ensure header is visible with proper padding */
-                    .clerk-waitlist-wrapper .cl-card {
+                    .clerk-signup-wrapper .cl-card {
                       padding-top: 1.5rem !important;
                     }
-                    .clerk-waitlist-wrapper .cl-header {
+                    .clerk-signup-wrapper .cl-header {
                       padding-top: 0.5rem !important;
                     }
                     /* Style social button sections with dividers */
-                    .clerk-waitlist-wrapper .cl-socialButtons {
+                    .clerk-signup-wrapper .cl-socialButtons {
                       padding-bottom: 0.75rem !important;
                     }
                     /* Add subtle section styling for wallet buttons (Coinbase, MetaMask) */
-                    .clerk-waitlist-wrapper .cl-socialButtonsBlockButton[data-provider="coinbase_wallet"],
-                    .clerk-waitlist-wrapper .cl-socialButtonsBlockButton[data-provider="metamask"],
-                    .clerk-waitlist-wrapper .cl-socialButtonsIconButton[data-provider="coinbase_wallet"],
-                    .clerk-waitlist-wrapper .cl-socialButtonsIconButton[data-provider="metamask"] {
+                    .clerk-signup-wrapper .cl-socialButtonsBlockButton[data-provider="coinbase_wallet"],
+                    .clerk-signup-wrapper .cl-socialButtonsBlockButton[data-provider="metamask"],
+                    .clerk-signup-wrapper .cl-socialButtonsIconButton[data-provider="coinbase_wallet"],
+                    .clerk-signup-wrapper .cl-socialButtonsIconButton[data-provider="metamask"] {
                       border-color: rgba(181, 82, 0, 0.3) !important;
                     }
                   `}</style>
@@ -263,42 +264,49 @@ export default function LoadingPage() {
                     </div>
                   ) : isClerkEnabled && clerkLoaded ? (
                     /* Clerk SignUp component - full sign up with social logins */
-                    <SignUp
-                      routing="hash"
-                      forceRedirectUrl="/?joined=true"
-                      signInUrl="/sign-in"
-                      appearance={{
-                        variables: {
-                          colorPrimary: "#b55200",
-                          colorText: "#ffffff",
-                          colorTextSecondary: "#a1a1aa",
-                          colorBackground: "#0a0a0a",
-                          colorInputBackground: "#18181b",
-                          colorInputText: "#ffffff",
-                          borderRadius: "0.5rem",
-                        },
-                        elements: {
-                          rootBox: "w-full",
-                          card: "bg-[#0a0a0a]/95 shadow-none border-0 backdrop-blur-xl",
-                          headerTitle: "font-mono text-white",
-                          headerSubtitle: "font-mono text-sm text-zinc-400",
-                          formFieldLabel: "font-mono text-xs text-zinc-400",
-                          formFieldInput: "font-mono text-sm bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-500",
-                          formButtonPrimary: "font-mono bg-accent hover:bg-accent/90 text-white",
-                          footerActionLink: "text-accent hover:text-accent/80",
-                          socialButtonsBlockButton: "font-mono border-zinc-800 hover:bg-zinc-900/50 text-white",
-                          socialButtonsBlockButtonText: "font-mono text-sm",
-                          dividerLine: "bg-zinc-800",
-                          dividerText: "font-mono text-xs text-zinc-500",
-                          identityPreviewText: "font-mono text-white",
-                          identityPreviewEditButton: "text-accent",
-                          formFieldSuccessText: "text-green-400",
-                          formFieldErrorText: "text-red-400",
-                          alertText: "font-mono text-sm",
-                          otpCodeFieldInput: "font-mono bg-zinc-900/50 border-zinc-800 text-white",
-                        }
-                      }}
-                    />
+                    <>
+                      <SignUp
+                        routing="hash"
+                        forceRedirectUrl="/?joined=true"
+                        signInUrl="/sign-in"
+                        appearance={{
+                          variables: {
+                            colorPrimary: "#b55200",
+                            colorText: "#ffffff",
+                            colorTextSecondary: "#a1a1aa",
+                            colorBackground: "#0a0a0a",
+                            colorInputBackground: "#18181b",
+                            colorInputText: "#ffffff",
+                            borderRadius: "0.5rem",
+                          },
+                          elements: {
+                            rootBox: "w-full",
+                            card: "bg-[#0a0a0a]/95 shadow-none border-0 backdrop-blur-xl",
+                            headerTitle: "font-mono text-white",
+                            headerSubtitle: "font-mono text-sm text-zinc-400",
+                            formFieldLabel: "font-mono text-xs text-zinc-400",
+                            formFieldInput: "font-mono text-sm bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-500",
+                            formButtonPrimary: "font-mono bg-accent hover:bg-accent/90 text-white",
+                            footerActionLink: "text-accent hover:text-accent/80",
+                            socialButtonsBlockButton: "font-mono border-zinc-800 hover:bg-zinc-900/50 text-white",
+                            socialButtonsBlockButtonText: "font-mono text-sm",
+                            dividerLine: "bg-zinc-800",
+                            dividerText: "font-mono text-xs text-zinc-500",
+                            identityPreviewText: "font-mono text-white",
+                            identityPreviewEditButton: "text-accent",
+                            formFieldSuccessText: "text-green-400",
+                            formFieldErrorText: "text-red-400",
+                            alertText: "font-mono text-sm",
+                            otpCodeFieldInput: "font-mono bg-zinc-900/50 border-zinc-800 text-white",
+                          }
+                        }}
+                      />
+                      {signUpError && (
+                        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                          <p className="font-mono text-xs text-red-400">{signUpError}</p>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     /* Fallback for preview/non-production URLs */
                     <div className="p-8 text-center">
