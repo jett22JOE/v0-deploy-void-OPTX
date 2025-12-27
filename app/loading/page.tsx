@@ -4,8 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { SignUp } from "@clerk/nextjs"
-import { useClerk } from "@clerk/nextjs"
+import { SignUp, UserProfile } from "@clerk/nextjs"
+import { useClerk, useAuth } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
 
@@ -27,12 +27,14 @@ function useIsClerkEnabled() {
 export default function LoadingPage() {
   const [showButton, setShowButton] = useState(false)
   const [showSignUp, setShowSignUp] = useState(false)
+  const [showUserProfile, setShowUserProfile] = useState(false)
   const [signUpError, setSignUpError] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isClerkEnabled = useIsClerkEnabled()
 
   // Verify Clerk is loaded before allowing submission
   const { loaded: clerkLoaded } = useClerk()
+  const { isSignedIn } = useAuth()
 
   useEffect(() => {
     // Show button after a delay or when video has played
@@ -42,6 +44,14 @@ export default function LoadingPage() {
 
     return () => clearTimeout(timer)
   }, [])
+
+  // Auto-open UserProfile modal if user is signed in
+  useEffect(() => {
+    if (isSignedIn && clerkLoaded) {
+      setShowUserProfile(true)
+      setShowSignUp(false)
+    }
+  }, [isSignedIn, clerkLoaded])
 
   // Fix autocapitalize on mobile for email inputs
   useEffect(() => {
@@ -112,8 +122,8 @@ export default function LoadingPage() {
         Loading...
       </h1>
 
-      {/* Get Early Access Button - shows when not signed up */}
-      {!showSignUp && (
+      {/* Get Early Access Button - shows when not signed up and no profile modal */}
+      {!showSignUp && !showUserProfile && (
         <div className="absolute top-[20vh] left-1/2 -translate-x-1/2 md:top-[calc(50%_-_320px)] z-20 flex flex-col items-center gap-6">
           <AnimatePresence>
             {showButton && (
@@ -122,7 +132,13 @@ export default function LoadingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                onClick={() => setShowSignUp(true)}
+                onClick={() => {
+                  if (isSignedIn) {
+                    setShowUserProfile(true)
+                  } else {
+                    setShowSignUp(true)
+                  }
+                }}
                 className="group relative rounded-full overflow-hidden p-[1px] transition-all duration-300
                   focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-black
                   hover:shadow-[0_0_30px_rgba(181,82,0,0.3)] active:shadow-[0_0_30px_rgba(181,82,0,0.3)]"
@@ -313,6 +329,126 @@ export default function LoadingPage() {
                       <p className="font-mono text-sm text-white mb-2">Join Preview</p>
                       <p className="font-mono text-xs text-white/60">
                         Visit <span className="text-accent">jettoptics.ai</span> to join
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </AnimatedMetalBorder>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Clerk UserProfile Modal - shows for signed-in users */}
+      <AnimatePresence>
+        {showUserProfile && (
+          <>
+            {/* Backdrop - click to close */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[199] bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowUserProfile(false)}
+            />
+
+            {/* Modal container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+              onClick={() => setShowUserProfile(false)}
+            >
+              <AnimatedMetalBorder
+                containerClassName="rounded-2xl"
+                borderWidth={4}
+                borderRadius={16}
+              >
+                <div
+                  className="clerk-profile-wrapper rounded-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <style jsx global>{`
+                    .clerk-profile-wrapper .cl-rootBox,
+                    .clerk-profile-wrapper .cl-card,
+                    .clerk-profile-wrapper .cl-navbar,
+                    .clerk-profile-wrapper .cl-navbarButton,
+                    .clerk-profile-wrapper .cl-profileSection,
+                    .clerk-profile-wrapper .cl-profileSectionTitle,
+                    .clerk-profile-wrapper .cl-profileSectionContent,
+                    .clerk-profile-wrapper .cl-formFieldLabel,
+                    .clerk-profile-wrapper .cl-formFieldInput,
+                    .clerk-profile-wrapper .cl-formButtonPrimary,
+                    .clerk-profile-wrapper .cl-button {
+                      font-family: var(--font-geist-mono), monospace !important;
+                    }
+
+                    .clerk-profile-wrapper .cl-card {
+                      background: rgba(10, 10, 10, 0.95) !important;
+                      backdrop-filter: blur(20px) !important;
+                      -webkit-backdrop-filter: blur(20px) !important;
+                      border: none !important;
+                      box-shadow: none !important;
+                    }
+
+                    .clerk-profile-wrapper .cl-navbar {
+                      background: rgba(24, 24, 27, 0.8) !important;
+                      border-right: 1px solid rgb(39, 39, 42) !important;
+                    }
+
+                    .clerk-profile-wrapper .cl-profileSection {
+                      border-color: rgb(39, 39, 42) !important;
+                    }
+
+                    .clerk-profile-wrapper .cl-formFieldInput {
+                      background: rgba(24, 24, 27, 0.5) !important;
+                      border-color: rgb(39, 39, 42) !important;
+                      color: white !important;
+                    }
+
+                    .clerk-profile-wrapper .cl-formButtonPrimary {
+                      background: #b55200 !important;
+                    }
+
+                    .clerk-profile-wrapper .cl-formButtonPrimary:hover {
+                      background: #8a3f00 !important;
+                    }
+                  `}</style>
+
+                  {isClerkEnabled ? (
+                    <UserProfile
+                      appearance={{
+                        variables: {
+                          colorPrimary: "#b55200",
+                          colorDanger: "#ff4444",
+                          colorText: "#ffffff",
+                          colorTextSecondary: "#a1a1aa",
+                          colorBackground: "#0a0a0a",
+                          colorInputBackground: "#18181b",
+                          colorInputText: "#ffffff",
+                          borderRadius: "0.5rem",
+                        },
+                        elements: {
+                          rootBox: "w-full",
+                          card: "bg-[#0a0a0a]/95 shadow-none border-0 backdrop-blur-xl",
+                          navbar: "bg-zinc-900/80 border-zinc-800",
+                          navbarButton: "text-white hover:bg-zinc-800",
+                          profileSection: "border-zinc-800",
+                          profileSectionTitle: "text-white",
+                          formFieldLabel: "text-zinc-400",
+                          formFieldInput: "bg-zinc-900/50 border-zinc-800 text-white",
+                          formButtonPrimary: "bg-accent hover:bg-accent/90",
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="p-8 text-center">
+                      <p className="font-mono text-sm text-white mb-2">Profile Unavailable</p>
+                      <p className="font-mono text-xs text-white/60">
+                        Visit <span className="text-accent">jettoptics.ai</span> to manage your profile
                       </p>
                     </div>
                   )}
