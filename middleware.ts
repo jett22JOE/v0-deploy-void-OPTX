@@ -6,7 +6,7 @@ const isPublicRoute = createRouteMatcher([
   "/loading(.*)",
   "/seo(.*)",
   "/optical-spatial-encryption(.*)",
-  "/api/webhook(.*)",
+  "/api/webhooks(.*)",
   "/api/waitlist(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
@@ -15,9 +15,8 @@ const isPublicRoute = createRouteMatcher([
   "/oauth-callback(.*)",
 ])
 
-// Clerk middleware for Next.js 16 - handles auth state and waitlist functionality
-// Next.js 16 uses 'proxy' export instead of 'default' export
-export const proxy = clerkMiddleware(async (auth, request) => {
+// Clerk middleware for Next.js 16 - handles auth state and OAuth flows
+export default clerkMiddleware(async (auth, request) => {
   // For public routes, don't require authentication
   // This allows the Waitlist component to work properly
   if (isPublicRoute(request)) {
