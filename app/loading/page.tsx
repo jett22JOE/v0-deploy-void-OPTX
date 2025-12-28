@@ -363,12 +363,12 @@ export default function LoadingPage() {
               onClick={() => setShowUserProfile(false)}
             >
               <AnimatedMetalBorder
-                containerClassName="rounded-2xl"
+                containerClassName="rounded-2xl w-full max-w-[900px]"
                 borderWidth={4}
                 borderRadius={16}
               >
                 <div
-                  className="clerk-profile-wrapper rounded-2xl"
+                  className="clerk-profile-wrapper rounded-2xl w-full"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <style jsx global>{`
@@ -386,12 +386,21 @@ export default function LoadingPage() {
                       font-family: var(--font-geist-mono), monospace !important;
                     }
 
+                    .clerk-profile-wrapper .cl-rootBox {
+                      width: 100% !important;
+                      max-width: 900px !important;
+                      min-height: 600px !important;
+                    }
+
                     .clerk-profile-wrapper .cl-card {
                       background: rgba(10, 10, 10, 0.95) !important;
                       backdrop-filter: blur(20px) !important;
                       -webkit-backdrop-filter: blur(20px) !important;
                       border: none !important;
                       box-shadow: none !important;
+                      width: 100% !important;
+                      max-width: 900px !important;
+                      min-height: 600px !important;
                     }
 
                     .clerk-profile-wrapper .cl-navbar {
