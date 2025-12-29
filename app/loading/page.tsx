@@ -511,45 +511,64 @@ export default function LoadingPage() {
                       background: #8a3f00 !important;
                     }
 
+                    /* Custom header styling */
+                    .clerk-profile-wrapper .custom-header {
+                      background: rgba(24, 24, 27, 0.9) !important;
+                      border-bottom: 1px solid rgb(39, 39, 42) !important;
+                      z-index: 10 !important;
+                    }
+
                     /* Mobile responsive styles for UserProfile */
                     @media (max-width: 768px) {
                       .clerk-profile-wrapper .cl-rootBox {
                         min-height: auto !important;
-                        max-height: 70vh !important;
+                        max-height: 75vh !important;
+                        max-width: 95vw !important;
                       }
                       .clerk-profile-wrapper .cl-card {
                         min-height: auto !important;
-                        max-height: 70vh !important;
+                        max-height: 75vh !important;
                         flex-direction: column !important;
+                        padding: 0 !important;
+                        overflow: hidden !important;
                       }
                       .clerk-profile-wrapper .cl-navbar {
                         width: 100% !important;
                         border-right: none !important;
                         border-bottom: 1px solid rgb(39, 39, 42) !important;
-                        padding: 0.5rem !important;
+                        padding: 0.5rem 0.25rem !important;
                         flex-direction: row !important;
-                        justify-content: center !important;
+                        justify-content: space-around !important;
                         gap: 0.25rem !important;
+                        overflow-x: auto !important;
                       }
                       .clerk-profile-wrapper .cl-navbarButton {
                         padding: 0.5rem !important;
                         min-width: auto !important;
+                        flex-shrink: 0 !important;
                       }
                       .clerk-profile-wrapper .cl-navbarButtonIcon {
                         margin-right: 0 !important;
+                        width: 1.25rem !important;
+                        height: 1.25rem !important;
                       }
+                      /* Hide all text labels in navbar on mobile */
                       .clerk-profile-wrapper .cl-navbarButton__label,
-                      .clerk-profile-wrapper [class*="navbarButtonLabel"] {
+                      .clerk-profile-wrapper .cl-navbarButton > span:not(:first-child),
+                      .clerk-profile-wrapper [class*="navbarButtonLabel"],
+                      .clerk-profile-wrapper [class*="NavbarButtonLabel"] {
                         display: none !important;
                       }
                       .clerk-profile-wrapper .cl-pageScrollBox {
                         padding: 0.75rem !important;
+                        max-height: calc(75vh - 180px) !important;
+                        overflow-y: auto !important;
                       }
                       .clerk-profile-wrapper .cl-profileSectionTitle {
                         font-size: 0.875rem !important;
                       }
                       .clerk-profile-wrapper .cl-profileSectionContent {
-                        font-size: 0.8rem !important;
+                        font-size: 0.75rem !important;
                       }
                       .clerk-profile-wrapper .cl-formFieldLabel {
                         font-size: 0.7rem !important;
@@ -558,50 +577,69 @@ export default function LoadingPage() {
                         font-size: 0.85rem !important;
                         padding: 0.5rem !important;
                       }
+                      .clerk-profile-wrapper .custom-header {
+                        padding: 0.5rem 0.75rem !important;
+                      }
+                      .clerk-profile-wrapper .custom-header .user-email {
+                        font-size: 0.7rem !important;
+                        max-width: 150px !important;
+                      }
                     }
 
                     @media (max-width: 480px) {
                       .clerk-profile-wrapper .cl-rootBox {
-                        max-width: 100% !important;
-                        width: 100% !important;
+                        max-width: 98vw !important;
+                        width: 98vw !important;
+                        max-height: 80vh !important;
                       }
                       .clerk-profile-wrapper .cl-card {
-                        padding: 0.5rem !important;
+                        padding: 0 !important;
                       }
                       .clerk-profile-wrapper .cl-navbar {
-                        padding: 0.25rem !important;
+                        padding: 0.375rem 0.125rem !important;
                       }
                       .clerk-profile-wrapper .cl-navbarButton {
-                        padding: 0.4rem !important;
+                        padding: 0.375rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-navbarButtonIcon {
+                        width: 1.125rem !important;
+                        height: 1.125rem !important;
+                      }
+                      .clerk-profile-wrapper .custom-header {
+                        padding: 0.375rem 0.5rem !important;
+                      }
+                      .clerk-profile-wrapper .custom-header .user-email {
+                        font-size: 0.65rem !important;
+                        max-width: 120px !important;
                       }
                     }
                   `}</style>
 
                   {/* Custom header with sign-out button */}
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50">
-                    <div className="flex items-center gap-3">
-                      <User className="w-5 h-5 text-accent" />
-                      <span className="font-mono text-sm text-white">
+                  <div className="custom-header flex items-center justify-between px-3 md:px-4 py-2 md:py-3 border-b border-zinc-800 bg-zinc-900/50">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <User className="w-4 h-4 md:w-5 md:h-5 text-accent flex-shrink-0" />
+                      <span className="user-email font-mono text-xs md:text-sm text-white truncate">
                         {user?.primaryEmailAddress?.emailAddress || "Profile"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
                       <button
                         onClick={handleSignOut}
                         disabled={isSigningOut}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-200 font-mono text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-200 font-mono text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span className="hidden sm:inline">
-                          {isSigningOut ? "Signing out..." : "Sign Out"}
+                        <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        <span className="hidden md:inline text-[10px] md:text-xs">
+                          {isSigningOut ? "Out..." : "Out"}
                         </span>
                       </button>
                       <button
                         onClick={() => setShowUserProfile(false)}
-                        className="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                        className="p-1 md:p-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
                         aria-label="Close profile"
                       >
-                        <X className="w-5 h-5" />
+                        <X className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
                     </div>
                   </div>
