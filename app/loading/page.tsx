@@ -5,9 +5,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { SignUp, UserProfile } from "@clerk/nextjs"
-import { useClerk, useAuth } from "@clerk/nextjs"
+import { useClerk, useAuth, useUser } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
+import { LogOut, User, X } from "lucide-react"
 
 // Check if Clerk is available on this domain
 function useIsClerkEnabled() {
@@ -29,12 +30,27 @@ export default function LoadingPage() {
   const [showSignUp, setShowSignUp] = useState(false)
   const [showUserProfile, setShowUserProfile] = useState(false)
   const [signUpError, setSignUpError] = useState<string | null>(null)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isClerkEnabled = useIsClerkEnabled()
 
   // Verify Clerk is loaded before allowing submission
-  const { loaded: clerkLoaded } = useClerk()
+  const { loaded: clerkLoaded, signOut } = useClerk()
   const { isSignedIn } = useAuth()
+  const { user } = useUser()
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    try {
+      await signOut()
+      setShowUserProfile(false)
+    } catch (error) {
+      console.error("Sign out error:", error)
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
 
   useEffect(() => {
     // Show button after a delay or when video has played
@@ -272,6 +288,75 @@ export default function LoadingPage() {
                     .clerk-signup-wrapper .cl-socialButtonsIconButton[data-provider="metamask"] {
                       border-color: rgba(181, 82, 0, 0.3) !important;
                     }
+
+                    /* Mobile responsive styles for SignUp */
+                    @media (max-width: 640px) {
+                      .clerk-signup-wrapper {
+                        max-height: 80vh;
+                        width: 100%;
+                        max-width: 100vw;
+                      }
+                      .clerk-signup-wrapper .cl-rootBox {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                      }
+                      .clerk-signup-wrapper .cl-card {
+                        padding: 1rem !important;
+                        width: 100% !important;
+                      }
+                      .clerk-signup-wrapper .cl-headerTitle {
+                        font-size: 1.25rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-headerSubtitle {
+                        font-size: 0.75rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-formFieldLabel {
+                        font-size: 0.7rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-formFieldInput,
+                      .clerk-signup-wrapper input {
+                        font-size: 16px !important; /* Prevents iOS zoom */
+                        padding: 0.6rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-formButtonPrimary {
+                        font-size: 0.85rem !important;
+                        padding: 0.7rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-socialButtonsBlockButton {
+                        padding: 0.6rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-socialButtonsBlockButtonText {
+                        font-size: 0.75rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-dividerText {
+                        font-size: 0.65rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-footerActionText,
+                      .clerk-signup-wrapper .cl-footerActionLink {
+                        font-size: 0.75rem !important;
+                      }
+                      /* Use icon-only social buttons on mobile */
+                      .clerk-signup-wrapper .cl-socialButtonsBlockButtonText__text {
+                        display: none !important;
+                      }
+                      .clerk-signup-wrapper .cl-socialButtonsBlockButton {
+                        justify-content: center !important;
+                        min-width: auto !important;
+                        padding: 0.75rem !important;
+                      }
+                    }
+
+                    @media (max-width: 380px) {
+                      .clerk-signup-wrapper .cl-card {
+                        padding: 0.75rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-headerTitle {
+                        font-size: 1.1rem !important;
+                      }
+                      .clerk-signup-wrapper .cl-socialButtonsBlockButton {
+                        padding: 0.5rem !important;
+                      }
+                    }
                   `}</style>
                   {isClerkEnabled === null || (isClerkEnabled && !clerkLoaded) ? (
                     /* Loading state while checking domain or waiting for Clerk to load */
@@ -425,7 +510,103 @@ export default function LoadingPage() {
                     .clerk-profile-wrapper .cl-formButtonPrimary:hover {
                       background: #8a3f00 !important;
                     }
+
+                    /* Mobile responsive styles for UserProfile */
+                    @media (max-width: 768px) {
+                      .clerk-profile-wrapper .cl-rootBox {
+                        min-height: auto !important;
+                        max-height: 70vh !important;
+                      }
+                      .clerk-profile-wrapper .cl-card {
+                        min-height: auto !important;
+                        max-height: 70vh !important;
+                        flex-direction: column !important;
+                      }
+                      .clerk-profile-wrapper .cl-navbar {
+                        width: 100% !important;
+                        border-right: none !important;
+                        border-bottom: 1px solid rgb(39, 39, 42) !important;
+                        padding: 0.5rem !important;
+                        flex-direction: row !important;
+                        justify-content: center !important;
+                        gap: 0.25rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-navbarButton {
+                        padding: 0.5rem !important;
+                        min-width: auto !important;
+                      }
+                      .clerk-profile-wrapper .cl-navbarButtonIcon {
+                        margin-right: 0 !important;
+                      }
+                      .clerk-profile-wrapper .cl-navbarButton__label,
+                      .clerk-profile-wrapper [class*="navbarButtonLabel"] {
+                        display: none !important;
+                      }
+                      .clerk-profile-wrapper .cl-pageScrollBox {
+                        padding: 0.75rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-profileSectionTitle {
+                        font-size: 0.875rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-profileSectionContent {
+                        font-size: 0.8rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-formFieldLabel {
+                        font-size: 0.7rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-formFieldInput {
+                        font-size: 0.85rem !important;
+                        padding: 0.5rem !important;
+                      }
+                    }
+
+                    @media (max-width: 480px) {
+                      .clerk-profile-wrapper .cl-rootBox {
+                        max-width: 100% !important;
+                        width: 100% !important;
+                      }
+                      .clerk-profile-wrapper .cl-card {
+                        padding: 0.5rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-navbar {
+                        padding: 0.25rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-navbarButton {
+                        padding: 0.4rem !important;
+                      }
+                    }
                   `}</style>
+
+                  {/* Custom header with sign-out button */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50">
+                    <div className="flex items-center gap-3">
+                      <User className="w-5 h-5 text-accent" />
+                      <span className="font-mono text-sm text-white">
+                        {user?.primaryEmailAddress?.emailAddress || "Profile"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleSignOut}
+                        disabled={isSigningOut}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20
+                          border border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-200
+                          font-mono text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                          {isSigningOut ? "Signing out..." : "Sign Out"}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => setShowUserProfile(false)}
+                        className="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                        aria-label="Close profile"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
 
                   {isClerkEnabled ? (
                     <UserProfile
