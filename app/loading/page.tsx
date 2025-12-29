@@ -531,38 +531,51 @@ export default function LoadingPage() {
                         flex-direction: column !important;
                         padding: 0 !important;
                         overflow: hidden !important;
+                        background: rgba(10, 10, 10, 1) !important; /* Solid background, no transparency */
                       }
                       .clerk-profile-wrapper .cl-navbar {
                         width: 100% !important;
                         border-right: none !important;
                         border-bottom: 1px solid rgb(39, 39, 42) !important;
-                        padding: 0.5rem 0.25rem !important;
+                        padding: 0.5rem !important;
                         flex-direction: row !important;
-                        justify-content: space-around !important;
-                        gap: 0.25rem !important;
+                        justify-content: flex-start !important;
+                        gap: 0.5rem !important;
                         overflow-x: auto !important;
+                        background: rgba(24, 24, 27, 1) !important; /* Solid background */
+                        backdrop-filter: none !important;
+                        -webkit-backdrop-filter: none !important;
                       }
                       .clerk-profile-wrapper .cl-navbarButton {
-                        padding: 0.5rem !important;
+                        padding: 0.5rem 0.75rem !important;
                         min-width: auto !important;
                         flex-shrink: 0 !important;
+                        display: flex !important;
+                        flex-direction: row !important;
+                        align-items: center !important;
+                        gap: 0.5rem !important;
+                        background: transparent !important;
+                        white-space: nowrap !important;
                       }
                       .clerk-profile-wrapper .cl-navbarButtonIcon {
                         margin-right: 0 !important;
-                        width: 1.25rem !important;
-                        height: 1.25rem !important;
+                        width: 1rem !important;
+                        height: 1rem !important;
+                        flex-shrink: 0 !important;
                       }
-                      /* Hide all text labels in navbar on mobile */
+                      /* Show text labels on mobile with proper styling */
                       .clerk-profile-wrapper .cl-navbarButton__label,
-                      .clerk-profile-wrapper .cl-navbarButton > span:not(:first-child),
                       .clerk-profile-wrapper [class*="navbarButtonLabel"],
                       .clerk-profile-wrapper [class*="NavbarButtonLabel"] {
-                        display: none !important;
+                        display: inline !important;
+                        font-size: 0.75rem !important;
+                        font-weight: 500 !important;
                       }
                       .clerk-profile-wrapper .cl-pageScrollBox {
                         padding: 0.75rem !important;
                         max-height: calc(75vh - 180px) !important;
                         overflow-y: auto !important;
+                        background: rgba(10, 10, 10, 1) !important; /* Solid background */
                       }
                       .clerk-profile-wrapper .cl-profileSectionTitle {
                         font-size: 0.875rem !important;
@@ -579,6 +592,7 @@ export default function LoadingPage() {
                       }
                       .clerk-profile-wrapper .custom-header {
                         padding: 0.5rem 0.75rem !important;
+                        background: rgba(24, 24, 27, 1) !important; /* Solid background */
                       }
                       .clerk-profile-wrapper .custom-header .user-email {
                         font-size: 0.7rem !important;
@@ -596,14 +610,20 @@ export default function LoadingPage() {
                         padding: 0 !important;
                       }
                       .clerk-profile-wrapper .cl-navbar {
-                        padding: 0.375rem 0.125rem !important;
+                        padding: 0.375rem 0.5rem !important;
                       }
                       .clerk-profile-wrapper .cl-navbarButton {
-                        padding: 0.375rem !important;
+                        padding: 0.375rem 0.625rem !important;
+                        gap: 0.375rem !important;
                       }
                       .clerk-profile-wrapper .cl-navbarButtonIcon {
-                        width: 1.125rem !important;
-                        height: 1.125rem !important;
+                        width: 0.875rem !important;
+                        height: 0.875rem !important;
+                      }
+                      .clerk-profile-wrapper .cl-navbarButton__label,
+                      .clerk-profile-wrapper [class*="navbarButtonLabel"],
+                      .clerk-profile-wrapper [class*="NavbarButtonLabel"] {
+                        font-size: 0.7rem !important;
                       }
                       .clerk-profile-wrapper .custom-header {
                         padding: 0.375rem 0.5rem !important;
