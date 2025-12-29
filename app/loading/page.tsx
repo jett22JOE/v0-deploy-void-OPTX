@@ -589,9 +589,7 @@ export default function LoadingPage() {
                       <button
                         onClick={handleSignOut}
                         disabled={isSigningOut}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20
-                          border border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-200
-                          font-mono text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-200 font-mono text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <LogOut className="w-4 h-4" />
                         <span className="hidden sm:inline">
