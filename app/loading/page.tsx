@@ -375,14 +375,14 @@ export default function LoadingPage() {
                             colorPrimary: "#b55200",
                             colorText: "#ffffff",
                             colorTextSecondary: "#a1a1aa",
-                            colorBackground: "#463465",
+                            colorBackground: "#2d2b55",
                             colorInputBackground: "#18181b",
                             colorInputText: "#ffffff",
                             borderRadius: "0.5rem",
                           },
                           elements: {
                             rootBox: "w-full",
-                            card: "bg-[#463465]/95 shadow-none border-0 backdrop-blur-xl",
+                            card: "bg-[#2d2b55]/95 shadow-none border-0 backdrop-blur-xl",
                             headerTitle: "font-mono text-white",
                             headerSubtitle: "font-mono text-sm text-zinc-400",
                             formFieldLabel: "font-mono text-xs text-zinc-400",
@@ -478,7 +478,7 @@ export default function LoadingPage() {
                     }
 
                     .clerk-profile-wrapper .cl-card {
-                      background: rgba(70, 52, 101, 0.95) !important;
+                      background: rgba(45, 43, 85, 0.95) !important;
                       backdrop-filter: blur(20px) !important;
                       -webkit-backdrop-filter: blur(20px) !important;
                       border: none !important;
@@ -531,7 +531,7 @@ export default function LoadingPage() {
                         flex-direction: column !important;
                         padding: 0 !important;
                         overflow: hidden !important;
-                        background: rgba(70, 52, 101, 1) !important; /* Solid purple background */
+                        background: rgba(45, 43, 85, 1) !important; /* Solid dark purple background */
                       }
                       .clerk-profile-wrapper .cl-navbar {
                         width: 100% !important;
@@ -575,7 +575,7 @@ export default function LoadingPage() {
                         padding: 0.75rem !important;
                         max-height: calc(75vh - 180px) !important;
                         overflow-y: auto !important;
-                        background: rgba(70, 52, 101, 1) !important; /* Solid purple background */
+                        background: rgba(45, 43, 85, 1) !important; /* Solid dark purple background */
                       }
                       .clerk-profile-wrapper .cl-profileSectionTitle {
                         font-size: 0.875rem !important;
@@ -636,7 +636,7 @@ export default function LoadingPage() {
                   `}</style>
 
                   {/* Custom header with sign-out button */}
-                  <div className="custom-header flex items-center justify-between px-3 md:px-4 py-2 md:py-3 border-b border-zinc-800 bg-[#463465]/80">
+                  <div className="custom-header flex items-center justify-between px-3 md:px-4 py-2 md:py-3 border-b border-zinc-800 bg-[#2d2b55]/80">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <User className="w-4 h-4 md:w-5 md:h-5 text-accent flex-shrink-0" />
                       <span className="user-email font-mono text-xs md:text-sm text-white truncate">
@@ -672,14 +672,14 @@ export default function LoadingPage() {
                           colorDanger: "#ff4444",
                           colorText: "#ffffff",
                           colorTextSecondary: "#a1a1aa",
-                          colorBackground: "#463465",
+                          colorBackground: "#2d2b55",
                           colorInputBackground: "#18181b",
                           colorInputText: "#ffffff",
                           borderRadius: "0.5rem",
                         },
                         elements: {
                           rootBox: "w-full",
-                          card: "bg-[#463465]/95 shadow-none border-0 backdrop-blur-xl",
+                          card: "bg-[#2d2b55]/95 shadow-none border-0 backdrop-blur-xl",
                           navbar: "bg-zinc-900/80 border-zinc-800",
                           navbarButton: "text-white hover:bg-zinc-800",
                           profileSection: "border-zinc-800",
