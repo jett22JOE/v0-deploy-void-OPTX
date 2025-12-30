@@ -3,7 +3,7 @@
  *
  * Handshake Encryption Delegated Gesture Envelope Handler Optical Gateway
  *
- * Uses xAI SDK with grok-4-1-fast-reasoning model to analyze OAuth issues
+ * Uses xAI API with grok-4-1-fast-reasoning model to analyze OAuth issues
  * and provide JETT-encrypted security envelope validations.
  */
 
@@ -74,7 +74,7 @@ Always respond with structured JSON containing:
         "Authorization": `Bearer ${XAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: "grok-2-1212",
+        model: "grok-4-1-fast-reasoning",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
