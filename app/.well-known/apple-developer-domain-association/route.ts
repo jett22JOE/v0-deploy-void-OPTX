@@ -10,14 +10,10 @@
 import { NextResponse } from "next/server"
 
 export async function GET() {
-  // TODO: Replace this placeholder content with actual content from Apple Developer Portal
-  //
-  // To get the correct content:
-  // 1. Go to https://developer.apple.com/account/resources/identifiers
-  // 2. Click on Services ID: ai.jettoptics.gazeauth.OPTX
-  // 3. Click "Download" under "Associated Domains"
-  // 4. Copy the content from the downloaded file
-  // 5. Replace the content below
+  // Apple Developer Domain Association for Sign In with Apple
+  // Format: TeamID.ServiceID
+  // Services ID: ai.jettoptics.gazeauth.web
+  // Team ID: SFYR62R3DY (verify this matches your Apple Developer account)
 
   const content = `{
   "applinks": {
@@ -26,7 +22,7 @@ export async function GET() {
   },
   "webcredentials": {
     "apps": [
-      "YOUR_APPLE_TEAM_ID.ai.jettoptics.gazeauth.OPTX"
+      "SFYR62R3DY.ai.jettoptics.gazeauth.web"
     ]
   }
 }`
