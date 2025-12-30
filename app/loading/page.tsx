@@ -636,7 +636,7 @@ export default function LoadingPage() {
                   `}</style>
 
                   {/* Custom header with sign-out button */}
-                  <div className="custom-header flex items-center justify-between px-3 md:px-4 py-2 md:py-3 border-b border-zinc-800 bg-[#2d2b55]/80">
+                  <div className="custom-header flex items-center justify-between px-3 md:px-4 py-2 md:py-3 border-b border-zinc-800 bg-[#2d2b55]/80 rounded-t-2xl">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <User className="w-4 h-4 md:w-5 md:h-5 text-accent flex-shrink-0" />
                       <span className="user-email font-mono text-xs md:text-sm text-white truncate">
