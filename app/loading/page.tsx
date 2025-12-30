@@ -651,7 +651,7 @@ export default function LoadingPage() {
                       >
                         <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         <span className="hidden md:inline text-[10px] md:text-xs">
-                          {isSigningOut ? "Out..." : "Out"}
+                          {isSigningOut ? "Signing out..." : "Sign Out"}
                         </span>
                       </button>
                       <button
