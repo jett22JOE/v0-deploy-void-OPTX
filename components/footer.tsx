@@ -95,8 +95,8 @@ export function Footer() {
             <Image
               src="/icons/techforce_OPTX.png"
               alt="TechForce OPTX"
-              width={100}
-              height={100}
+              width={50}
+              height={50}
               className="object-contain"
             />
           </div>
