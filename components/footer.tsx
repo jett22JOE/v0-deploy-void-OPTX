@@ -90,6 +90,15 @@ export function Footer() {
               />
             </Link>
             <p className="font-mono text-xs tracking-widest text-muted-foreground">© {new Date().getFullYear()}</p>
+
+            {/* TechForce OPTX Logo */}
+            <Image
+              src="/icons/techforce_OPTX.png"
+              alt="TechForce OPTX"
+              width={100}
+              height={100}
+              className="object-contain"
+            />
           </div>
         </div>
       </div>

@@ -58,9 +58,15 @@ export default function OpticalSpatialEncryptionPage() {
           </Link>
           <Link
             href="/#spatial-encryption"
-            className="font-mono text-xs tracking-widest text-accent"
+            className="flex items-center"
           >
-            JETT OPTICS
+            <Image
+              src="/icons/techforce_OPTX.png"
+              alt="Jett Optics"
+              width={100}
+              height={100}
+              className="object-contain"
+            />
           </Link>
         </div>
       </nav>
