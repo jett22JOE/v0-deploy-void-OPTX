@@ -19,10 +19,18 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Jett Optics | Spatial Encryption | DePIN",
-  description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography. Post-quantum biometric authentication for Web3 and DePIN networks. $OPTX token.",
+  title: "Jett Optics | Spatial Encryption & Gaze-Based Authentication | DePIN",
+  description: "Pioneer of spatial encryption using Adaptive Gaze Tensor authentication and neuromorphic optical security. Post-quantum biometric authentication for Web3 and DePIN networks. Patent-pending eye-tracking cryptography.",
   keywords: [
     "spatial encryption",
+    "gaze authentication",
+    "gaze tensor authentication",
+    "neuromorphic optical security",
+    "neuromorphic security",
+    "DePIN biometric",
+    "eye tracking blockchain",
+    "adaptive gaze tensor",
+    "optical encryption authentication",
     "DePIN",
     "gaze-based encryption",
     "AGT tensors",
@@ -38,6 +46,7 @@ export const metadata: Metadata = {
     "spatial security",
     "quantum-resistant encryption",
     "Web3 authentication",
+    "eye-tracking neuromorphic encryption",
   ],
   authors: [{ name: "Jett Optics", url: "https://jettoptics.ai" }],
   creator: "Jett Optics",
@@ -62,14 +71,14 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://jettoptics.ai",
     siteName: "Jett Optics",
-    title: "Jett Optics | Spatial Encryption | DePIN",
-    description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography. Post-quantum biometric authentication for Web3 and DePIN.",
+    title: "Jett Optics | Spatial Encryption & Gaze-Based Authentication | DePIN",
+    description: "Pioneer of spatial encryption using Adaptive Gaze Tensor authentication and neuromorphic optical security. Post-quantum biometric authentication for Web3 and DePIN networks.",
     images: [
       {
-        url: "/icons/lightLOGOjettoptics.jpeg",
+        url: "/opengraph-image",
         width: 1200,
-        height: 1200,
-        alt: "Jett Optics - Optical Spatial Encryption Logo",
+        height: 630,
+        alt: "Jett Optics - Spatial Encryption for the Decentralized Future",
       },
     ],
   },
@@ -77,9 +86,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@jettoptx",
     creator: "@jettoptx",
-    title: "Jett Optics | Spatial Encryption | DePIN",
-    description: "Post-quantum security using AGT gaze tensors and Markov chains. Proof-of-attention on Solana. $OPTX",
-    images: ["/icons/lightLOGOjettoptics.jpeg"],
+    title: "Jett Optics | Spatial Encryption & Gaze-Based Authentication",
+    description: "Post-quantum security using Adaptive Gaze Tensors and neuromorphic optical encryption. Proof-of-attention on Solana. $OPTX",
+    images: ["/twitter-image"],
   },
   icons: {
     icon: [
@@ -102,16 +111,30 @@ export const viewport: Viewport = {
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Jett Optics",
-  alternateName: "JettOptics",
+  name: "Jett Optics LLC",
+  legalName: "Jett Optics LLC",
+  alternateName: ["JettOptics", "Jett Optics"],
   url: "https://jettoptics.ai",
   logo: "https://jettoptics.ai/icons/lightLOGOjettoptics.jpeg",
-  description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography for DePIN networks.",
+  image: "https://jettoptics.ai/opengraph-image",
+  description: "Pioneer of spatial encryption using Adaptive Gaze Tensor authentication and neuromorphic optical security. Post-quantum biometric authentication for Web3 and DePIN networks.",
+  slogan: "Spatial Encryption for the Decentralized Future",
   foundingDate: "2024",
+  founder: {
+    "@type": "Person",
+    name: "Joshua Martinez",
+  },
+  knowsAbout: [
+    "Spatial Encryption",
+    "Gaze Tensor Authentication",
+    "Neuromorphic Optical Security",
+    "DePIN Biometric",
+    "Eye Tracking Blockchain",
+    "Post-Quantum Cryptography",
+  ],
   sameAs: [
     "https://twitter.com/jettoptx",
     "https://github.com/jett22JOE",
-    "https://share.google/DXSrM5IAmV9bOMxgK",
   ],
   contactPoint: {
     "@type": "ContactPoint",
@@ -125,12 +148,46 @@ const websiteSchema = {
   "@type": "WebSite",
   name: "Jett Optics",
   url: "https://jettoptics.ai",
-  description: "Spatial encryption for Web3 and DePIN networks",
+  description: "Spatial encryption for Web3 and DePIN networks using Adaptive Gaze Tensor authentication",
+  publisher: {
+    "@type": "Organization",
+    name: "Jett Optics LLC",
+  },
   potentialAction: {
     "@type": "SearchAction",
     target: "https://jettoptics.ai/?q={search_term_string}",
     "query-input": "required name=search_term_string",
   },
+}
+
+// JSON-LD Schema for SoftwareApplication
+const softwareApplicationSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Jett Optics Spatial Encryption Platform",
+  applicationCategory: "SecurityApplication",
+  operatingSystem: "Web, iOS, Android",
+  description: "Adaptive Gaze Tensor authentication platform providing neuromorphic optical security and post-quantum biometric authentication for Web3 and DePIN networks.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  creator: {
+    "@type": "Organization",
+    name: "Jett Optics LLC",
+    url: "https://jettoptics.ai",
+  },
+  featureList: [
+    "Spatial Encryption",
+    "Gaze Tensor Authentication",
+    "Neuromorphic Optical Security",
+    "Post-Quantum Cryptography",
+    "DePIN Integration",
+    "Proof-of-Attention Protocol",
+    "$OPTX Token Rewards",
+  ],
+  keywords: "spatial encryption, gaze authentication, neuromorphic security, DePIN biometric, eye tracking blockchain",
 }
 
 export default function RootLayout({
@@ -148,6 +205,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
         />
       </head>
       <body className="font-sans antialiased overflow-x-hidden">
