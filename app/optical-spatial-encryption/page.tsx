@@ -232,48 +232,82 @@ export default function OpticalSpatialEncryptionPage() {
             </ul>
 
             {/* Token Links */}
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6 mb-6">
-              <h3 className="font-mono text-sm tracking-[0.2em] text-accent mb-4">$JTX TOKEN LINKS</h3>
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <span className="font-mono text-xs text-muted-foreground">Contract:</span>
-                  <code className="font-mono text-xs text-white bg-white/10 px-2 py-1 rounded break-all">
+            <div className="relative overflow-hidden bg-gradient-to-br from-accent/10 via-white/5 to-purple-500/10 border border-accent/30 rounded-2xl p-8 mb-6">
+              {/* Background glow effect */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/20 rounded-full blur-3xl" />
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl" />
+
+              <div className="relative z-10">
+                <h3 className="font-mono text-sm tracking-[0.3em] text-accent mb-6 flex items-center gap-3">
+                  <span className="inline-block w-2 h-2 bg-accent rounded-full animate-pulse" />
+                  $JTX TOKEN — LIVE ON SOLANA
+                </h3>
+
+                {/* Contract Address */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-8 p-4 bg-black/30 rounded-xl border border-white/10">
+                  <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Contract:</span>
+                  <code className="font-mono text-sm text-white bg-white/10 px-3 py-2 rounded-lg break-all select-all hover:bg-white/20 transition-colors cursor-pointer">
                     9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj
                   </code>
                 </div>
-                <div className="flex flex-wrap gap-3 mt-4">
+
+                {/* Token Link Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <a
                     href="https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-mono text-xs px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/30 rounded-lg transition-colors"
+                    className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#14F195]/20 to-[#9945FF]/20 hover:from-[#14F195]/30 hover:to-[#9945FF]/30 text-white border border-[#14F195]/40 hover:border-[#14F195]/60 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#14F195]/20"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <Image
+                      src="/icons/solscan.ico"
+                      alt="Solscan"
+                      width={24}
+                      height={24}
+                      className="rounded"
+                    />
+                    <span className="font-semibold">Solscan</span>
+                    <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    Solscan
                   </a>
+
                   <a
                     href="https://dexscreener.com/solana/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-mono text-xs px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/30 rounded-lg transition-colors"
+                    className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#1C1C28]/80 to-[#2D2D3A]/80 hover:from-[#1C1C28] hover:to-[#2D2D3A] text-white border border-white/20 hover:border-white/40 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-white/10"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    <Image
+                      src="/icons/dexscreener.png"
+                      alt="DexScreener"
+                      width={24}
+                      height={24}
+                      className="rounded"
+                    />
+                    <span className="font-semibold">DexScreener</span>
+                    <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    DexScreener
                   </a>
+
                   <a
                     href="https://raydium.io/swap"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-mono text-xs px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/30 rounded-lg transition-colors"
+                    className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#2E1065]/80 to-[#7C3AED]/30 hover:from-[#2E1065] hover:to-[#7C3AED]/50 text-white border border-[#7C3AED]/40 hover:border-[#7C3AED]/60 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#7C3AED]/20"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    <Image
+                      src="/icons/raydium.ico"
+                      alt="Raydium"
+                      width={24}
+                      height={24}
+                      className="rounded"
+                    />
+                    <span className="font-semibold">Trade on Raydium</span>
+                    <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    Trade on Raydium
                   </a>
                 </div>
               </div>
