@@ -131,7 +131,7 @@ export function TechMarquee() {
             <blockquote className="twitter-tweet" data-theme="dark">
               <p lang="en" dir="ltr">
                 Email Waitlist is Live!{" "}
-                <a href="https://twitter.com/search?q=%24OPTX&amp;src=ctag&amp;ref_src=twsrc%5Etfw">$OPTX</a>{" "}
+                <a href="https://twitter.com/search?q=%24JTX&amp;src=ctag&amp;ref_src=twsrc%5Etfw">$JTX</a>{" "}
                 <a href="https://t.co/a6FEG0OFEf">pic.twitter.com/a6FEG0OFEf</a>
               </p>
               &mdash; Jett Optics (@jettoptx){" "}

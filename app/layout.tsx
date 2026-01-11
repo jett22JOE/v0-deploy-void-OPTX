@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "biometric authentication",
     "eye tracking security",
     "Solana DePIN",
-    "$OPTX token",
+    "$JTX token",
     "Jett Optics",
     "spatial security",
     "quantum-resistant encryption",
@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     site: "@jettoptx",
     creator: "@jettoptx",
     title: "Jett Optics | Spatial Encryption & Gaze-Based Authentication",
-    description: "Post-quantum security using Adaptive Gaze Tensors and neuromorphic optical encryption. Proof-of-attention on Solana. $OPTX",
+    description: "Post-quantum security using Adaptive Gaze Tensors and neuromorphic optical encryption. Proof-of-attention on Solana. $JTX",
     images: ["/twitter-image"],
   },
   icons: {
@@ -185,7 +185,7 @@ const softwareApplicationSchema = {
     "Post-Quantum Cryptography",
     "DePIN Integration",
     "Proof-of-Attention Protocol",
-    "$OPTX Token Rewards",
+    "$JTX Token Rewards",
   ],
   keywords: "spatial encryption, gaze authentication, neuromorphic security, DePIN biometric, eye tracking blockchain",
 }

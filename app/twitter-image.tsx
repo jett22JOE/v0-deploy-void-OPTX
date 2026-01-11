@@ -117,7 +117,7 @@ export default async function Image() {
               justifyContent: 'center',
             }}
           >
-            {['Gaze Authentication', 'Neuromorphic Security', 'DePIN', '$OPTX'].map((keyword) => (
+            {['Gaze Authentication', 'Neuromorphic Security', 'DePIN', '$JTX'].map((keyword) => (
               <div
                 key={keyword}
                 style={{

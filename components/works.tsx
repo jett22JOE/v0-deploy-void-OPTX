@@ -62,12 +62,12 @@ const projects = [
         <span className="text-accent">Jett</span>-Chat
       </>
     ),
-    tags: ["BitChat", "WebSocket", "$OPTX", "ZeroMQ"], // Verified ZeroMQ appears only once in tags array
+    tags: ["BitChat", "WebSocket", "$JTX", "ZeroMQ"], // Verified ZeroMQ appears only once in tags array
     image: "/images/jett-chat-mojo.jpg",
     largeHoverWindow: true,
     scope: "DePIN",
     description:
-      "End-to-end encrypted messaging secured by your unique gaze signature. Every message you send contributes to the network, earning $OPTX tokens through proof-of-engagement. Your attention becomes value—no keystrokes, no surveillance, just optical authentication that rewards participation in the decentralized communication layer.",
+      "End-to-end encrypted messaging secured by your unique gaze signature. Every message you send contributes to the network, earning $JTX tokens through proof-of-engagement. Your attention becomes value—no keystrokes, no surveillance, just optical authentication that rewards participation in the decentralized communication layer.",
   },
   {
     title: "AARON Protocol",

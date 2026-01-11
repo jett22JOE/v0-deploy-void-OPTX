@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "Markov chain cryptography",
     "biometric authentication Web3",
     "eye tracking security",
-    "$OPTX token",
+    "$JTX token",
   ],
   alternates: {
     canonical: "https://jettoptics.ai/optical-spatial-encryption",
@@ -185,7 +185,7 @@ export default function OpticalSpatialEncryptionPage() {
             </p>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
               Every authenticated interaction on the Jett Optics network validates your presence and attention,
-              contributing to network security while earning <strong className="text-accent">$OPTX tokens</strong>.
+              contributing to network security while earning <strong className="text-accent">$JTX tokens</strong>.
               This creates a DePIN (Decentralized Physical Infrastructure Network) where:
             </p>
             <ul className="space-y-2 mb-6">
@@ -204,17 +204,17 @@ export default function OpticalSpatialEncryptionPage() {
           {/* OPTX Tokenomics */}
           <section className="mb-12">
             <h2 className="font-sans text-2xl md:text-3xl font-light mb-6 text-white">
-              $OPTX Token and DePIN Integration
+              $JTX Token and DePIN Integration
             </h2>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
-              Built on Solana for high throughput and low latency, $OPTX serves multiple functions:
+              Built on Solana for high throughput and low latency, $JTX serves multiple functions (4.4M fixed supply, locked):
             </p>
             <ul className="space-y-2 mb-6">
               <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Authentication fees</strong>—applications pay in $OPTX to verify users
+                • <strong className="text-white">Authentication fees</strong>—applications pay in $JTX to verify users
               </li>
               <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Attention rewards</strong>—users earn $OPTX for genuine engagement
+                • <strong className="text-white">Attention rewards</strong>—users earn $JTX for genuine engagement
               </li>
               <li className="font-mono text-sm md:text-base text-muted-foreground">
                 • <strong className="text-white">Governance</strong>—token holders vote on protocol upgrades
@@ -329,7 +329,7 @@ export default function OpticalSpatialEncryptionPage() {
               "@type": "WebPage",
               "@id": "https://jettoptics.ai/optical-spatial-encryption",
             },
-            keywords: "spatial encryption, DePIN, gaze-based encryption, AGT tensors, proof-of-attention, post-quantum cryptography, Markov chains, $OPTX",
+            keywords: "spatial encryption, DePIN, gaze-based encryption, AGT tensors, proof-of-attention, post-quantum cryptography, Markov chains, $JTX",
           }),
         }}
       />

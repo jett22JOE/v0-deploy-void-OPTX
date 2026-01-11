@@ -20,7 +20,7 @@ export function SeoCTASection() {
                 Ready to Experience Spatial Encryption?
               </h3>
               <p className="font-mono text-sm text-muted-foreground mb-6">
-                Join the $OPTX waitlist and be among the first to authenticate with your eyes.
+                Join the $JTX waitlist and be among the first to authenticate with your eyes.
               </p>
               <Link
                 href="/loading"
