@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     "Markov chain cryptography",
     "biometric authentication Web3",
     "eye tracking security",
+    "$JTX token",
     "$OPTX token",
   ],
   alternates: {
@@ -210,17 +211,17 @@ export default function OpticalSpatialEncryptionPage() {
           {/* OPTX Tokenomics */}
           <section className="mb-12">
             <h2 className="font-sans text-2xl md:text-3xl font-light mb-6 text-white">
-              $OPTX Token and DePIN Integration
+              $JTX Token and DePIN Integration
             </h2>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
-              Built on Solana for high throughput and low latency, $OPTX serves multiple functions:
+              Built on Solana for high throughput and low latency, <strong className="text-accent">$JTX</strong> is now live on Raydium and serves multiple functions:
             </p>
             <ul className="space-y-2 mb-6">
               <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Authentication fees</strong>—applications pay in $OPTX to verify users
+                • <strong className="text-white">Authentication fees</strong>—applications pay in $JTX to verify users
               </li>
               <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Attention rewards</strong>—users earn $OPTX for genuine engagement
+                • <strong className="text-white">Attention rewards</strong>—users earn $JTX for genuine engagement
               </li>
               <li className="font-mono text-sm md:text-base text-muted-foreground">
                 • <strong className="text-white">Governance</strong>—token holders vote on protocol upgrades
@@ -229,6 +230,55 @@ export default function OpticalSpatialEncryptionPage() {
                 • <strong className="text-white">Staking</strong>—secure the network and earn yield
               </li>
             </ul>
+
+            {/* Token Links */}
+            <div className="bg-white/5 border border-white/10 rounded-lg p-6 mb-6">
+              <h3 className="font-mono text-sm tracking-[0.2em] text-accent mb-4">$JTX TOKEN LINKS</h3>
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">Contract:</span>
+                  <code className="font-mono text-xs text-white bg-white/10 px-2 py-1 rounded break-all">
+                    9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj
+                  </code>
+                </div>
+                <div className="flex flex-wrap gap-3 mt-4">
+                  <a
+                    href="https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 font-mono text-xs px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/30 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Solscan
+                  </a>
+                  <a
+                    href="https://dexscreener.com/solana/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 font-mono text-xs px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/30 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                    DexScreener
+                  </a>
+                  <a
+                    href="https://raydium.io/swap"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 font-mono text-xs px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/30 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    Trade on Raydium
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed">
               The AARON Protocol (Asynchronous Audit RAG Optical Node) handles on-chain verification,
               using retrieval-augmented generation to audit cryptographic operations across the distributed network.
@@ -335,7 +385,7 @@ export default function OpticalSpatialEncryptionPage() {
               "@type": "WebPage",
               "@id": "https://jettoptics.ai/optical-spatial-encryption",
             },
-            keywords: "spatial encryption, DePIN, gaze-based encryption, AGT tensors, proof-of-attention, post-quantum cryptography, Markov chains, $OPTX",
+            keywords: "spatial encryption, DePIN, gaze-based encryption, AGT tensors, proof-of-attention, post-quantum cryptography, Markov chains, $JTX, $OPTX, Solana token",
           }),
         }}
       />
