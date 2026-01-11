@@ -292,7 +292,7 @@ export default function OpticalSpatialEncryptionPage() {
                   </a>
 
                   <a
-                    href="https://raydium.io/swap"
+                    href="https://raydium.io/swap/?inputMint=9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj&outputMint=sol"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#2E1065]/80 to-[#7C3AED]/30 hover:from-[#2E1065] hover:to-[#7C3AED]/50 text-white border border-[#7C3AED]/40 hover:border-[#7C3AED]/60 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#7C3AED]/20"
