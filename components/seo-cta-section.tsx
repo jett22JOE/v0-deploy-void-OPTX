@@ -15,11 +15,11 @@ export function SeoCTASection() {
       <AnimatedMetalBorder containerClassName="rounded-2xl" borderWidth={4} borderRadius={16}>
         <div className="p-8 bg-accent/5 relative">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-            <div className="flex-1">
-              <h3 className="font-sans text-xl md:text-2xl font-light mb-4 text-white">
+            <div className="flex-1 flex flex-col items-center md:items-start">
+              <h3 className="font-sans text-xl md:text-2xl font-light mb-4 text-white text-center md:text-left">
                 Ready to Experience Spatial Encryption?
               </h3>
-              <p className="font-mono text-sm text-muted-foreground mb-6">
+              <p className="font-mono text-sm text-muted-foreground mb-6 text-center md:text-left">
                 Join the $OPTX waitlist and be among the first to authenticate with your eyes.
               </p>
               <Link
