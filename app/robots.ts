@@ -6,7 +6,15 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/_next/'],
+        disallow: [
+          '/api/',
+          '/_next/',
+          '/sign-in/',
+          '/sign-up/',
+          '/sso-callback/',
+          '/oauth-callback/',
+          '/loading/',
+        ],
       },
     ],
     sitemap: 'https://jettoptics.ai/sitemap.xml',

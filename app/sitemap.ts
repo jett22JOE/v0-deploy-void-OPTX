@@ -3,6 +3,8 @@ import { MetadataRoute } from 'next'
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://jettoptics.ai'
 
+  // Only include content pages that should be indexed by search engines
+  // Excludes: /loading (waitlist page), /sign-in, /sso-callback, /oauth-callback (auth pages)
   return [
     {
       url: baseUrl,
@@ -15,12 +17,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/loading`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
     },
   ]
 }
