@@ -309,6 +309,23 @@ export default function OpticalSpatialEncryptionPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </a>
+
+                  <a
+                    href="https://www.orca.so/pools/2LX2Wb3Zz4qZWbtdpcs3ixGiw4CtfwoSwuhtLJiMKFRv"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#1a1a2e]/80 to-[#FFD700]/20 hover:from-[#1a1a2e] hover:to-[#FFD700]/40 text-white border border-[#FFD700]/40 hover:border-[#FFD700]/60 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#FFD700]/20"
+                  >
+                    <svg className="w-6 h-6 rounded" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="32" height="32" rx="8" fill="#FFD700"/>
+                      <path d="M16 6C10.477 6 6 10.477 6 16s4.477 10 10 10 10-4.477 10-10S21.523 6 16 6zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z" fill="#1a1a2e"/>
+                      <path d="M16 10c-3.309 0-6 2.691-6 6s2.691 6 6 6 6-2.691 6-6-2.691-6-6-6zm0 10c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z" fill="#1a1a2e"/>
+                    </svg>
+                    <span className="font-semibold">JTX/USD1 on Orca</span>
+                    <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
               </div>
             </div>
