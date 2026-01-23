@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
+import { NextResponse } from "next/server"
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -17,6 +18,15 @@ const isPublicRoute = createRouteMatcher([
 
 // Clerk middleware for Next.js 16 - handles auth state and OAuth flows
 export default clerkMiddleware(async (auth, request) => {
+  const { hostname, protocol, pathname, search } = request.nextUrl
+
+  // Redirect www to non-www for SEO canonicalization
+  if (hostname.startsWith('www.')) {
+    const newHostname = hostname.replace('www.', '')
+    const newUrl = `${protocol}//${newHostname}${pathname}${search}`
+    return NextResponse.redirect(newUrl, 301)
+  }
+
   // For public routes, don't require authentication
   // This allows the Waitlist component to work properly
   if (isPublicRoute(request)) {

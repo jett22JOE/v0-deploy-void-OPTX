@@ -6,9 +6,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/_next/'],
+        disallow: ['/api/', '/_next/', '/sso-callback/', '/oauth-callback/'],
       },
     ],
     sitemap: 'https://jettoptics.ai/sitemap.xml',
+    host: 'https://jettoptics.ai',
   }
 }
