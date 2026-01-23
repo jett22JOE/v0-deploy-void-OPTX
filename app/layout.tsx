@@ -20,9 +20,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Jett Optics | Spatial Encryption | DePIN",
-  description: "Pioneer of spatial encryption using AGT gaze tensors and Markov chain cryptography. Post-quantum biometric authentication for Web3 and DePIN networks. $OPTX token.",
+  description: "Pioneer of spatial encryption and spatial interface technology using AGT gaze tensors and neuromorphic computing. Post-quantum biometric authentication for Web3 and DePIN networks. $JTX token.",
   keywords: [
     "spatial encryption",
+    "spatial interface",
+    "spatial computing",
+    "neuromorphic computing",
+    "neuromorphic interface",
     "DePIN",
     "gaze-based encryption",
     "AGT tensors",
@@ -34,10 +38,13 @@ export const metadata: Metadata = {
     "eye tracking security",
     "Solana DePIN",
     "$OPTX token",
+    "$JTX token",
     "Jett Optics",
     "spatial security",
     "quantum-resistant encryption",
     "Web3 authentication",
+    "optical encryption",
+    "gaze tracking",
   ],
   authors: [{ name: "Jett Optics", url: "https://jettoptics.ai" }],
   creator: "Jett Optics",

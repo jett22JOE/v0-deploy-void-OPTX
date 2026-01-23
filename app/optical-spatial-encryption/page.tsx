@@ -4,10 +4,14 @@ import Image from "next/image"
 import { SeoCTASection } from "@/components/seo-cta-section"
 
 export const metadata: Metadata = {
-  title: "Spatial Encryption: Post-Quantum Gaze Security | Jett Optics | DePIN",
-  description: "Learn how spatial encryption uses AGT gaze tensors, Markov chains, and proof-of-attention to create post-quantum biometric authentication. The future of Web3 and DePIN security.",
+  title: "Spatial Interface & Neuromorphic Encryption | Jett Optics | DePIN",
+  description: "Learn how spatial interface technology and neuromorphic computing power Jett Optics spatial encryption. AGT gaze tensors, Markov chains, and proof-of-attention for post-quantum biometric authentication.",
   keywords: [
     "spatial encryption",
+    "spatial interface",
+    "spatial computing",
+    "neuromorphic computing",
+    "neuromorphic interface",
     "DePIN",
     "gaze-based encryption",
     "AGT tensors explained",
@@ -16,6 +20,7 @@ export const metadata: Metadata = {
     "Markov chain cryptography",
     "biometric authentication Web3",
     "eye tracking security",
+    "optical encryption",
     "$JTX token",
     "$OPTX token",
   ],
