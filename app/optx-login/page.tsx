@@ -232,7 +232,6 @@ export default function OptxLoginPage() {
 
               {activeTab === "signin" ? (
                 <SignIn
-                  routing="hash"
                   forceRedirectUrl="/?joined=true"
                   signUpUrl="/optx-login?tab=signup"
                   appearance={{
@@ -269,7 +268,6 @@ export default function OptxLoginPage() {
                 />
               ) : (
                 <SignUp
-                  routing="hash"
                   forceRedirectUrl="/?joined=true"
                   signInUrl="/optx-login?tab=signin"
                   appearance={{
