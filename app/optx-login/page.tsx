@@ -27,6 +27,34 @@ export default function OptxLoginPage() {
     }
   }, [isLoaded, isSignedIn, router])
 
+  // Show loading state while Clerk initializes or if already signed in (redirecting)
+  if (!isLoaded || isSignedIn) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+        <DottedGlowBackground
+          className="pointer-events-none z-[1]"
+          opacity={0.8}
+          gap={14}
+          radius={1.5}
+          color="rgba(181, 82, 0, 0.4)"
+          glowColor="rgba(181, 82, 0, 0.9)"
+          darkColor="rgba(181, 82, 0, 0.4)"
+          darkGlowColor="rgba(181, 82, 0, 0.9)"
+          backgroundOpacity={0}
+          speedMin={0.2}
+          speedMax={0.8}
+          speedScale={0.8}
+        />
+        <div className="text-center z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent mx-auto mb-4" />
+          <p className="font-mono text-sm text-white/60">
+            {isSignedIn ? "Redirecting..." : "Loading..."}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
       <DottedGlowBackground
