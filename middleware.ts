@@ -8,9 +8,11 @@ const isPublicRoute = createRouteMatcher([
   "/optical-spatial-encryption(.*)",
   "/api/webhooks(.*)",
   "/api/waitlist(.*)",
+  "/api/hedgehog(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/optx-login(.*)",
+  "/gaze-verify(.*)",
   // OAuth callback routes - critical for social login flows
   "/sso-callback(.*)",
   "/oauth-callback(.*)",
