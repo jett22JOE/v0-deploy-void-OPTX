@@ -15,6 +15,8 @@ function isClerkDomain(): boolean {
   return (
     hostname === "jettoptics.ai" ||
     hostname.endsWith(".jettoptics.ai") ||
+    hostname.endsWith(".vercel.app") || // Allow Vercel preview URLs
+    hostname.endsWith(".vercel.sh") ||  // Allow Vercel deployment URLs
     hostname === "localhost" ||
     hostname === "127.0.0.1"
   )
@@ -34,8 +36,8 @@ export function ClerkProviderWrapper({ children }: { children: React.ReactNode }
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       afterSignOutUrl="/"
-      signInUrl="/sign-in"
-      signUpUrl="/loading"
+      signInUrl="/optx-login"
+      signUpUrl="/optx-login?tab=signup"
       appearance={{
         baseTheme: shadesOfPurple,
         variables: {

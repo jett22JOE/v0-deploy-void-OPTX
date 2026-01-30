@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/waitlist(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/optx-login(.*)",
   // OAuth callback routes - critical for social login flows
   "/sso-callback(.*)",
   "/oauth-callback(.*)",

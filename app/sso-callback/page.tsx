@@ -37,7 +37,7 @@ export default function SSOCallbackPage() {
           <h2 className="font-mono text-lg text-white mb-2">Authentication Error</h2>
           <p className="font-mono text-sm text-red-400 mb-6">{error}</p>
           <button
-            onClick={() => router.push("/loading")}
+            onClick={() => router.push("/optx-login")}
             className="px-6 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white font-mono text-sm transition-colors"
           >
             Try Again

@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { SignUp, UserProfile } from "@clerk/nextjs"
+import { UserProfile } from "@clerk/nextjs"
 import { useClerk, useAuth, useUser } from "@clerk/nextjs"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
@@ -18,6 +19,8 @@ function useIsClerkEnabled() {
     const isClerkDomain =
       hostname === "jettoptics.ai" ||
       hostname.endsWith(".jettoptics.ai") ||
+      hostname.endsWith(".vercel.app") ||
+      hostname.endsWith(".vercel.sh") ||
       hostname === "localhost" ||
       hostname === "127.0.0.1"
     setIsEnabled(isClerkDomain)
@@ -26,10 +29,9 @@ function useIsClerkEnabled() {
 }
 
 export default function LoadingPage() {
+  const router = useRouter()
   const [showButton, setShowButton] = useState(false)
-  const [showSignUp, setShowSignUp] = useState(false)
   const [showUserProfile, setShowUserProfile] = useState(false)
-  const [signUpError, setSignUpError] = useState<string | null>(null)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isClerkEnabled = useIsClerkEnabled()
@@ -65,34 +67,8 @@ export default function LoadingPage() {
   useEffect(() => {
     if (isSignedIn && clerkLoaded) {
       setShowUserProfile(true)
-      setShowSignUp(false)
     }
   }, [isSignedIn, clerkLoaded])
-
-  // Fix autocapitalize on mobile for email inputs
-  useEffect(() => {
-    if (showSignUp) {
-      const fixAutocapitalize = () => {
-        const inputs = document.querySelectorAll(".clerk-signup-wrapper input")
-        inputs.forEach((input) => {
-          input.setAttribute("autocapitalize", "off")
-          input.setAttribute("autocorrect", "off")
-          input.setAttribute("spellcheck", "false")
-          input.setAttribute("inputmode", "email")
-        })
-      }
-
-      // Run immediately and after delays (for Clerk's async rendering)
-      fixAutocapitalize()
-      const timer = setTimeout(fixAutocapitalize, 500)
-      const timer2 = setTimeout(fixAutocapitalize, 1000)
-
-      return () => {
-        clearTimeout(timer)
-        clearTimeout(timer2)
-      }
-    }
-  }, [showSignUp])
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
@@ -138,8 +114,8 @@ export default function LoadingPage() {
         Loading...
       </h1>
 
-      {/* Get Early Access Button - shows when not signed up and no profile modal */}
-      {!showSignUp && !showUserProfile && (
+      {/* Get Early Access Button - shows when not signed in and no profile modal */}
+      {!showUserProfile && (
         <div className="absolute top-[20vh] left-1/2 -translate-x-1/2 md:top-[calc(50%_-_320px)] z-20 flex flex-col items-center gap-6">
           <AnimatePresence>
             {showButton && (
@@ -152,7 +128,7 @@ export default function LoadingPage() {
                   if (isSignedIn) {
                     setShowUserProfile(true)
                   } else {
-                    setShowSignUp(true)
+                    router.push("/optx-login?tab=signup")
                   }
                 }}
                 className="group relative rounded-full overflow-hidden p-[1px] transition-all duration-300
@@ -185,244 +161,6 @@ export default function LoadingPage() {
           </AnimatePresence>
         </div>
       )}
-
-      {/* Clerk SignUp Modal with animated border */}
-      <AnimatePresence>
-        {showSignUp && (
-          <>
-            {/* Backdrop - click to close */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[199] bg-black/60 backdrop-blur-sm"
-              onClick={() => setShowSignUp(false)}
-            />
-
-            {/* Modal container with noise background */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-              onClick={() => setShowSignUp(false)}
-            >
-              <AnimatedMetalBorder
-                containerClassName="rounded-2xl"
-                borderWidth={4}
-                borderRadius={16}
-              >
-                {/* Inner content container */}
-                <div
-                  className="clerk-signup-wrapper rounded-2xl"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* CSS to override Clerk fonts to Geist Mono and fix layout */}
-                  <style jsx global>{`
-                    .clerk-signup-wrapper .cl-rootBox,
-                    .clerk-signup-wrapper .cl-card,
-                    .clerk-signup-wrapper .cl-headerTitle,
-                    .clerk-signup-wrapper .cl-headerSubtitle,
-                    .clerk-signup-wrapper .cl-formFieldLabel,
-                    .clerk-signup-wrapper .cl-formFieldInput,
-                    .clerk-signup-wrapper .cl-formButtonPrimary,
-                    .clerk-signup-wrapper .cl-footerActionText,
-                    .clerk-signup-wrapper .cl-footerActionLink,
-                    .clerk-signup-wrapper .cl-internal-b3fm6y,
-                    .clerk-signup-wrapper * {
-                      font-family: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular,
-                        "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
-                    }
-                    .clerk-signup-wrapper .cl-headerTitle {
-                      letter-spacing: 0.05em !important;
-                    }
-                    .clerk-signup-wrapper .cl-headerSubtitle {
-                      letter-spacing: 0.02em !important;
-                    }
-                    /* Smaller input text */
-                    .clerk-signup-wrapper .cl-formFieldInput,
-                    .clerk-signup-wrapper input[type="email"],
-                    .clerk-signup-wrapper input {
-                      font-size: 13px !important;
-                      text-transform: none !important;
-                      -webkit-text-transform: none !important;
-                    }
-                    .clerk-signup-wrapper .cl-formFieldInput::placeholder,
-                    .clerk-signup-wrapper input::placeholder {
-                      font-size: 13px !important;
-                    }
-                    /* Fix modal scrolling and max height */
-                    .clerk-signup-wrapper {
-                      max-height: 85vh;
-                      overflow-y: auto;
-                      scrollbar-width: thin;
-                      scrollbar-color: rgba(181, 82, 0, 0.5) transparent;
-                    }
-                    .clerk-signup-wrapper::-webkit-scrollbar {
-                      width: 6px;
-                    }
-                    .clerk-signup-wrapper::-webkit-scrollbar-track {
-                      background: transparent;
-                    }
-                    .clerk-signup-wrapper::-webkit-scrollbar-thumb {
-                      background: rgba(181, 82, 0, 0.5);
-                      border-radius: 3px;
-                    }
-                    /* Ensure header is visible with proper padding */
-                    .clerk-signup-wrapper .cl-card {
-                      padding-top: 1.5rem !important;
-                    }
-                    .clerk-signup-wrapper .cl-header {
-                      padding-top: 0.5rem !important;
-                    }
-                    /* Style social button sections with dividers */
-                    .clerk-signup-wrapper .cl-socialButtons {
-                      padding-bottom: 0.75rem !important;
-                    }
-                    /* Add subtle section styling for wallet buttons (Coinbase, MetaMask) */
-                    .clerk-signup-wrapper .cl-socialButtonsBlockButton[data-provider="coinbase_wallet"],
-                    .clerk-signup-wrapper .cl-socialButtonsBlockButton[data-provider="metamask"],
-                    .clerk-signup-wrapper .cl-socialButtonsIconButton[data-provider="coinbase_wallet"],
-                    .clerk-signup-wrapper .cl-socialButtonsIconButton[data-provider="metamask"] {
-                      border-color: rgba(181, 82, 0, 0.3) !important;
-                    }
-
-                    /* Mobile responsive styles for SignUp */
-                    @media (max-width: 640px) {
-                      .clerk-signup-wrapper {
-                        max-height: 80vh;
-                        width: 100%;
-                        max-width: 100vw;
-                      }
-                      .clerk-signup-wrapper .cl-rootBox {
-                        width: 100% !important;
-                        max-width: 100% !important;
-                      }
-                      .clerk-signup-wrapper .cl-card {
-                        padding: 1rem !important;
-                        width: 100% !important;
-                      }
-                      .clerk-signup-wrapper .cl-headerTitle {
-                        font-size: 1.25rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-headerSubtitle {
-                        font-size: 0.75rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-formFieldLabel {
-                        font-size: 0.7rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-formFieldInput,
-                      .clerk-signup-wrapper input {
-                        font-size: 16px !important; /* Prevents iOS zoom */
-                        padding: 0.6rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-formButtonPrimary {
-                        font-size: 0.85rem !important;
-                        padding: 0.7rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-socialButtonsBlockButton {
-                        padding: 0.6rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-socialButtonsBlockButtonText {
-                        font-size: 0.75rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-dividerText {
-                        font-size: 0.65rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-footerActionText,
-                      .clerk-signup-wrapper .cl-footerActionLink {
-                        font-size: 0.75rem !important;
-                      }
-                      /* Use icon-only social buttons on mobile */
-                      .clerk-signup-wrapper .cl-socialButtonsBlockButtonText__text {
-                        display: none !important;
-                      }
-                      .clerk-signup-wrapper .cl-socialButtonsBlockButton {
-                        justify-content: center !important;
-                        min-width: auto !important;
-                        padding: 0.75rem !important;
-                      }
-                    }
-
-                    @media (max-width: 380px) {
-                      .clerk-signup-wrapper .cl-card {
-                        padding: 0.75rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-headerTitle {
-                        font-size: 1.1rem !important;
-                      }
-                      .clerk-signup-wrapper .cl-socialButtonsBlockButton {
-                        padding: 0.5rem !important;
-                      }
-                    }
-                  `}</style>
-                  {isClerkEnabled === null || (isClerkEnabled && !clerkLoaded) ? (
-                    /* Loading state while checking domain or waiting for Clerk to load */
-                    <div className="p-8 text-center">
-                      <p className="font-mono text-sm text-white/60 animate-pulse">Loading...</p>
-                    </div>
-                  ) : isClerkEnabled && clerkLoaded ? (
-                    /* Clerk SignUp component - full sign up with social logins */
-                    <>
-                      <SignUp
-                        routing="hash"
-                        forceRedirectUrl="/?joined=true"
-                        signInUrl="/sign-in"
-                        appearance={{
-                          variables: {
-                            colorPrimary: "#b55200",
-                            colorText: "#ffffff",
-                            colorTextSecondary: "#a1a1aa",
-                            colorBackground: "#2d2b55",
-                            colorInputBackground: "#18181b",
-                            colorInputText: "#ffffff",
-                            borderRadius: "0.5rem",
-                          },
-                          elements: {
-                            rootBox: "w-full",
-                            card: "bg-[#2d2b55]/95 shadow-none border-0 backdrop-blur-xl",
-                            headerTitle: "font-mono text-white",
-                            headerSubtitle: "font-mono text-sm text-zinc-400",
-                            formFieldLabel: "font-mono text-xs text-zinc-400",
-                            formFieldInput: "font-mono text-sm bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-500",
-                            formButtonPrimary: "font-mono bg-accent hover:bg-accent/90 text-white",
-                            footerActionLink: "text-accent hover:text-accent/80",
-                            socialButtonsBlockButton: "font-mono border-zinc-800 hover:bg-zinc-900/50 text-white",
-                            socialButtonsBlockButtonText: "font-mono text-sm",
-                            dividerLine: "bg-zinc-800",
-                            dividerText: "font-mono text-xs text-zinc-500",
-                            identityPreviewText: "font-mono text-white",
-                            identityPreviewEditButton: "text-accent",
-                            formFieldSuccessText: "text-green-400",
-                            formFieldErrorText: "text-red-400",
-                            alertText: "font-mono text-sm",
-                            otpCodeFieldInput: "font-mono bg-zinc-900/50 border-zinc-800 text-white",
-                          }
-                        }}
-                      />
-                      {signUpError && (
-                        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                          <p className="font-mono text-xs text-red-400">{signUpError}</p>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    /* Fallback for preview/non-production URLs */
-                    <div className="p-8 text-center">
-                      <p className="font-mono text-sm text-white mb-2">Join Preview</p>
-                      <p className="font-mono text-xs text-white/60">
-                        Visit <span className="text-accent">jettoptics.ai</span> to join
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </AnimatedMetalBorder>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
       {/* Clerk UserProfile Modal - shows for signed-in users */}
       <AnimatePresence>
