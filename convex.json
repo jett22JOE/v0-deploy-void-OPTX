@@ -1,11 +1,5 @@
 {
   "node": {
     "modules": []
-  },
-  "authInfo": [
-    {
-      "applicationID": "convex",
-      "domain": "https://clerk.jettoptics.ai"
-    }
-  ]
+  }
 }
