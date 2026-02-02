@@ -15,11 +15,11 @@ export default defineSchema({
     bio: v.optional(v.string()),
     // Metadata
     createdAt: v.number(),
-    updatedAt: v.number(),
+    updatedAt: v.optional(v.number()),
     lastLoginAt: v.optional(v.number()),
     // Status
-    isActive: v.boolean(),
-    emailVerified: v.boolean(),
+    isActive: v.optional(v.boolean()),
+    emailVerified: v.optional(v.boolean()),
     // Stripe billing
     stripeCustomerId: v.optional(v.string()),
     stripeSubscriptionId: v.optional(v.string()),
