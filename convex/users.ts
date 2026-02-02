@@ -156,3 +156,68 @@ export const getUserByClerkId = query({
       .first()
   },
 })
+
+// Update gaze verification status
+export const updateGazeVerification = mutation({
+  args: {
+    clerkUserId: v.string(),
+    gazeVerified: v.boolean(),
+    gazeTemplateHash: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .first()
+
+    if (!user) {
+      throw new Error("User not found")
+    }
+
+    const now = Date.now()
+    await ctx.db.patch(user._id, {
+      gazeVerified: args.gazeVerified,
+      gazeVerifiedAt: args.gazeVerified ? now : undefined,
+      gazeTemplateHash: args.gazeTemplateHash,
+      updatedAt: now,
+    })
+    return user._id
+  },
+})
+
+// Update Solana wallet address
+export const updateSolanaWallet = mutation({
+  args: {
+    clerkUserId: v.string(),
+    solanaWallet: v.string(),
+    jtxBalance: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .first()
+
+    if (!user) {
+      throw new Error("User not found")
+    }
+
+    await ctx.db.patch(user._id, {
+      solanaWallet: args.solanaWallet,
+      jtxBalance: args.jtxBalance,
+      updatedAt: Date.now(),
+    })
+    return user._id
+  },
+})
+
+// Get user by Solana wallet
+export const getUserBySolanaWallet = query({
+  args: { solanaWallet: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("solanaWallet"), args.solanaWallet))
+      .first()
+  },
+})

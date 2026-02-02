@@ -19,7 +19,19 @@ export default defineSchema({
     lastLoginAt: v.optional(v.number()),
     // Status
     isActive: v.boolean(),
-    emailVerified: v.boolean(),\n    stripeCustomerId: v.optional(v.string()),\n    stripeSubscriptionId: v.optional(v.string()),\n    stripeStatus: v.optional(v.string()),\n    okxWallet: v.optional(v.string()),\n    gazeVerified: v.boolean(),\n    devAccessGranted: v.boolean(),
+    emailVerified: v.boolean(),\n    stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
+    stripeStatus: v.optional(v.string()),
+    // Wallet addresses
+    solanaWallet: v.optional(v.string()),
+    okxWallet: v.optional(v.string()),
+    // Gaze verification
+    gazeVerified: v.optional(v.boolean()),
+    gazeVerifiedAt: v.optional(v.number()),
+    gazeTemplateHash: v.optional(v.string()),
+    // Access control
+    devAccessGranted: v.optional(v.boolean()),
+    jtxBalance: v.optional(v.number()),
   })
     .index("by_email", ["email"])
     .index("by_auth_provider", ["authProviderId"])
