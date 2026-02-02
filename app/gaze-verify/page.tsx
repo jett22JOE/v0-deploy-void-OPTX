@@ -15,9 +15,8 @@ import {
   GazeVerificationResponse,
   TENSOR_CONFIG,
 } from "@/lib/joule/types"
-import { useWallet, useConnection } from '@solana/wallet-adapter-react'
-import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+// Wallet imports moved to dynamic component below
+import { PublicKey } from '@solana/web3.js'
 
 // Flow states
 type VerificationState =
@@ -44,9 +43,8 @@ export default function GazeVerifyPage() {
   const [currentGaze, setCurrentGaze] = useState<GazeTensor | null>(null)
   const [isTracking, setIsTracking] = useState(false)
 
-  // Solana wallet state
-  const { publicKey, connected, connecting, disconnect } = useWallet()
-  const { connection } = useConnection()
+  // Solana wallet state (SSR-safe)
+  const [walletData, setWalletData] = useState({ publicKey: null as PublicKey | null, connected: false, connection: null })
   const [jtxBalance, setJtxBalance] = useState<number | null>(null)
   const [hasJtx, setHasJtx] = useState(false)
 
@@ -89,7 +87,7 @@ export default function GazeVerifyPage() {
       setVerificationResult(mockResponse)
 
       // If wallet connected, proceed to minting
-      if (walletConnected && walletAddress) {
+      if (walletState.connected && walletState.publicKey) {
         setState("minting")
         // TODO: Call JTX-CSTB trust protocol SDK
         // await mintOPTX(walletAddress, template)
@@ -109,16 +107,16 @@ export default function GazeVerifyPage() {
       setError(err instanceof Error ? err.message : "Verification failed")
       setState("error")
     }
-  }, [walletConnected, walletAddress, router])
+  }, [walletState.connected, walletState.publicKey, router])
 
   // Verify JTX balance on connect
   const verifyJTXBalance = useCallback(async () => {
-    if (!publicKey) return
+    if (!walletData.publicKey || !walletData.connection) return
     
     try {
       // Replace with actual JTX token mint address
       const jtxMint = new PublicKey('JTX_MINT_ADDRESS_HERE') // TODO: Get real JTX mint
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+      const tokenAccounts = await walletData.connection.getParsedTokenAccountsByOwner(walletData.publicKey, {
         mint: jtxMint
       })
       
@@ -130,7 +128,7 @@ export default function GazeVerifyPage() {
     } catch (error) {
       console.error('JTX balance check failed:', error)
     }
-  }, [publicKey, connection])
+  }, [walletData.publicKey, walletData.connection])
 
   // Auto-check balance when wallet connects
   useEffect(() => {
