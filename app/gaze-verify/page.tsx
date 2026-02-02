@@ -15,6 +15,9 @@ import {
   GazeVerificationResponse,
   TENSOR_CONFIG,
 } from "@/lib/joule/types"
+import { useWallet, useConnection } from '@solana/wallet-adapter-react'
+import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 
 // Flow states
 type VerificationState =
@@ -41,9 +44,11 @@ export default function GazeVerifyPage() {
   const [currentGaze, setCurrentGaze] = useState<GazeTensor | null>(null)
   const [isTracking, setIsTracking] = useState(false)
 
-  // Wallet state (placeholder for Solana integration)
-  const [walletConnected, setWalletConnected] = useState(false)
-  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  // Solana wallet state
+  const { publicKey, connected, connecting, disconnect } = useWallet()
+  const { connection } = useConnection()
+  const [jtxBalance, setJtxBalance] = useState<number | null>(null)
+  const [hasJtx, setHasJtx] = useState(false)
 
   // Initialize verification session
   useEffect(() => {
@@ -106,12 +111,33 @@ export default function GazeVerifyPage() {
     }
   }, [walletConnected, walletAddress, router])
 
-  // Simulate wallet connection (placeholder)
-  const connectWallet = useCallback(async () => {
-    // TODO: Integrate with @solana/wallet-adapter
-    setWalletConnected(true)
-    setWalletAddress("DEMO_WALLET_" + Date.now().toString(36).toUpperCase())
-  }, [])
+  // Verify JTX balance on connect
+  const verifyJTXBalance = useCallback(async () => {
+    if (!publicKey) return
+    
+    try {
+      // Replace with actual JTX token mint address
+      const jtxMint = new PublicKey('JTX_MINT_ADDRESS_HERE') // TODO: Get real JTX mint
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+        mint: jtxMint
+      })
+      
+      if (tokenAccounts.value.length > 0) {
+        const balance = tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount || 0
+        setJtxBalance(balance)
+        setHasJtx(balance > 0)
+      }
+    } catch (error) {
+      console.error('JTX balance check failed:', error)
+    }
+  }, [publicKey, connection])
+
+  // Auto-check balance when wallet connects
+  useEffect(() => {
+    if (connected) {
+      verifyJTXBalance()
+    }
+  }, [connected, verifyJTXBalance])
 
   // Loading state
   if (state === "loading" || !authLoaded) {
@@ -184,7 +210,7 @@ export default function GazeVerifyPage() {
               ? "bg-green-500/20 text-green-400 border border-green-500/30"
               : "bg-zinc-800 text-zinc-500 border border-zinc-700"
           }`}>
-            {walletConnected ? `${walletAddress?.slice(0, 8)}...` : "No Wallet"}
+            {publicKey ? `${publicKey.toBase58().slice(0, 8)}...` : "No Wallet"}{jtxBalance !== null && ` (JTX: ${jtxBalance?.toFixed(2) || '0'})`}
           </div>
         </div>
       </div>
@@ -313,16 +339,16 @@ export default function GazeVerifyPage() {
           </div>
         )}
 
-        {/* Wallet connect button */}
-        {!walletConnected && (state === "setup" || state === "verify") && (
-          <button
-            onClick={connectWallet}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 font-mono text-xs transition-colors"
-          >
-            <span>🔗</span>
-            <span>Connect Wallet for $OPTX</span>
-          </button>
-        )}
+        {/* Solana WalletMultiButton */}
+        <div className="flex flex-col items-center gap-2">
+          <WalletMultiButton className="!bg-gradient-to-r !from-purple-600 !to-accent !text-white !font-mono !text-sm !px-6 !py-2 !rounded-lg !border-0 hover:!from-purple-700 hover:!to-accent/90" />
+          {connected && hasJtx && (
+            <span className="font-mono text-xs text-green-400">✅ JTX verified</span>
+          )}
+          {connected && !hasJtx && (
+            <span className="font-mono text-xs text-yellow-400">⚠️ No JTX balance</span>
+          )}
+        </div>
 
         {/* Info text */}
         <div className="text-center max-w-sm">

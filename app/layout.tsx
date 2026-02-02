@@ -4,6 +4,7 @@ import { Orbitron, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProviderWrapper } from "@/components/clerk-provider-wrapper"
 import { ConvexClientProvider } from "@/components/convex-provider"
+import { SolanaProvider } from "@/components/solana-provider"
 import { Toaster } from "sonner"
 import { ResizeObserverFix } from "@/components/resize-observer-fix"
 import "./globals.css"
@@ -153,11 +154,13 @@ export default function RootLayout({
       <body className="font-sans antialiased overflow-x-hidden">
         <ClerkProviderWrapper>
           <ConvexClientProvider>
-            <ResizeObserverFix />
-            <div className="noise-overlay" />
-            {children}
-            <Toaster position="bottom-right" />
-            <Analytics />
+            <SolanaProvider>
+              <ResizeObserverFix />
+              <div className="noise-overlay" />
+              {children}
+              <Toaster position="bottom-right" />
+              <Analytics />
+            </SolanaProvider>
           </ConvexClientProvider>
         </ClerkProviderWrapper>
       </body>
