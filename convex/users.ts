@@ -221,3 +221,42 @@ export const getUserBySolanaWallet = query({
       .first()
   },
 })
+
+// Update Stripe billing info
+export const updateStripeInfo = mutation({
+  args: {
+    clerkUserId: v.string(),
+    stripeCustomerId: v.string(),
+    stripeSubscriptionId: v.union(v.string(), v.null()),
+    stripeStatus: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .first()
+
+    if (!user) {
+      throw new Error("User not found")
+    }
+
+    await ctx.db.patch(user._id, {
+      stripeCustomerId: args.stripeCustomerId,
+      stripeSubscriptionId: args.stripeSubscriptionId ?? undefined,
+      stripeStatus: args.stripeStatus,
+      updatedAt: Date.now(),
+    })
+    return user._id
+  },
+})
+
+// Get user by Stripe customer ID
+export const getUserByStripeCustomerId = query({
+  args: { stripeCustomerId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("stripeCustomerId"), args.stripeCustomerId))
+      .first()
+  },
+})
