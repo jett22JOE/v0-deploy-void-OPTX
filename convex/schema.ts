@@ -19,7 +19,7 @@ export default defineSchema({
     lastLoginAt: v.optional(v.number()),
     // Status
     isActive: v.boolean(),
-    emailVerified: v.boolean(),
+    emailVerified: v.boolean(),\n    stripeCustomerId: v.optional(v.string()),\n    stripeSubscriptionId: v.optional(v.string()),\n    stripeStatus: v.optional(v.string()),\n    okxWallet: v.optional(v.string()),\n    gazeVerified: v.boolean(),\n    devAccessGranted: v.boolean(),
   })
     .index("by_email", ["email"])
     .index("by_auth_provider", ["authProviderId"])
