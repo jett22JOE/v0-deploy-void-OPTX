@@ -87,7 +87,7 @@ export default function GazeVerifyPage() {
       setVerificationResult(mockResponse)
 
       // If wallet connected, proceed to minting
-      if (walletState.connected && walletState.publicKey) {
+      if (connected && publicKey) {
         setState("minting")
         // TODO: Call JTX-CSTB trust protocol SDK
         // await mintOPTX(walletAddress, template)
@@ -107,7 +107,7 @@ export default function GazeVerifyPage() {
       setError(err instanceof Error ? err.message : "Verification failed")
       setState("error")
     }
-  }, [walletState.connected, walletState.publicKey, router])
+  }, [connected, publicKey, router])
 
   // Verify JTX balance on connect
   const verifyJTXBalance = useCallback(async () => {
@@ -204,7 +204,7 @@ export default function GazeVerifyPage() {
 
           {/* Wallet status */}
           <div className={`px-3 py-1 rounded-full font-mono text-xs ${
-            walletConnected
+            connected
               ? "bg-green-500/20 text-green-400 border border-green-500/30"
               : "bg-zinc-800 text-zinc-500 border border-zinc-700"
           }`}>
@@ -353,7 +353,7 @@ export default function GazeVerifyPage() {
           <p className="font-mono text-[10px] text-zinc-600 leading-relaxed">
             Your gaze pattern creates a unique polynomial key (3^5 = 243 combinations).
             Combined with JOULE temporal binding, this prevents replay attacks.
-            {walletConnected && " After verification, $OPTX will be minted to your wallet."}
+            {connected && " After verification, $OPTX will be minted to your wallet."}
           </p>
         </div>
       </div>
