@@ -19,7 +19,9 @@ export default defineSchema({
     lastLoginAt: v.optional(v.number()),
     // Status
     isActive: v.boolean(),
-    emailVerified: v.boolean(),\n    stripeCustomerId: v.optional(v.string()),
+    emailVerified: v.boolean(),
+    // Stripe billing
+    stripeCustomerId: v.optional(v.string()),
     stripeSubscriptionId: v.optional(v.string()),
     stripeStatus: v.optional(v.string()),
     // Wallet addresses
