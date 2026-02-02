@@ -7,6 +7,10 @@ export default defineSchema({
     email: v.string(),
     name: v.optional(v.string()),
     clerkUserId: v.optional(v.string()),
+    // Legacy fields (for migration compatibility)
+    clerkId: v.optional(v.string()),
+    username: v.optional(v.string()),
+    subscriptionTier: v.optional(v.string()),
     // Auth provider info (for future Clerk integration)
     authProviderId: v.optional(v.string()),
     authProvider: v.optional(v.string()), // "clerk", "google", etc.
