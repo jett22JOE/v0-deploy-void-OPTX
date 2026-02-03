@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-
-export const dynamic = 'force-dynamic'
 import { useRouter } from "next/navigation"
 import { useAuth, useUser } from "@clerk/nextjs"
 import Link from "next/link"
 import Image from "next/image"
+import nextDynamic from "next/dynamic"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
 import { PolynomialGazePinInput } from "@/components/gaze/PolynomialGazePinInput"
@@ -15,18 +14,24 @@ import {
   JOULETemplate,
   GazeTensor,
   GazeVerificationResponse,
-  TENSOR_CONFIG,
 } from "@/lib/joule/types"
-// Wallet imports moved to dynamic component below
-import { PublicKey } from '@solana/web3.js'
+
+// Force dynamic rendering to avoid SSR issues with wallet
+export const dynamic = 'force-dynamic'
+
+// Dynamic import for wallet button (SSR-safe)
+const WalletMultiButton = nextDynamic(
+  () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
+  { ssr: false, loading: () => <div className="h-10 w-32 bg-zinc-800 rounded-lg animate-pulse" /> }
+)
 
 // Flow states
 type VerificationState =
   | "loading"
-  | "setup"        // First time - set up PIN
-  | "verify"       // Verify existing PIN
-  | "connecting"   // Connecting wallet
-  | "minting"      // Minting $OPTX
+  | "setup"
+  | "verify"
+  | "connecting"
+  | "minting"
   | "success"
   | "error"
 
@@ -41,12 +46,13 @@ export default function GazeVerifyPage() {
   const [error, setError] = useState<string | null>(null)
   const [verificationResult, setVerificationResult] = useState<GazeVerificationResponse | null>(null)
 
-  // Gaze simulation state (for demo/testing without hardware)
+  // Gaze simulation state
   const [currentGaze, setCurrentGaze] = useState<GazeTensor | null>(null)
   const [isTracking, setIsTracking] = useState(false)
 
-  // Solana wallet state (SSR-safe)
-  const [walletData, setWalletData] = useState({ publicKey: null as PublicKey | null, connected: false, connection: null })
+  // Wallet state (SSR-safe - managed locally)
+  const [walletConnected, setWalletConnected] = useState(false)
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [jtxBalance, setJtxBalance] = useState<number | null>(null)
   const [hasJtx, setHasJtx] = useState(false)
 
@@ -59,10 +65,9 @@ export default function GazeVerifyPage() {
       return
     }
 
-    // Generate session nonce (in production, this comes from server)
     const nonce = crypto.randomUUID()
     setSessionNonce(nonce)
-    setState("setup") // For MVP, always setup mode
+    setState("setup")
   }, [authLoaded, isSignedIn, router])
 
   // Handle polynomial PIN completion
@@ -70,14 +75,11 @@ export default function GazeVerifyPage() {
     setState("connecting")
 
     try {
-      // In production: Send to HEDGEHOG MCP for verification
       console.log("JOULE Template:", template)
       console.log("Polynomial Encoding:", template.polynomialEncoding)
 
-      // Simulate verification delay
       await new Promise(resolve => setTimeout(resolve, 1500))
 
-      // For MVP: Simulate successful verification
       const mockResponse: GazeVerificationResponse = {
         success: true,
         verified: true,
@@ -88,18 +90,14 @@ export default function GazeVerifyPage() {
 
       setVerificationResult(mockResponse)
 
-      // If wallet connected, proceed to minting
-      if (connected && publicKey) {
+      if (walletConnected && walletAddress) {
         setState("minting")
-        // TODO: Call JTX-CSTB trust protocol SDK
-        // await mintOPTX(walletAddress, template)
         await new Promise(resolve => setTimeout(resolve, 2000))
         mockResponse.mintTransactionSig = "SIMULATED_TX_SIG_" + Date.now()
       }
 
       setState("success")
 
-      // Redirect after success
       setTimeout(() => {
         router.push("/?joined=true&gaze_verified=true")
       }, 3000)
@@ -109,35 +107,7 @@ export default function GazeVerifyPage() {
       setError(err instanceof Error ? err.message : "Verification failed")
       setState("error")
     }
-  }, [connected, publicKey, router])
-
-  // Verify JTX balance on connect
-  const verifyJTXBalance = useCallback(async () => {
-    if (!walletData.publicKey || !walletData.connection) return
-    
-    try {
-      // Replace with actual JTX token mint address
-      const jtxMint = new PublicKey('JTX_MINT_ADDRESS_HERE') // TODO: Get real JTX mint
-      const tokenAccounts = await walletData.connection.getParsedTokenAccountsByOwner(walletData.publicKey, {
-        mint: jtxMint
-      })
-      
-      if (tokenAccounts.value.length > 0) {
-        const balance = tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount || 0
-        setJtxBalance(balance)
-        setHasJtx(balance > 0)
-      }
-    } catch (error) {
-      console.error('JTX balance check failed:', error)
-    }
-  }, [walletData.publicKey, walletData.connection])
-
-  // Auto-check balance when wallet connects
-  useEffect(() => {
-    if (connected) {
-      verifyJTXBalance()
-    }
-  }, [connected, verifyJTXBalance])
+  }, [walletConnected, walletAddress, router])
 
   // Loading state
   if (state === "loading" || !authLoaded) {
@@ -197,28 +167,25 @@ export default function GazeVerifyPage() {
         </Link>
 
         <div className="flex items-center gap-4">
-          {/* User info */}
           {user && (
             <span className="font-mono text-xs text-zinc-500">
               {user.primaryEmailAddress?.emailAddress?.split("@")[0]}
             </span>
           )}
 
-          {/* Wallet status */}
           <div className={`px-3 py-1 rounded-full font-mono text-xs ${
-            connected
+            walletConnected
               ? "bg-green-500/20 text-green-400 border border-green-500/30"
               : "bg-zinc-800 text-zinc-500 border border-zinc-700"
           }`}>
-            {publicKey ? `${publicKey.toBase58().slice(0, 8)}...` : "No Wallet"}{jtxBalance !== null && ` (JTX: ${jtxBalance?.toFixed(2) || '0'})`}
+            {walletAddress ? `${walletAddress.slice(0, 8)}...` : "No Wallet"}
+            {jtxBalance !== null && ` (JTX: ${jtxBalance.toFixed(2)})`}
           </div>
         </div>
       </div>
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center gap-8 max-w-lg w-full px-4">
-
-        {/* Title */}
         <div className="text-center">
           <h1
             className="font-mono text-2xl md:text-3xl tracking-widest text-white uppercase mb-2"
@@ -277,7 +244,7 @@ export default function GazeVerifyPage() {
                   setState("error")
                 }}
                 isVerifying={state === "connecting" || state === "minting"}
-                gazePosition={null} // Would come from actual eye tracker
+                gazePosition={null}
               />
             </div>
           </AnimatedMetalBorder>
@@ -342,10 +309,10 @@ export default function GazeVerifyPage() {
         {/* Solana WalletMultiButton */}
         <div className="flex flex-col items-center gap-2">
           <WalletMultiButton className="!bg-gradient-to-r !from-purple-600 !to-accent !text-white !font-mono !text-sm !px-6 !py-2 !rounded-lg !border-0 hover:!from-purple-700 hover:!to-accent/90" />
-          {connected && hasJtx && (
+          {walletConnected && hasJtx && (
             <span className="font-mono text-xs text-green-400">✅ JTX verified</span>
           )}
-          {connected && !hasJtx && (
+          {walletConnected && !hasJtx && (
             <span className="font-mono text-xs text-yellow-400">⚠️ No JTX balance</span>
           )}
         </div>
@@ -355,7 +322,7 @@ export default function GazeVerifyPage() {
           <p className="font-mono text-[10px] text-zinc-600 leading-relaxed">
             Your gaze pattern creates a unique polynomial key (3^5 = 243 combinations).
             Combined with JOULE temporal binding, this prevents replay attacks.
-            {connected && " After verification, $OPTX will be minted to your wallet."}
+            {walletConnected && " After verification, $OPTX will be minted to your wallet."}
           </p>
         </div>
       </div>
