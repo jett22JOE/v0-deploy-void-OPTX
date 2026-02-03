@@ -1,4 +1,4 @@
-# Vercel Deploy Skill # JETT Optics Dev Portal 🦞
+# JETT Optics Dev Portal 🦞
 
 Solana-powered authentication for developers.
 
@@ -13,4 +13,4 @@ Solana-powered authentication for developers.
 - Convex: hushed-nightingale-624
 
 ## Hackathon
-Submitted to Colosseum for autonomous auth demo.
+Submitted to Colosseum for autonomous auth demo.h demo.
