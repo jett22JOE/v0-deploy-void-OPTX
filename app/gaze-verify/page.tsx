@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth, useUser } from "@clerk/nextjs"
+import { useSafeAuth, useSafeUser } from "@/lib/hooks/use-safe-auth"
 import Link from "next/link"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
@@ -38,8 +38,8 @@ type VerificationState =
 
 export default function GazeVerifyPage() {
   const router = useRouter()
-  const { isSignedIn, isLoaded: authLoaded } = useAuth()
-  const { user } = useUser()
+  const { isSignedIn, isLoaded: authLoaded } = useSafeAuth()
+  const { user } = useSafeUser()
 
   // Verification state
   const [state, setState] = useState<VerificationState>("loading")

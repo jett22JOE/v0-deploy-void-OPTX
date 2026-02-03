@@ -4,6 +4,9 @@ import type React from "react"
 import { ClerkProvider } from "@clerk/nextjs"
 import { shadesOfPurple } from "@clerk/themes"
 
+// Get Clerk publishable key
+const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
 // Check if we're on a valid Clerk domain
 // This runs on the server during SSR and client during hydration
 function isClerkDomain(): boolean {
@@ -23,6 +26,11 @@ function isClerkDomain(): boolean {
 }
 
 export function ClerkProviderWrapper({ children }: { children: React.ReactNode }) {
+  // Skip Clerk if publishable key is not available (during build without env vars)
+  if (!clerkPublishableKey) {
+    return <>{children}</>
+  }
+
   // Check domain - always render ClerkProvider on valid domains
   // On non-production domains (like Vercel preview URLs without proper Clerk config),
   // render children without Clerk to avoid API errors
@@ -34,7 +42,7 @@ export function ClerkProviderWrapper({ children }: { children: React.ReactNode }
 
   return (
     <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      publishableKey={clerkPublishableKey}
       afterSignOutUrl="/"
       signInUrl="/optx-login"
       signUpUrl="/optx-login?tab=signup"

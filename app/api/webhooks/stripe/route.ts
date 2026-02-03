@@ -4,11 +4,24 @@ import Stripe from "stripe"
 import { ConvexHttpClient } from "convex/browser"
 import { api } from "@/convex/_generated/api"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
-})
+// Lazy-load clients to avoid build-time errors
+function getStripeClient() {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is not set")
+  }
+  return new Stripe(key, {
+    apiVersion: "2024-12-18.acacia",
+  })
+}
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
+function getConvexClient() {
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL
+  if (!url) {
+    throw new Error("NEXT_PUBLIC_CONVEX_URL is not set")
+  }
+  return new ConvexHttpClient(url)
+}
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -18,6 +31,10 @@ export async function POST(req: Request) {
   if (!signature) {
     return NextResponse.json({ error: "No signature" }, { status: 400 })
   }
+
+  // Get clients at runtime
+  const stripe = getStripeClient()
+  const convex = getConvexClient()
 
   let event: Stripe.Event
 

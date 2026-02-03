@@ -4,7 +4,14 @@ import { WebhookEvent } from "@clerk/nextjs/server"
 import { api } from "@/convex/_generated/api"
 import { ConvexHttpClient } from "convex/browser"
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
+// Lazy-load the Convex client to avoid build-time errors
+function getConvexClient() {
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL
+  if (!url) {
+    throw new Error("NEXT_PUBLIC_CONVEX_URL is not set")
+  }
+  return new ConvexHttpClient(url)
+}
 
 export async function POST(req: Request) {
   // Get the headers
@@ -42,6 +49,9 @@ export async function POST(req: Request) {
       status: 400,
     })
   }
+
+  // Get Convex client at runtime
+  const convex = getConvexClient()
 
   // Handle the webhook
   const eventType = evt.type
