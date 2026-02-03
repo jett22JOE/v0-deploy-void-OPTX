@@ -15,6 +15,7 @@ import {
   GazeTensor,
   GazeVerificationResponse,
 } from "@/lib/joule/types"
+import { useWallet } from "@solana/wallet-adapter-react"
 
 // Force dynamic rendering to avoid SSR issues with wallet
 export const dynamic = 'force-dynamic'
@@ -50,9 +51,8 @@ export default function GazeVerifyPage() {
   const [currentGaze, setCurrentGaze] = useState<GazeTensor | null>(null)
   const [isTracking, setIsTracking] = useState(false)
 
-  // Wallet state (SSR-safe - managed locally)
-  const [walletConnected, setWalletConnected] = useState(false)
-  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  // Solana wallet hook
+  const { publicKey, connected } = useWallet()
   const [jtxBalance, setJtxBalance] = useState<number | null>(null)
   const [hasJtx, setHasJtx] = useState(false)
 
@@ -90,7 +90,7 @@ export default function GazeVerifyPage() {
 
       setVerificationResult(mockResponse)
 
-      if (walletConnected && walletAddress) {
+      if (connected && publicKey) {
         setState("minting")
         await new Promise(resolve => setTimeout(resolve, 2000))
         mockResponse.mintTransactionSig = "SIMULATED_TX_SIG_" + Date.now()
@@ -107,7 +107,7 @@ export default function GazeVerifyPage() {
       setError(err instanceof Error ? err.message : "Verification failed")
       setState("error")
     }
-  }, [walletConnected, walletAddress, router])
+  }, [connected, publicKey, router])
 
   // Loading state
   if (state === "loading" || !authLoaded) {
@@ -174,11 +174,11 @@ export default function GazeVerifyPage() {
           )}
 
           <div className={`px-3 py-1 rounded-full font-mono text-xs ${
-            walletConnected
+            connected
               ? "bg-green-500/20 text-green-400 border border-green-500/30"
               : "bg-zinc-800 text-zinc-500 border border-zinc-700"
           }`}>
-            {walletAddress ? `${walletAddress.slice(0, 8)}...` : "No Wallet"}
+            {publicKey ? `${publicKey.toBase58().slice(0, 8)}...` : "No Wallet"}
             {jtxBalance !== null && ` (JTX: ${jtxBalance.toFixed(2)})`}
           </div>
         </div>
@@ -309,10 +309,10 @@ export default function GazeVerifyPage() {
         {/* Solana WalletMultiButton */}
         <div className="flex flex-col items-center gap-2">
           <WalletMultiButton className="!bg-gradient-to-r !from-purple-600 !to-accent !text-white !font-mono !text-sm !px-6 !py-2 !rounded-lg !border-0 hover:!from-purple-700 hover:!to-accent/90" />
-          {walletConnected && hasJtx && (
+          {connected && hasJtx && (
             <span className="font-mono text-xs text-green-400">✅ JTX verified</span>
           )}
-          {walletConnected && !hasJtx && (
+          {connected && !hasJtx && (
             <span className="font-mono text-xs text-yellow-400">⚠️ No JTX balance</span>
           )}
         </div>
@@ -322,7 +322,7 @@ export default function GazeVerifyPage() {
           <p className="font-mono text-[10px] text-zinc-600 leading-relaxed">
             Your gaze pattern creates a unique polynomial key (3^5 = 243 combinations).
             Combined with JOULE temporal binding, this prevents replay attacks.
-            {walletConnected && " After verification, $OPTX will be minted to your wallet."}
+            {connected && " After verification, $OPTX will be minted to your wallet."}
           </p>
         </div>
       </div>
