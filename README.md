@@ -1,13 +1,16 @@
-# Vercel Deploy Skill 🦞
+# Vercel Deploy Skill # JETT Optics Dev Portal 🦞
 
-**Pricing:** $0.08/deploy OR 1 $JTX hold = UNLIMITED
+Solana-powered authentication for developers.
 
-**Wallet:** FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H
+## Features
+- Clerk + Stripe subs
+- Solana $JTX wallet verification
+- Gaze pattern auth (4-position polynomial)
+- Convex DB backend
 
-**Features:**
-- pnpm-lock sync
-- Convex schema/deploy
-- Env var injection
-- Build error auto-fix
+## Deploy
+- Vercel: jettoptics.ai/dev
+- Convex: hushed-nightingale-624
 
-**ClawHub launch:** Q1 2026 🚀
+## Hackathon
+Submitted to Colosseum for autonomous auth demo.
