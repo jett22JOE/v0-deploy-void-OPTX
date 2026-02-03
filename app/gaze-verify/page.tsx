@@ -194,7 +194,7 @@ export default function GazeVerifyPage() {
             Gaze Verification
           </h1>
           <p className="font-mono text-xs text-zinc-500">
-            {state === "setup" && "Create your 5-position polynomial gaze pattern"}
+            {state === "setup" && "Create your 4-position polynomial gaze pattern"}
             {state === "verify" && "Verify your gaze pattern to continue"}
             {state === "connecting" && "Verifying gaze pattern..."}
             {state === "minting" && "Minting $OPTX tokens..."}
@@ -232,7 +232,7 @@ export default function GazeVerifyPage() {
           >
             <div className="bg-zinc-900/90 p-6 rounded-xl">
               <PolynomialGazePinInput
-                positions={5}
+                positions={4}
                 holdThreshold={800}
                 sessionNonce={sessionNonce}
                 onComplete={handlePinComplete}
@@ -320,7 +320,7 @@ export default function GazeVerifyPage() {
         {/* Info text */}
         <div className="text-center max-w-sm">
           <p className="font-mono text-[10px] text-zinc-600 leading-relaxed">
-            Your gaze pattern creates a unique polynomial key (3^5 = 243 combinations).
+            Your gaze pattern creates a unique polynomial key (3^4 = 81 combinations).
             Combined with JOULE temporal binding, this prevents replay attacks.
             {connected && " After verification, $OPTX will be minted to your wallet."}
           </p>
