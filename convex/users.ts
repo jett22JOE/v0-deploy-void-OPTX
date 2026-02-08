@@ -260,3 +260,28 @@ export const getUserByStripeCustomerId = query({
       .first()
   },
 })
+
+// Sync Stripe subscription tier (called from Convex HTTP webhook)
+export const syncStripeSubscription = mutation({
+  args: {
+    email: v.string(),
+    stripeCustomerId: v.string(),
+    subscriptionTier: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first()
+
+    if (!user) return { success: false, error: "user_not_found" }
+
+    await ctx.db.patch(user._id, {
+      stripeCustomerId: args.stripeCustomerId,
+      subscriptionTier: args.subscriptionTier,
+      stripeStatus: "active",
+      updatedAt: Date.now(),
+    })
+    return { success: true, userId: user._id }
+  },
+})

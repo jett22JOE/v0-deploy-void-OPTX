@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
+import { VALID_PRICE_IDS, STRIPE_PRICE_TO_TIER } from "@/lib/stripe"
 
 function getStripeClient() {
   const key = process.env.STRIPE_SECRET_KEY
@@ -22,7 +23,12 @@ export async function POST(req: Request) {
       )
     }
 
+    if (!VALID_PRICE_IDS.has(priceId)) {
+      return NextResponse.json({ error: "Invalid price" }, { status: 400 })
+    }
+
     const stripe = getStripeClient()
+    const tier = STRIPE_PRICE_TO_TIER[priceId] || "free"
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -30,10 +36,10 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://jettoptics.ai"}/dev?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://jettoptics.ai"}/pricing`,
-      metadata: { clerkUserId },
+      metadata: { clerkUserId, tier },
       customer_email: customerEmail,
       subscription_data: {
-        metadata: { clerkUserId },
+        metadata: { clerkUserId, tier },
       },
     })
 
