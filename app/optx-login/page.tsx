@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { SignIn, SignUp, useAuth } from "@clerk/nextjs"
+import { SignIn, SignUp } from "@clerk/nextjs"
+import { useSafeAuth } from "@/lib/hooks/use-safe-auth"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
@@ -12,7 +13,7 @@ import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
 export default function OptxLoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { isSignedIn, isLoaded } = useAuth()
+  const { isSignedIn, isLoaded } = useSafeAuth()
 
   // Check if we should show signup tab by default
   const defaultTab = searchParams.get("tab") || "signin"
@@ -20,15 +21,24 @@ export default function OptxLoginPage() {
     defaultTab === "signup" ? "signup" : "signin"
   )
 
-  // Redirect to home if already signed in
+  // Timeout fallback — if Clerk never loads after 8s, show the form anyway
+  const [forceShow, setForceShow] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isLoaded) setForceShow(true)
+    }, 8000)
+    return () => clearTimeout(timer)
+  }, [isLoaded])
+
+  // Redirect to /dev if already signed in
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      router.push("/?joined=true")
+      router.push("/dev")
     }
   }, [isLoaded, isSignedIn, router])
 
-  // Show loading state while Clerk initializes or if already signed in (redirecting)
-  if (!isLoaded || isSignedIn) {
+  // Show loading state while Clerk initializes (with timeout escape)
+  if ((!isLoaded && !forceShow) || isSignedIn) {
     return (
       <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
         <DottedGlowBackground
@@ -48,7 +58,7 @@ export default function OptxLoginPage() {
         <div className="text-center z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent mx-auto mb-4" />
           <p className="font-mono text-sm text-white/60">
-            {isSignedIn ? "Redirecting..." : "Loading..."}
+            {isSignedIn ? "Redirecting to Dev Access..." : "Loading..."}
           </p>
         </div>
       </div>
@@ -232,7 +242,7 @@ export default function OptxLoginPage() {
 
               {activeTab === "signin" ? (
                 <SignIn
-                  forceRedirectUrl="/?joined=true"
+                  forceRedirectUrl="/dev"
                   signUpUrl="/optx-login?tab=signup"
                   appearance={{
                     variables: {
@@ -268,7 +278,7 @@ export default function OptxLoginPage() {
                 />
               ) : (
                 <SignUp
-                  forceRedirectUrl="/?joined=true"
+                  forceRedirectUrl="/dev"
                   signInUrl="/optx-login?tab=signin"
                   appearance={{
                     variables: {

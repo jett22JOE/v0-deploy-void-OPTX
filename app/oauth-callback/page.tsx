@@ -44,8 +44,8 @@ export default function OAuthCallbackPage() {
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
       <AuthenticateWithRedirectCallback
-        signInForceRedirectUrl="/?joined=true"
-        signUpForceRedirectUrl="/?joined=true"
+        signInForceRedirectUrl="/dev"
+        signUpForceRedirectUrl="/dev"
         signInFallbackRedirectUrl="/loading"
         signUpFallbackRedirectUrl="/loading"
       />
