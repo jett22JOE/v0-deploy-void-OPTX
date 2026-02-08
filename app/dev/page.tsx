@@ -3,7 +3,7 @@
 // Force dynamic rendering to avoid SSR issues with Clerk/Convex
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSafeAuth, useSafeUser, useSafeQuery } from "@/lib/hooks/use-safe-auth"
 import Link from "next/link"
@@ -11,7 +11,7 @@ import Image from "next/image"
 import { api } from "@/convex/_generated/api"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
-import { Check, X, Wallet, Eye, CreditCard, Shield, ArrowRight, Loader2 } from "lucide-react"
+import { Check, X, Wallet, Eye, CreditCard, Shield, ArrowRight, Loader2, Clock } from "lucide-react"
 
 export default function DevPage() {
   const router = useRouter()
@@ -54,40 +54,43 @@ export default function DevPage() {
     )
   }
 
+  const hasSubscription = devStatus?.stripeStatus === "active"
+
   const steps = [
     {
       id: "stripe",
-      label: "Stripe Subscription",
-      description: "Active MOJO subscription required",
+      label: "Subscription",
+      description: "Active subscription required for dev access",
       icon: CreditCard,
-      complete: devStatus?.stripeStatus === "active",
-      status: devStatus?.stripeStatus || "inactive",
-      action: devStatus?.stripeStatus === "active" ? null : "/pricing",
+      complete: hasSubscription,
+      status: hasSubscription ? "Active" : "Inactive",
+      action: hasSubscription ? null : "/pricing",
       actionLabel: "Subscribe",
+      comingSoon: false,
     },
     {
       id: "wallet",
-      label: "OKX Wallet",
-      description: "Connect your OKX wallet",
+      label: "Wallet Connection",
+      description: "Connect Phantom or OKX wallet on Solana",
       icon: Wallet,
-      complete: !!devStatus?.okxWallet,
-      status: devStatus?.okxWallet ? `${devStatus.okxWallet.slice(0, 8)}...` : "Not connected",
-      action: devStatus?.okxWallet ? null : "/gaze-verify",
-      actionLabel: "Connect",
+      complete: false,
+      status: "Coming soon",
+      action: null,
+      actionLabel: null,
+      comingSoon: true,
     },
     {
       id: "gaze",
       label: "Gaze Verification",
-      description: "Complete gaze biometric verification",
+      description: "On-chain gaze attestation via DOJO training",
       icon: Eye,
-      complete: !!devStatus?.gazeVerified,
-      status: devStatus?.gazeVerified ? "Verified" : "Not verified",
-      action: devStatus?.gazeVerified ? null : "/gaze-verify",
-      actionLabel: "Verify",
+      complete: false,
+      status: "Coming soon",
+      action: null,
+      actionLabel: null,
+      comingSoon: true,
     },
   ]
-
-  const allComplete = devStatus?.isComplete
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center overflow-auto">
@@ -151,7 +154,7 @@ export default function DevPage() {
             </h1>
           </div>
           <p className="font-mono text-xs text-zinc-500 max-w-sm">
-            Complete all verification steps to unlock developer access to OPTX platform APIs and tools.
+            Subscribe to get dev access and help us build the JOE model on Devnet.
           </p>
         </div>
 
@@ -161,13 +164,21 @@ export default function DevPage() {
             <div key={step.id} className="flex items-center">
               <div
                 className={`w-3 h-3 rounded-full transition-colors ${
-                  step.complete ? "bg-green-500" : "bg-zinc-700"
+                  step.complete
+                    ? "bg-green-500"
+                    : step.comingSoon
+                      ? "bg-yellow-500/50"
+                      : "bg-zinc-700"
                 }`}
               />
               {index < steps.length - 1 && (
                 <div
                   className={`w-8 h-0.5 transition-colors ${
-                    step.complete ? "bg-green-500" : "bg-zinc-700"
+                    step.complete
+                      ? "bg-green-500"
+                      : step.comingSoon
+                        ? "bg-yellow-500/30"
+                        : "bg-zinc-700"
                   }`}
                 />
               )}
@@ -188,26 +199,40 @@ export default function DevPage() {
                 className={`flex items-center gap-4 p-4 rounded-lg border transition-colors ${
                   step.complete
                     ? "bg-green-500/10 border-green-500/30"
-                    : "bg-zinc-800/50 border-zinc-700"
+                    : step.comingSoon
+                      ? "bg-yellow-500/5 border-yellow-500/20"
+                      : "bg-zinc-800/50 border-zinc-700"
                 }`}
               >
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    step.complete ? "bg-green-500/20" : "bg-zinc-700"
+                    step.complete
+                      ? "bg-green-500/20"
+                      : step.comingSoon
+                        ? "bg-yellow-500/10"
+                        : "bg-zinc-700"
                   }`}
                 >
                   <step.icon
                     className={`w-5 h-5 ${
-                      step.complete ? "text-green-400" : "text-zinc-400"
+                      step.complete
+                        ? "text-green-400"
+                        : step.comingSoon
+                          ? "text-yellow-400/60"
+                          : "text-zinc-400"
                     }`}
                   />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm text-white">{step.label}</span>
+                    <span className={`font-mono text-sm ${step.comingSoon ? "text-zinc-400" : "text-white"}`}>
+                      {step.label}
+                    </span>
                     {step.complete ? (
                       <Check className="w-4 h-4 text-green-400" />
+                    ) : step.comingSoon ? (
+                      <Clock className="w-3.5 h-3.5 text-yellow-400/60" />
                     ) : (
                       <X className="w-4 h-4 text-zinc-500" />
                     )}
@@ -215,12 +240,22 @@ export default function DevPage() {
                   <p className="font-mono text-[10px] text-zinc-500">{step.description}</p>
                   <p
                     className={`font-mono text-[10px] mt-1 ${
-                      step.complete ? "text-green-400" : "text-zinc-400"
+                      step.complete
+                        ? "text-green-400"
+                        : step.comingSoon
+                          ? "text-yellow-400/60"
+                          : "text-zinc-400"
                     }`}
                   >
                     {step.status}
                   </p>
                 </div>
+
+                {step.comingSoon && (
+                  <span className="px-2 py-1 rounded-md font-mono text-[10px] bg-yellow-500/10 text-yellow-400/80 border border-yellow-500/20">
+                    SOON
+                  </span>
+                )}
 
                 {step.action && (
                   <Link
@@ -244,41 +279,51 @@ export default function DevPage() {
         >
           <div
             className={`p-6 rounded-xl text-center ${
-              allComplete
+              hasSubscription
                 ? "bg-gradient-to-br from-green-500/20 to-accent/20"
                 : "bg-zinc-900/90"
             }`}
           >
-            {allComplete ? (
+            {hasSubscription ? (
               <>
                 <div className="w-16 h-16 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center mx-auto mb-4">
                   <Check className="w-8 h-8 text-green-400" />
                 </div>
                 <h2 className="font-mono text-lg text-green-400 mb-2">Dev Access Granted</h2>
                 <p className="font-mono text-xs text-zinc-400 mb-4">
-                  You have full access to OPTX developer tools and APIs.
+                  You have dev access. Wallet connection + gaze verification coming soon on Devnet.
                 </p>
-                <Link
-                  href="/docs"
-                  className="inline-flex items-center gap-2 px-6 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white font-mono text-sm transition-colors"
-                >
-                  View Documentation
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                <p className="font-mono text-[10px] text-zinc-500 mb-4">
+                  Program: 91SqqYLMi5zNsfMab6rnvipwJhDpN4FEMSLgu8F3bbGq
+                </p>
               </>
             ) : (
               <>
                 <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center mx-auto mb-4">
                   <Shield className="w-8 h-8 text-zinc-500" />
                 </div>
-                <h2 className="font-mono text-lg text-zinc-300 mb-2">Dev Access Locked</h2>
-                <p className="font-mono text-xs text-zinc-500">
-                  Complete all verification steps above to unlock developer access.
+                <h2 className="font-mono text-lg text-zinc-300 mb-2">Subscribe for Dev Access</h2>
+                <p className="font-mono text-xs text-zinc-500 mb-4">
+                  Subscribe to help us build the JOE model on Devnet!
                 </p>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-2 px-6 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white font-mono text-sm transition-colors"
+                >
+                  View Plans
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </>
             )}
           </div>
         </AnimatedMetalBorder>
+
+        {/* Devnet Info */}
+        <div className="w-full text-center">
+          <p className="font-mono text-[10px] text-zinc-600">
+            $OPTX Mint: 4r9WoPsRjJzrYEuj6VdwowVrFZaXpu16Qt6xogcmdUXC
+          </p>
+        </div>
       </div>
 
       {/* Noise overlay */}

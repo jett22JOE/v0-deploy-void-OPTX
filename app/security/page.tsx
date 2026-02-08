@@ -22,11 +22,11 @@ import {
   Eye,
   Check,
   X,
-  Settings,
   Mail,
   Calendar,
   Loader2,
   ChevronRight,
+  Clock,
 } from "lucide-react"
 
 export default function SecurityPage() {
@@ -99,6 +99,8 @@ export default function SecurityPage() {
       day: "numeric",
     })
   }
+
+  const hasSubscription = devStatus?.stripeStatus === "active"
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col overflow-auto">
@@ -254,15 +256,19 @@ export default function SecurityPage() {
                           <Calendar className="w-3.5 h-3.5" /> Joined
                         </span>
                         <span className="font-mono text-xs text-white">
-                          {formatDate(convexUser?.createdAt)}
+                          {convexUser?.createdAt ? formatDate(convexUser.createdAt) : formatDate(user?.createdAt ? new Date(user.createdAt).getTime() : undefined)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-zinc-800">
                         <span className="font-mono text-xs text-zinc-400 flex items-center gap-2">
-                          <Settings className="w-3.5 h-3.5" /> Last Login
+                          <Shield className="w-3.5 h-3.5" /> Dev Access
                         </span>
-                        <span className="font-mono text-xs text-white">
-                          {formatDate(convexUser?.lastLoginAt)}
+                        <span className={`font-mono text-xs px-2 py-0.5 rounded-full ${
+                          hasSubscription
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-zinc-700 text-zinc-400"
+                        }`}>
+                          {hasSubscription ? "Active" : "Inactive"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-2">
@@ -294,157 +300,124 @@ export default function SecurityPage() {
                         <span className="font-mono text-xs text-zinc-400">Status</span>
                         <span
                           className={`font-mono text-xs px-2 py-0.5 rounded-full ${
-                            devStatus?.stripeStatus === "active"
+                            hasSubscription
                               ? "bg-green-500/20 text-green-400"
                               : "bg-zinc-700 text-zinc-400"
                           }`}
                         >
-                          {devStatus?.stripeStatus || "Inactive"}
+                          {hasSubscription ? "Active" : "Free"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-zinc-800">
                         <span className="font-mono text-xs text-zinc-400">Plan</span>
                         <span className="font-mono text-xs text-white">
-                          {devStatus?.stripeStatus === "active" ? "MOJO" : "Free"}
+                          {hasSubscription ? "Subscriber" : "Free"}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between py-2">
-                        <span className="font-mono text-xs text-zinc-400">Customer ID</span>
-                        <span className="font-mono text-[10px] text-zinc-500">
-                          {devStatus?.stripeCustomerId?.slice(0, 16) || "N/A"}
-                        </span>
-                      </div>
+                      {devStatus?.stripeCustomerId && (
+                        <div className="flex items-center justify-between py-2">
+                          <span className="font-mono text-xs text-zinc-400">Customer ID</span>
+                          <span className="font-mono text-[10px] text-zinc-500">
+                            {devStatus.stripeCustomerId.slice(0, 16)}...
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    {devStatus?.stripeStatus !== "active" && (
+                    {!hasSubscription && (
                       <Link
                         href="/pricing"
                         className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white font-mono text-xs transition-colors"
                       >
-                        Upgrade to MOJO
+                        Subscribe
                         <ChevronRight className="w-3 h-3" />
                       </Link>
                     )}
                   </div>
                 </AnimatedMetalBorder>
 
-                {/* Wallet Card */}
+                {/* Wallet Card — Coming Soon */}
                 <AnimatedMetalBorder
                   containerClassName="rounded-xl"
                   borderWidth={2}
                   borderRadius={12}
                 >
-                  <div className="bg-zinc-900/90 p-6 rounded-xl">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Wallet className="w-5 h-5 text-accent" />
-                      <h3 className="font-mono text-sm text-white">Wallets</h3>
+                  <div className="bg-zinc-900/90 p-6 rounded-xl relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="w-5 h-5 text-yellow-400/60" />
+                        <h3 className="font-mono text-sm text-zinc-400">Wallets</h3>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-md font-mono text-[10px] bg-yellow-500/10 text-yellow-400/80 border border-yellow-500/20">
+                        COMING SOON
+                      </span>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3 opacity-50">
+                      <div className="flex items-center justify-between py-2 border-b border-zinc-800">
+                        <span className="font-mono text-xs text-zinc-400">Phantom</span>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3 h-3 text-yellow-400/50" />
+                          <span className="font-mono text-xs text-zinc-500">Coming soon</span>
+                        </div>
+                      </div>
                       <div className="flex items-center justify-between py-2 border-b border-zinc-800">
                         <span className="font-mono text-xs text-zinc-400">OKX Wallet</span>
                         <div className="flex items-center gap-2">
-                          {devStatus?.okxWallet ? (
-                            <>
-                              <Check className="w-3 h-3 text-green-400" />
-                              <span className="font-mono text-[10px] text-green-400">
-                                {devStatus.okxWallet.slice(0, 8)}...
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <X className="w-3 h-3 text-zinc-500" />
-                              <span className="font-mono text-xs text-zinc-500">Not connected</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between py-2 border-b border-zinc-800">
-                        <span className="font-mono text-xs text-zinc-400">Solana Wallet</span>
-                        <div className="flex items-center gap-2">
-                          {convexUser?.solanaWallet ? (
-                            <>
-                              <Check className="w-3 h-3 text-green-400" />
-                              <span className="font-mono text-[10px] text-green-400">
-                                {convexUser.solanaWallet.slice(0, 8)}...
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <X className="w-3 h-3 text-zinc-500" />
-                              <span className="font-mono text-xs text-zinc-500">Not connected</span>
-                            </>
-                          )}
+                          <Clock className="w-3 h-3 text-yellow-400/50" />
+                          <span className="font-mono text-xs text-zinc-500">Coming soon</span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between py-2">
-                        <span className="font-mono text-xs text-zinc-400">JTX Balance</span>
-                        <span className="font-mono text-xs text-white">
-                          {convexUser?.jtxBalance?.toFixed(2) || "0.00"} JTX
-                        </span>
+                        <span className="font-mono text-xs text-zinc-400">$JTX Balance</span>
+                        <span className="font-mono text-xs text-zinc-500">--</span>
                       </div>
                     </div>
+
+                    <p className="mt-4 font-mono text-[10px] text-yellow-400/60">
+                      Subscribe to help us build the JOE model on Devnet!
+                    </p>
                   </div>
                 </AnimatedMetalBorder>
 
-                {/* Verification Card */}
+                {/* Verification Card — Coming Soon */}
                 <AnimatedMetalBorder
                   containerClassName="rounded-xl"
                   borderWidth={2}
                   borderRadius={12}
                 >
-                  <div className="bg-zinc-900/90 p-6 rounded-xl h-full">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Eye className="w-5 h-5 text-accent" />
-                      <h3 className="font-mono text-sm text-white">Verification</h3>
+                  <div className="bg-zinc-900/90 p-6 rounded-xl h-full relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-5 h-5 text-yellow-400/60" />
+                        <h3 className="font-mono text-sm text-zinc-400">Gaze Verification</h3>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-md font-mono text-[10px] bg-yellow-500/10 text-yellow-400/80 border border-yellow-500/20">
+                        COMING SOON
+                      </span>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3 opacity-50">
                       <div className="flex items-center justify-between py-2 border-b border-zinc-800">
                         <span className="font-mono text-xs text-zinc-400">Gaze Verified</span>
                         <div className="flex items-center gap-2">
-                          {devStatus?.gazeVerified ? (
-                            <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Verified
-                            </span>
-                          ) : (
-                            <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-400 flex items-center gap-1">
-                              <X className="w-3 h-3" /> Not verified
-                            </span>
-                          )}
+                          <Clock className="w-3 h-3 text-yellow-400/50" />
+                          <span className="font-mono text-xs text-zinc-500">Coming soon</span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-zinc-800">
-                        <span className="font-mono text-xs text-zinc-400">Verified At</span>
-                        <span className="font-mono text-xs text-white">
-                          {formatDate(convexUser?.gazeVerifiedAt)}
-                        </span>
+                        <span className="font-mono text-xs text-zinc-400">Attestation</span>
+                        <span className="font-mono text-xs text-zinc-500">--</span>
                       </div>
                       <div className="flex items-center justify-between py-2">
-                        <span className="font-mono text-xs text-zinc-400">Dev Access</span>
-                        <div className="flex items-center gap-2">
-                          {devStatus?.devAccessGranted ? (
-                            <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Granted
-                            </span>
-                          ) : (
-                            <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-400 flex items-center gap-1">
-                              <X className="w-3 h-3" /> Locked
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-mono text-xs text-zinc-400">$OPTX Earned</span>
+                        <span className="font-mono text-xs text-zinc-500">--</span>
                       </div>
                     </div>
 
-                    {!devStatus?.gazeVerified && (
-                      <Link
-                        href="/gaze-verify"
-                        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white font-mono text-xs transition-colors"
-                      >
-                        Complete Verification
-                        <ChevronRight className="w-3 h-3" />
-                      </Link>
-                    )}
+                    <p className="mt-4 font-mono text-[10px] text-yellow-400/60">
+                      Subscribe to help us build the JOE model on Devnet!
+                    </p>
                   </div>
                 </AnimatedMetalBorder>
               </motion.div>
