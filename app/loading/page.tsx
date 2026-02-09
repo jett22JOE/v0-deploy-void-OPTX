@@ -8,8 +8,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { useSafeClerk, useSafeAuth, useSafeUser, useSafeQuery } from "@/lib/hooks/use-safe-auth"
-import { api } from "@/convex/_generated/api"
+import { useSafeClerk, useSafeAuth, useSafeUser } from "@/lib/hooks/use-safe-auth"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 
 export default function LoadingPage() {
@@ -22,12 +21,6 @@ export default function LoadingPage() {
   const { isSignedIn } = useSafeAuth()
   const { user } = useSafeUser()
 
-  // Check subscription status from Convex
-  const devStatus = useSafeQuery(
-    api.dev.getUserDevStatus,
-    user?.id ? { clerkUserId: user.id } : "skip"
-  )
-
   useEffect(() => {
     // Show button after a delay or when video has played
     const timer = setTimeout(() => {
@@ -37,13 +30,12 @@ export default function LoadingPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Redirect signed-in users to /security page
+  // Redirect signed-in users to /dojo
   useEffect(() => {
-    if (isSignedIn && clerkLoaded && devStatus !== undefined) {
-      // Redirect all signed-in users to security page
-      router.push("/security")
+    if (isSignedIn && clerkLoaded) {
+      router.push("/dojo")
     }
-  }, [isSignedIn, clerkLoaded, devStatus, router])
+  }, [isSignedIn, clerkLoaded, router])
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">

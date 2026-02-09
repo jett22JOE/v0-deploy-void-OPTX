@@ -45,11 +45,6 @@ export default function SecurityPage() {
     user?.id ? { clerkUserId: user.id } : "skip"
   )
 
-  const devStatus = useSafeQuery(
-    api.dev.getUserDevStatus,
-    user?.id ? { clerkUserId: user.id } : "skip"
-  )
-
   // Redirect if not signed in
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -88,7 +83,7 @@ export default function SecurityPage() {
     })
   }
 
-  const hasSubscription = devStatus?.stripeStatus === "active"
+  const hasSubscription = convexUser?.subscriptionTier && convexUser.subscriptionTier !== "free"
   const tier = convexUser?.subscriptionTier || "free"
   const tierLabel = tier === "free" ? "Free" : tier.toUpperCase()
   const tierColor =
@@ -296,13 +291,13 @@ export default function SecurityPage() {
                       {tierLabel}
                     </span>
                   </div>
-                  {devStatus?.stripeCustomerId && (
+                  {convexUser?.stripeCustomerId && (
                     <div className="flex items-center justify-between py-2">
                       <span className="font-mono text-xs text-zinc-400">
                         Customer ID
                       </span>
                       <span className="font-mono text-[10px] text-zinc-500">
-                        {devStatus.stripeCustomerId.slice(0, 16)}...
+                        {convexUser.stripeCustomerId.slice(0, 16)}...
                       </span>
                     </div>
                   )}
