@@ -33,7 +33,7 @@ export default function OptxLoginPage() {
   // Redirect to /dev if already signed in
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      router.push("/dev")
+      router.push("/dojo")
     }
   }, [isLoaded, isSignedIn, router])
 
@@ -58,7 +58,7 @@ export default function OptxLoginPage() {
         <div className="text-center z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent mx-auto mb-4" />
           <p className="font-mono text-sm text-white/60">
-            {isSignedIn ? "Redirecting to Dev Access..." : "Loading..."}
+            {isSignedIn ? "Redirecting to DOJO..." : "Loading..."}
           </p>
         </div>
       </div>
@@ -242,7 +242,7 @@ export default function OptxLoginPage() {
 
               {activeTab === "signin" ? (
                 <SignIn
-                  forceRedirectUrl="/dev"
+                  forceRedirectUrl="/dojo"
                   signUpUrl="/optx-login?tab=signup"
                   appearance={{
                     variables: {
@@ -278,7 +278,7 @@ export default function OptxLoginPage() {
                 />
               ) : (
                 <SignUp
-                  forceRedirectUrl="/dev"
+                  forceRedirectUrl="/dojo"
                   signInUrl="/optx-login?tab=signin"
                   appearance={{
                     variables: {

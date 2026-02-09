@@ -59,6 +59,17 @@ export async function POST(req: Request) {
         const clerkUserId = session.metadata?.clerkUserId
 
         if (clerkUserId) {
+          // Set clerkUserId on Stripe customer so future subscription events can find user
+          if (customerId) {
+            try {
+              await stripe.customers.update(customerId, {
+                metadata: { clerkUserId },
+              })
+            } catch (e) {
+              console.error("Failed to set customer metadata:", e)
+            }
+          }
+
           await convex.mutation(api.users.updateStripeInfo, {
             clerkUserId,
             stripeCustomerId: customerId,

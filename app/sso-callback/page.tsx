@@ -52,8 +52,8 @@ export default function SSOCallbackPage() {
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
       {/* Clerk's AuthenticateWithRedirectCallback handles the OAuth token exchange */}
       <AuthenticateWithRedirectCallback
-        signInForceRedirectUrl="/dev"
-        signUpForceRedirectUrl="/dev"
+        signInForceRedirectUrl="/dojo"
+        signUpForceRedirectUrl="/dojo"
         signInFallbackRedirectUrl="/loading"
         signUpFallbackRedirectUrl="/loading"
       />

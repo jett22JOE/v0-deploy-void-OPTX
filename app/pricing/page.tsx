@@ -164,11 +164,11 @@ export default function PricingPage() {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/dev"
+            href="/dojo"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs text-zinc-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-3 h-3" />
-            Dev Access
+            DOJO
           </Link>
           {isSignedIn ? (
             <Link

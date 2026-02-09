@@ -119,10 +119,10 @@ export default function SecurityPage() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/dev"
+            href="/dojo"
             className="px-3 py-1.5 rounded-lg font-mono text-xs bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-zinc-700"
           >
-            Dev Access
+            DOJO
           </Link>
           <button
             onClick={handleSignOut}
