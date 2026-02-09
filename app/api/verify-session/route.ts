@@ -1,20 +1,12 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
-import { ConvexHttpClient } from "convex/browser"
-import { api } from "@/convex/_generated/api"
 import { STRIPE_PRICE_TO_TIER } from "@/lib/stripe"
-import { auth } from "@clerk/nextjs/server"
+import { auth, clerkClient } from "@clerk/nextjs/server"
 
 function getStripeClient() {
   const key = process.env.STRIPE_SECRET_KEY
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set")
   return new Stripe(key, { apiVersion: "2024-12-18.acacia" })
-}
-
-function getConvexClient() {
-  const url = process.env.NEXT_PUBLIC_CONVEX_URL
-  if (!url) throw new Error("NEXT_PUBLIC_CONVEX_URL is not set")
-  return new ConvexHttpClient(url)
 }
 
 export async function POST(req: Request) {
@@ -25,11 +17,9 @@ export async function POST(req: Request) {
     }
 
     const { sessionId } = await req.json()
-
     const stripe = getStripeClient()
-    const convex = getConvexClient()
 
-    // If we have a session_id from checkout redirect, verify it directly with Stripe
+    // Path 1: Verify a specific checkout session (post-payment redirect)
     if (sessionId) {
       const session = await stripe.checkout.sessions.retrieve(sessionId, {
         expand: ["subscription"],
@@ -53,7 +43,7 @@ export async function POST(req: Request) {
       const customerId = session.customer as string
       const tier = session.metadata?.tier || "free"
 
-      // Fix: Set clerkUserId on Stripe customer so future webhook events work
+      // Set clerkUserId on Stripe customer for future webhook events
       if (customerId) {
         try {
           await stripe.customers.update(customerId, {
@@ -64,26 +54,8 @@ export async function POST(req: Request) {
         }
       }
 
-      // Update Convex with verified subscription data
-      await convex.mutation(api.users.updateStripeInfo, {
-        clerkUserId: userId,
-        stripeCustomerId: customerId,
-        stripeSubscriptionId: subscription.id,
-        stripeStatus: subscription.status,
-      })
-
-      // Also sync the subscription tier
       const priceId = subscription.items.data[0]?.price?.id
       const resolvedTier = priceId ? (STRIPE_PRICE_TO_TIER[priceId] || tier) : tier
-
-      if (resolvedTier && resolvedTier !== "free") {
-        await convex.mutation(api.dev.updateStripeSubscription, {
-          clerkUserId: userId,
-          customerId,
-          subscriptionId: subscription.id,
-          status: subscription.status,
-        })
-      }
 
       return NextResponse.json({
         status: subscription.status === "active" ? "active" : "pending",
@@ -92,17 +64,47 @@ export async function POST(req: Request) {
       })
     }
 
-    // No session_id: check Convex for existing subscription status
-    const devStatus = await convex.query(api.dev.getUserDevStatus, {
-      clerkUserId: userId,
-    })
+    // Path 2: No session_id — look up Stripe customer by Clerk email
+    const clerk = await clerkClient()
+    const clerkUser = await clerk.users.getUser(userId)
+    const email = clerkUser.emailAddresses[0]?.emailAddress
 
-    if (devStatus?.stripeStatus === "active" && devStatus?.stripeSubscriptionId) {
-      return NextResponse.json({
+    if (!email) {
+      return NextResponse.json({ status: "inactive" })
+    }
+
+    // Search Stripe for active subscriptions by customer email
+    const customers = await stripe.customers.list({ email, limit: 5 })
+
+    for (const customer of customers.data) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customer.id,
         status: "active",
-        tier: "subscribed",
-        subscriptionId: devStatus.stripeSubscriptionId,
+        limit: 1,
       })
+
+      if (subscriptions.data.length > 0) {
+        const sub = subscriptions.data[0]
+        const priceId = sub.items.data[0]?.price?.id
+        const tier = priceId ? (STRIPE_PRICE_TO_TIER[priceId] || "subscribed") : "subscribed"
+
+        // Ensure customer has clerkUserId metadata
+        if (!customer.metadata?.clerkUserId) {
+          try {
+            await stripe.customers.update(customer.id, {
+              metadata: { clerkUserId: userId },
+            })
+          } catch (e) {
+            console.error("Failed to update customer metadata:", e)
+          }
+        }
+
+        return NextResponse.json({
+          status: "active",
+          tier,
+          subscriptionId: sub.id,
+        })
+      }
     }
 
     return NextResponse.json({ status: "inactive" })

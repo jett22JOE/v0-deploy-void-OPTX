@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://jettoptics.ai"}/dojo?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://jettoptics.ai"}/pricing`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://jettoptics.ai"}/security`,
       metadata: { clerkUserId, tier },
       customer_email: customerEmail,
       subscription_data: {
