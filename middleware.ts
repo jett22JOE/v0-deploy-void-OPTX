@@ -22,20 +22,27 @@ const isPublicRoute = createRouteMatcher([
 
 // Clerk middleware for Next.js 16 - handles auth state and OAuth flows
 export default clerkMiddleware(async (auth, request) => {
-  // For public routes, don't require authentication
+  const { pathname } = new URL(request.url)
+  
+  // CRITICAL FIX: Do NOT early return for OAuth/SSO callbacks
+  // These need to be processed by Clerk to set session cookies
+  const isCallback = pathname.startsWith('/oauth-callback') || pathname.startsWith('/sso-callback')
+  
+  // For public routes (except callbacks), don't require authentication
   // This allows the Waitlist component to work properly
-  if (isPublicRoute(request)) {
+  if (isPublicRoute(request) && !isCallback) {
     return
   }
 
-  // For protected routes, you can add auth.protect() here
+  // For OAuth/SSO callbacks: Let Clerk middleware process them automatically
+  // For protected routes: Optionally add auth.protect() to enforce authentication
   // await auth.protect()
 })
 
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|[^?]*\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     // Always run for API routes
     "/(api|trpc)(.*)",
   ],
