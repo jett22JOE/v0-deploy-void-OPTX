@@ -1,6 +1,6 @@
 import { DOJOSidebar } from '@/components/DOJOSidebar';
 
-export default function TrainingLayout({ children }: { children: React.ReactNode }) {
+export default function DocsLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden bg-black">
       <DOJOSidebar />

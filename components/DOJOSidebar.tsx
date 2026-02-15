@@ -1,102 +1,69 @@
 'use client';
 
-import { Activity, Video, Target, Home, MessageSquare } from 'lucide-react';
+import { Activity, Eye, BookOpen, MessageSquare, LayoutDashboard, Settings, ArrowLeft } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { BrainCircuitIcon } from '@/components/BrainCircuitIcon';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 
 const navigationItems = [
-  {
-    title: 'DOJO',
-    url: '/dojo',
-    icon: Activity,
-  },
-  {
-    title: 'Gaze Auth',
-    url: '/gaze-auth',
-    icon: Target,
-  },
-  {
-    title: 'MOJO',
-    url: '/mojo',
-    icon: Video,
-  },
+  { title: 'Dashboard', url: '/dojo', icon: LayoutDashboard },
+  { title: 'Training', url: '/dojo/training', icon: Activity },
+  { title: 'Docs', url: '/dojo/docs', icon: BookOpen },
 ];
 
 export function DOJOSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b border-orange-500/20 p-4">
-        <Link href="/hub" className="flex items-center gap-2">
-          <BrainCircuitIcon size={32} className="text-orange-500" />
+    <aside className="w-56 h-screen flex flex-col border-r border-orange-500/20 bg-zinc-950/90 backdrop-blur shrink-0">
+      <div className="p-4 border-b border-orange-500/20">
+        <Link href="/dojo" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+            <Eye className="w-4 h-4 text-orange-400" />
+          </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-orange-400">JETT HUB</span>
-            <span className="text-[10px] text-orange-500/70">Gaze Optics</span>
+            <span className="text-sm font-bold text-orange-400 font-mono tracking-wider">DOJO</span>
+            <span className="text-[10px] text-orange-500/60 font-mono">Jett Optics</span>
           </div>
         </Link>
-      </SidebarHeader>
+      </div>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-orange-400/70 text-xs">
-            Training & Auth
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => {
-                const isActive = pathname === item.url;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      className={`${
-                        isActive
-                          ? 'bg-orange-500/20 text-orange-400 border-l-2 border-orange-500'
-                          : 'text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10'
-                      }`}
-                    >
-                      <Link href={item.url}>
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+      <nav className="flex-1 p-3 space-y-1">
+        <p className="text-[10px] text-orange-400/50 font-mono uppercase tracking-wider px-2 mb-2">Training & Tools</p>
+        {navigationItems.map((item) => {
+          const isActive = pathname === item.url;
+          return (
+            <Link
+              key={item.title}
+              href={item.url}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition-colors ${
+                isActive
+                  ? 'bg-orange-500/20 text-orange-400 border-l-2 border-orange-500'
+                  : 'text-orange-400/60 hover:text-orange-400 hover:bg-orange-500/10'
+              }`}
+            >
+              <item.icon className="w-4 h-4" />
+              <span>{item.title}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
-      <SidebarFooter className="border-t border-orange-500/20 p-3">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
-          asChild
+      <div className="p-3 border-t border-orange-500/20 space-y-1">
+        <Link
+          href="/security"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono text-orange-400/60 hover:text-orange-400 hover:bg-orange-500/10 transition-colors"
         >
-          <Link href="/hub">
-            <Home className="w-4 h-4 mr-2" />
-            Return to Hub
-          </Link>
-        </Button>
-      </SidebarFooter>
-    </Sidebar>
+          <Settings className="w-4 h-4" />
+          <span>Account</span>
+        </Link>
+        <Link
+          href="/dojo"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono text-orange-400/60 hover:text-orange-400 hover:bg-orange-500/10 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Hub</span>
+        </Link>
+      </div>
+    </aside>
   );
 }
