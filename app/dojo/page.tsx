@@ -178,7 +178,7 @@ export default function DojoPage() {
                   >
                     <RefreshCw className="w-4 h-4" />
                     Retry
-                  </button>
+                  </a>
                 )}
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function DojoPage() {
               </div>
               <button className="mt-4 w-full px-3 py-2 rounded-lg font-mono text-xs bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-zinc-700">
                 Generate New Key
-              </button>
+              </a>
             </div>
           </AnimatedMetalBorder>
 
@@ -312,7 +312,7 @@ export default function DojoPage() {
               </div>
               <a href="/dojo/training" className="block w-full px-3 py-2 rounded-lg font-mono text-xs bg-green-600 hover:bg-green-500 text-white transition-colors text-center">
                 Start Training
-              </button>
+              </a>
             </div>
           </AnimatedMetalBorder>
 
@@ -386,7 +386,7 @@ export default function DojoPage() {
               </p>
               <button className="w-full px-3 py-2 rounded-lg font-mono text-xs bg-orange-600 hover:bg-orange-500 text-white transition-colors">
                 Connect Wallet
-              </button>
+              </a>
             </div>
           </AnimatedMetalBorder>
 
