@@ -310,7 +310,7 @@ export default function DojoPage() {
                 </div>
                 <span className="font-mono text-[10px] text-zinc-500">0%</span>
               </div>
-              <button className="w-full px-3 py-2 rounded-lg font-mono text-xs bg-green-600 hover:bg-green-500 text-white transition-colors">
+              <a href="/dojo/training" className="block w-full px-3 py-2 rounded-lg font-mono text-xs bg-green-600 hover:bg-green-500 text-white transition-colors text-center">
                 Start Training
               </button>
             </div>
