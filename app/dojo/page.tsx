@@ -285,7 +285,7 @@ export default function DojoPage() {
               </div>
               <button className="mt-4 w-full px-3 py-2 rounded-lg font-mono text-xs bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-zinc-700">
                 Generate New Key
-              </a>
+              </button>
             </div>
           </AnimatedMetalBorder>
 
@@ -386,7 +386,7 @@ export default function DojoPage() {
               </p>
               <button className="w-full px-3 py-2 rounded-lg font-mono text-xs bg-orange-600 hover:bg-orange-500 text-white transition-colors">
                 Connect Wallet
-              </a>
+              </button>
             </div>
           </AnimatedMetalBorder>
 
