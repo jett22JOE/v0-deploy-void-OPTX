@@ -178,7 +178,7 @@ export default function DojoPage() {
                   >
                     <RefreshCw className="w-4 h-4" />
                     Retry
-                  </a>
+                  </button>
                 )}
               </div>
             </div>
