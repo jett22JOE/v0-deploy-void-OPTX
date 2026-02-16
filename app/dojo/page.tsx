@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useUser, useClerk } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 import { useState } from "react"
 import {
   Users, Eye, CreditCard, Home, Lock, Unlock, Settings,
@@ -32,7 +32,6 @@ interface NavigationState {
 export default function JETTHubPage() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
-  const { openUserProfile } = useClerk()
   const [currentView, setCurrentView] = useState("jett-hub")
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
   const [devMode, setDevMode] = useState(false)
@@ -93,8 +92,8 @@ export default function JETTHubPage() {
       parentPos: { x: 25, y: 25 },
       connections: [
         { id: "security", x: 50, y: 20, tensor: "cog", label: "Security", icon: Shield, route: "/security" },
-        { id: "profile", x: 25, y: 75, tensor: "emo", label: "Profile", icon: Users },
-        { id: "billing", x: 75, y: 75, tensor: "env", label: "Billing", icon: CreditCard },
+        { id: "profile", x: 25, y: 75, tensor: "emo", label: "Profile", icon: Users, route: "/security" },
+        { id: "billing", x: 75, y: 75, tensor: "env", label: "Billing", icon: CreditCard, route: "/pricing" },
       ],
     },
   }
@@ -102,14 +101,7 @@ export default function JETTHubPage() {
   const handleNavigation = (targetId: string, route?: string) => {
     if (!isLoaded || animationState !== "idle") return
 
-    if (targetId === "profile" || targetId === "security-modal") {
-      openUserProfile()
-      return
-    }
-    if (targetId === "billing") {
-      router.push("/pricing")
-      return
-    }
+    // All account sub-nodes have routes now, no Clerk modals needed
     if (route) {
       router.push(route)
       return
