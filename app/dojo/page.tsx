@@ -187,10 +187,16 @@ export default function JETTHubPage() {
       >
         <div className="relative">
           <div className="absolute inset-0 bg-orange-500 rounded-full opacity-20 blur-[40px] group-hover:opacity-40 transition-opacity" />
-          <div className="relative w-16 h-16 bg-black/60 rounded-full border-2 border-orange-500 flex items-center justify-center transition-transform group-hover:scale-110">
-            <Home size={24} className="text-orange-500" />
+          <div className="relative w-16 h-16 rounded-full border-2 border-orange-500 overflow-hidden transition-transform group-hover:scale-110 bg-white">
+            <Image
+              src="/images/JOE_founder_icon.png"
+              alt="JOE"
+              width={64}
+              height={64}
+              className="w-full h-full object-contain p-1"
+            />
           </div>
-          <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-orange-500 whitespace-nowrap">
+          <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-orange-500 whitespace-nowrap font-mono">
             JOE
           </span>
         </div>
