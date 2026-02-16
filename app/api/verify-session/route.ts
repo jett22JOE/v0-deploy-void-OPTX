@@ -107,6 +107,32 @@ export async function POST(req: Request) {
       }
     }
 
+    // Fallback: search ALL recent customers for clerkUserId metadata match
+    try {
+      const allCustomers = await stripe.customers.list({ limit: 20 })
+      for (const customer of allCustomers.data) {
+        if (customer.metadata?.clerkUserId === userId) {
+          const subscriptions = await stripe.subscriptions.list({
+            customer: customer.id,
+            status: "active",
+            limit: 1,
+          })
+          if (subscriptions.data.length > 0) {
+            const sub = subscriptions.data[0]
+            const priceId = sub.items.data[0]?.price?.id
+            const tier = priceId ? (STRIPE_PRICE_TO_TIER[priceId] || "subscribed") : "subscribed"
+            return NextResponse.json({
+              status: "active",
+              tier,
+              subscriptionId: sub.id,
+            })
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Fallback search failed:", e)
+    }
+
     return NextResponse.json({ status: "inactive" })
   } catch (error) {
     console.error("Verify session error:", error)
