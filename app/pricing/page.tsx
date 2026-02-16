@@ -72,7 +72,7 @@ const tiers = [
       "Dedicated support (2h SLA)",
       "Full DePIN node hosting + rewards",
     ],
-    color: "green",
+    color: "purple",
     icon: Crown,
   },
 ]
@@ -93,11 +93,11 @@ const colorMap: Record<
     button: "bg-orange-600 hover:bg-orange-500",
     text: "text-orange-400",
   },
-  green: {
-    border: "border-green-500/30 hover:border-green-500/60",
-    badge: "bg-green-500/20 text-green-400 border border-green-500/30",
-    button: "bg-green-600 hover:bg-green-500",
-    text: "text-green-400",
+  purple: {
+    border: "border-purple-500/30 hover:border-purple-500/60",
+    badge: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
+    button: "bg-purple-600 hover:bg-purple-500",
+    text: "text-purple-400",
   },
 }
 
@@ -231,7 +231,7 @@ export default function PricingPage() {
                     </span>
                   )}
                   {tier.trial && (
-                    <span className="px-3 py-1 rounded-full font-mono text-[10px] tracking-widest uppercase bg-green-500/15 text-green-400 border border-green-500/30">
+                    <span className="px-3 py-1 rounded-full font-mono text-[10px] tracking-widest uppercase bg-purple-500/15 text-purple-400 border border-purple-500/30">
                       {tier.trial}
                     </span>
                   )}

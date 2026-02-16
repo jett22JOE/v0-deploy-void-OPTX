@@ -45,6 +45,26 @@ export default function SecurityPage() {
     user?.id ? { clerkUserId: user.id } : "skip"
   )
 
+  // Direct Stripe subscription check (not webhook-dependent)
+  const [stripeTier, setStripeTier] = useState<string | null>(null)
+  const [stripeStatus, setStripeStatus] = useState<string | null>(null)
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return
+    fetch("/api/verify-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.status === "active") {
+          setStripeTier(d.tier || "subscribed")
+          setStripeStatus("active")
+        }
+      })
+      .catch(() => {})
+  }, [isLoaded, isSignedIn])
+
   // Redirect if not signed in
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -83,12 +103,12 @@ export default function SecurityPage() {
     })
   }
 
-  const hasSubscription = convexUser?.subscriptionTier && convexUser.subscriptionTier !== "free"
-  const tier = convexUser?.subscriptionTier || "free"
+  const hasSubscription = stripeStatus === "active" || (convexUser?.subscriptionTier && convexUser.subscriptionTier !== "free")
+  const tier = stripeTier || convexUser?.subscriptionTier || "free"
   const tierLabel = tier === "free" ? "Free" : tier.toUpperCase()
   const tierColor =
     tier === "unlimited"
-      ? "text-green-400"
+      ? "text-purple-400"
       : tier === "dojo"
         ? "text-orange-400"
         : tier === "mojo"
@@ -235,11 +255,11 @@ export default function SecurityPage() {
                     <span
                       className={`font-mono text-xs px-2 py-0.5 rounded-full ${
                         hasSubscription
-                          ? "bg-green-500/20 text-green-400"
+                          ? "bg-purple-500/20 text-purple-400"
                           : "bg-zinc-700 text-zinc-400"
                       }`}
                     >
-                      {hasSubscription ? "Active" : "Inactive"}
+                      {hasSubscription ? "Active" : stripeStatus === null ? "Checking..." : "Inactive"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2">
@@ -274,7 +294,7 @@ export default function SecurityPage() {
                     <span
                       className={`font-mono text-xs px-2 py-0.5 rounded-full ${
                         hasSubscription
-                          ? "bg-green-500/20 text-green-400"
+                          ? "bg-purple-500/20 text-purple-400"
                           : "bg-zinc-700 text-zinc-400"
                       }`}
                     >
