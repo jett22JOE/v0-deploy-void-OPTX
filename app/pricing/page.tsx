@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSafeAuth, useSafeUser } from "@/lib/hooks/use-safe-auth"
 import Link from "next/link"
@@ -106,6 +106,24 @@ export default function PricingPage() {
   const { isSignedIn, isLoaded } = useSafeAuth()
   const { user } = useSafeUser()
   const [loadingTier, setLoadingTier] = useState<string | null>(null)
+  const [currentTier, setCurrentTier] = useState<string | null>(null)
+
+  // Check current subscription on mount
+  useEffect(() => {
+    if (!isSignedIn) return
+    fetch("/api/verify-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.status === "active" && d.tier) {
+          setCurrentTier(d.tier)
+        }
+      })
+      .catch(() => {})
+  }, [isSignedIn])
 
   async function handleSubscribe(tier: (typeof tiers)[number]) {
     if (!isSignedIn || !user) {
@@ -170,6 +188,15 @@ export default function PricingPage() {
             <ArrowLeft className="w-3 h-3" />
             DOJO
           </Link>
+          {currentTier && (
+            <span className={`px-2 py-1 rounded-md font-mono text-[10px] uppercase tracking-wider ${
+              currentTier === "unlimited" ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" :
+              currentTier === "dojo" ? "bg-orange-500/20 text-orange-400 border border-orange-500/30" :
+              "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+            }`}>
+              {currentTier}
+            </span>
+          )}
           {isSignedIn ? (
             <Link
               href="/security"
@@ -291,14 +318,14 @@ export default function PricingPage() {
 
                 {/* CTA */}
                 <button
-                  onClick={() => handleSubscribe(tier)}
+                  onClick={() => currentTier !== tier.id && handleSubscribe(tier)}
                   disabled={loadingTier === tier.id}
                   className={`w-full py-3 rounded-lg font-mono text-sm tracking-wider transition-all text-white flex items-center justify-center gap-2 disabled:opacity-50 ${colors.button}`}
                 >
                   {loadingTier === tier.id ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : isSignedIn ? (
-                    "Subscribe"
+                    currentTier === tier.id ? "Current Plan" : "Subscribe"
                   ) : (
                     "Sign In to Subscribe"
                   )}
