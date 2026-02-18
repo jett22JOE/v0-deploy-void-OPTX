@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useUser } from "@clerk/nextjs"
 import { useSearchParams } from "next/navigation"
+import { useWallet } from "@solana/wallet-adapter-react"
+import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,7 +13,8 @@ import { Separator } from "@/components/ui/separator"
 import {
   Send, Globe, Wallet, MessageCircle, Activity, ExternalLink,
   ArrowLeft, Wifi, WifiOff, Copy, Check, Clock, Eye, Zap,
-  Shield, Target, RefreshCw, ChevronRight, Hash, Pencil, User
+  Shield, Target, RefreshCw, ChevronRight, Hash, Pencil, User,
+  Layers, CreditCard, ArrowRightLeft, Loader2
 } from "lucide-react"
 import Link from "next/link"
 
@@ -50,6 +53,8 @@ export default function ConnectionsPage() {
   const { user, isLoaded } = useUser()
   const searchParams = useSearchParams()
   const initialTab = (searchParams.get("tab") as Tab) || "jettchat"
+  const { publicKey: phantomKey, connected: phantomConnected } = useWallet()
+  const { setVisible: setWalletModalVisible } = useWalletModal()
 
   const [activeTab, setActiveTab] = useState<Tab>(initialTab)
   const [wsStatus, setWsStatus] = useState<"connecting" | "connected" | "disconnected">("disconnected")
@@ -59,6 +64,15 @@ export default function ConnectionsPage() {
   const [displayName, setDisplayName] = useState<string>("")
   const [isEditingName, setIsEditingName] = useState(false)
   const [nameInput, setNameInput] = useState("")
+
+  // Wallet state — live data from JOE WebSocket
+  const [walletBalances, setWalletBalances] = useState<{sol: number; optx: number; jtx: number; cstb: number; public_key?: string} | null>(null)
+  const [agentMetadata, setAgentMetadata] = useState<Record<string, unknown> | null>(null)
+  const [attestationStatus, setAttestationStatus] = useState<{attestation_count: number; progress_pct: number; status: string; threshold_for_trust: number; next_milestone: number} | null>(null)
+  const [x402Policy, setX402Policy] = useState<Record<string, unknown> | null>(null)
+  const [bridgeStatus, setBridgeStatus] = useState<{bridge?: Record<string, unknown>; supply?: Record<string, unknown>} | null>(null)
+  const [walletLoading, setWalletLoading] = useState(false)
+
   const wsRef = useRef<WebSocket | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -121,6 +135,23 @@ export default function ConnectionsPage() {
     setIsEditingName(false)
   }
 
+  // Request wallet data when wallets tab is active and WS is connected
+  const requestWalletData = useCallback(() => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
+    setWalletLoading(true)
+    wsRef.current.send(JSON.stringify({ type: "wallet_status" }))
+    wsRef.current.send(JSON.stringify({ type: "wallet_metadata" }))
+    wsRef.current.send(JSON.stringify({ type: "x402_policy" }))
+    wsRef.current.send(JSON.stringify({ type: "bridge_status" }))
+  }, [])
+
+  // Auto-request wallet data when switching to wallets tab while connected
+  useEffect(() => {
+    if (activeTab === "wallets" && wsStatus === "connected") {
+      requestWalletData()
+    }
+  }, [activeTab, wsStatus, requestWalletData])
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [chatMessages])
@@ -141,6 +172,28 @@ export default function ConnectionsPage() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
+
+        // Route by message type — wallet messages go to state, chat goes to messages
+        if (data.type === "wallet_status" && data.data) {
+          setWalletBalances(data.data.balances || null)
+          setAttestationStatus(data.data.attestation || null)
+          setWalletLoading(false)
+          return
+        }
+        if (data.type === "wallet_metadata" && data.data) {
+          setAgentMetadata(data.data)
+          return
+        }
+        if (data.type === "x402_policy" && data.data) {
+          setX402Policy(data.data)
+          return
+        }
+        if (data.type === "bridge_status" && data.data) {
+          setBridgeStatus(data.data)
+          return
+        }
+
+        // Default: chat message
         setChatMessages((prev) => [
           ...prev,
           {
@@ -545,37 +598,192 @@ export default function ConnectionsPage() {
         {/* ===================== WALLETS TAB ===================== */}
         {activeTab === "wallets" && (
           <div className="max-w-5xl mx-auto space-y-4">
-            {/* Wallet Connection Card */}
-            <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 overflow-hidden">
+            {/* JOE Agent Wallet — Live Balances */}
+            <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
               <CardHeader className="p-4 border-b border-orange-500/15">
                 <CardTitle className="text-sm text-orange-300 font-semibold flex items-center gap-2">
                   <Wallet className="w-4 h-4" />
-                  Solana Wallet
+                  JOE Agent Wallet
+                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[9px]">ERC-8004</Badge>
                   <Badge className="ml-auto bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[9px]">DEVNET</Badge>
+                  <button onClick={requestWalletData} disabled={wsStatus !== "connected" || walletLoading} className="p-1 hover:bg-orange-500/15 rounded transition-colors disabled:opacity-30" title="Refresh balances">
+                    <RefreshCw className={`w-3.5 h-3.5 text-orange-400 ${walletLoading ? "animate-spin" : ""}`} />
+                  </button>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
-                    <p className="font-mono text-[9px] text-zinc-500 mb-1">$OPTX Balance</p>
-                    <p className="font-mono text-lg text-orange-400 font-bold">19.30</p>
-                    <p className="font-mono text-[9px] text-zinc-600">Token-2022 SPL</p>
+                {/* Agent public key */}
+                {walletBalances?.public_key && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-black/20 border border-orange-500/10">
+                    <span className="font-mono text-[9px] text-zinc-500">Agent:</span>
+                    <code className="font-mono text-[10px] text-orange-300/80">{walletBalances.public_key.slice(0, 8)}...{walletBalances.public_key.slice(-6)}</code>
+                    <button onClick={() => copyAddress(walletBalances.public_key!)} className="p-0.5 hover:bg-orange-500/15 rounded">
+                      {copiedAddress === walletBalances.public_key ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-zinc-500" />}
+                    </button>
                   </div>
+                )}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
-                    <p className="font-mono text-[9px] text-zinc-500 mb-1">$JTX Balance</p>
-                    <p className="font-mono text-lg text-yellow-400 font-bold">0.00</p>
-                    <p className="font-mono text-[9px] text-zinc-600">Mainnet</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
-                    <p className="font-mono text-[9px] text-zinc-500 mb-1">SOL Balance</p>
-                    <p className="font-mono text-lg text-blue-400 font-bold">0.00</p>
+                    <p className="font-mono text-[9px] text-zinc-500 mb-1">SOL</p>
+                    <p className="font-mono text-lg text-blue-400 font-bold">{walletBalances ? walletBalances.sol.toFixed(4) : "—"}</p>
                     <p className="font-mono text-[9px] text-zinc-600">Devnet</p>
                   </div>
+                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
+                    <p className="font-mono text-[9px] text-zinc-500 mb-1">$OPTX</p>
+                    <p className="font-mono text-lg text-orange-400 font-bold">{walletBalances ? walletBalances.optx.toFixed(2) : "—"}</p>
+                    <p className="font-mono text-[9px] text-zinc-600">Governance</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
+                    <p className="font-mono text-[9px] text-zinc-500 mb-1">$JTX</p>
+                    <p className="font-mono text-lg text-yellow-400 font-bold">{walletBalances ? walletBalances.jtx.toFixed(2) : "—"}</p>
+                    <p className="font-mono text-[9px] text-zinc-600">Utility</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
+                    <p className="font-mono text-[9px] text-zinc-500 mb-1">$CSTB</p>
+                    <p className="font-mono text-lg text-purple-400 font-bold">{walletBalances ? walletBalances.cstb.toFixed(0) : "—"}</p>
+                    <p className="font-mono text-[9px] text-zinc-600">Soulbound</p>
+                  </div>
                 </div>
-                <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 border-0 font-mono text-sm h-10">
-                  <Wallet className="w-4 h-4 mr-2" /> Connect Phantom / OKX
-                </Button>
+
+                {wsStatus !== "connected" && !walletBalances && (
+                  <div className="text-center py-3">
+                    <p className="font-mono text-[10px] text-zinc-500 mb-2">Connect to Jetson to load live balances</p>
+                    <Button onClick={connectWs} size="sm" className="bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 font-mono text-xs">
+                      <Wifi className="w-3 h-3 mr-2" /> Connect
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* User Phantom Wallet */}
+            <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-indigo-500/5">
+              <CardHeader className="p-4 border-b border-blue-500/15">
+                <CardTitle className="text-sm text-blue-300 font-semibold flex items-center gap-2">
+                  <Wallet className="w-4 h-4" />
+                  Your Wallet
+                  {phantomConnected && <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[9px]">Connected</Badge>}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                {phantomConnected && phantomKey ? (
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-black/20 border border-blue-500/10">
+                    <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center">
+                      <Wallet className="w-3 h-3 text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-mono text-[10px] text-blue-300">Phantom</p>
+                      <code className="font-mono text-[9px] text-zinc-400">{phantomKey.toBase58().slice(0, 8)}...{phantomKey.toBase58().slice(-6)}</code>
+                    </div>
+                    <button onClick={() => copyAddress(phantomKey.toBase58())} className="p-1 hover:bg-blue-500/15 rounded">
+                      {copiedAddress === phantomKey.toBase58() ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-zinc-500" />}
+                    </button>
+                    <a
+                      href={`https://explorer.solana.com/address/${phantomKey.toBase58()}?cluster=devnet`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="p-1 hover:bg-blue-500/15 rounded"
+                    >
+                      <ExternalLink className="w-3 h-3 text-zinc-500" />
+                    </a>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => setWalletModalVisible(true)}
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 border-0 font-mono text-sm h-10"
+                  >
+                    <Wallet className="w-4 h-4 mr-2" /> Connect Phantom / OKX
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* x402 Payment Policy */}
+            <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
+              <CardHeader className="p-4 border-b border-green-500/15">
+                <CardTitle className="text-sm text-green-300 font-semibold flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  x402 Payment Policy
+                  <Badge className="ml-auto bg-green-500/20 text-green-400 border-green-500/30 text-[9px]">HTTP 402</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                {x402Policy ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {Object.entries((x402Policy as Record<string, unknown>).services as Record<string, {description: string; price: number; unit: string; per: string}> || {}).map(([key, svc]) => (
+                        <div key={key} className="p-2.5 rounded-lg bg-black/20 border border-green-500/10 hover:border-green-500/25 transition-colors">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-mono text-[10px] text-green-300 font-semibold">{key.replace(/_/g, " ")}</span>
+                            <span className="font-mono text-[10px] text-green-400 font-bold">{svc.price} {svc.unit}/{svc.per}</span>
+                          </div>
+                          <p className="font-mono text-[9px] text-zinc-500">{svc.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-2 rounded-lg bg-black/20 border border-green-500/10">
+                      <p className="font-mono text-[9px] text-zinc-400">
+                        <span className="text-green-400">Free tier:</span> {((x402Policy as Record<string, unknown>).free_tier as Record<string, unknown>)?.chat_messages as number || 10} chat messages + {((x402Policy as Record<string, unknown>).free_tier as Record<string, unknown>)?.gaze_sessions as number || 1} gaze session
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="font-mono text-[10px] text-zinc-500 text-center py-3">
+                    {wsStatus === "connected" ? <><Loader2 className="w-3 h-3 inline mr-1 animate-spin" /> Loading policy...</> : "Connect to Jetson to view payment policy"}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* LayerZero Bridge Status */}
+            <Card className="border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5">
+              <CardHeader className="p-4 border-b border-cyan-500/15">
+                <CardTitle className="text-sm text-cyan-300 font-semibold flex items-center gap-2">
+                  <ArrowRightLeft className="w-4 h-4" />
+                  LayerZero Bridge
+                  {bridgeStatus?.bridge && (
+                    <Badge className="ml-auto bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[9px]">
+                      {(bridgeStatus.bridge as Record<string, unknown>).status as string || "unknown"}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                {bridgeStatus ? (
+                  <>
+                    {bridgeStatus.supply && (
+                      <div className="p-2.5 rounded-lg bg-black/20 border border-cyan-500/10">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[10px] text-zinc-400">OPTX Supply (Solana)</span>
+                          <span className="font-mono text-sm text-cyan-400 font-bold">{(bridgeStatus.supply as Record<string, unknown>).supply as number || 0}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {((bridgeStatus.bridge as Record<string, unknown>)?.supported_chains as Array<{chain: string; network: string; status: string; endpoint_id: number}> || []).map((chain) => (
+                        <div key={chain.chain} className="p-2 rounded-lg bg-black/20 border border-cyan-500/10 text-center">
+                          <p className="font-mono text-[10px] text-cyan-300 font-semibold">{chain.chain}</p>
+                          <p className="font-mono text-[9px] text-zinc-500">{chain.network}</p>
+                          <Badge className={`mt-1 text-[8px] h-4 ${chain.status === "active" ? "bg-green-500/15 text-green-400 border-green-500/25" : "bg-zinc-500/15 text-zinc-400 border-zinc-500/25"}`}>
+                            {chain.status}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                    {bridgeStatus.bridge && (
+                      <div className="p-2 rounded-lg bg-black/20 border border-cyan-500/10">
+                        <p className="font-mono text-[9px] text-zinc-500">
+                          OFT Standard • Min: {((bridgeStatus.bridge as Record<string, unknown>).bridge_config as Record<string, unknown>)?.min_bridge_amount as number || 1} OPTX • Fee: {((bridgeStatus.bridge as Record<string, unknown>).bridge_config as Record<string, unknown>)?.bridge_fee_pct as number || 0.1}% • Est: {((bridgeStatus.bridge as Record<string, unknown>).bridge_config as Record<string, unknown>)?.estimated_time_seconds as number || 120}s
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="font-mono text-[10px] text-zinc-500 text-center py-3">
+                    {wsStatus === "connected" ? <><Loader2 className="w-3 h-3 inline mr-1 animate-spin" /> Loading bridge status...</> : "Connect to Jetson to view bridge status"}
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -594,28 +802,47 @@ export default function ConnectionsPage() {
                   Computational identity verified via proof hash + gaze attestation on Solana devnet.
                 </p>
 
-                {/* Attestation Status */}
+                {/* Attestation Status — Live from WebSocket */}
                 <div className="p-3 rounded-lg bg-black/30 border border-purple-500/15">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-mono text-xs text-purple-300">Attestation Progress</span>
-                    <span className="font-mono text-[10px] text-purple-400">2 / 5 required</span>
+                    <span className="font-mono text-[10px] text-purple-400">
+                      {attestationStatus ? `${attestationStatus.attestation_count} / ${attestationStatus.threshold_for_trust} required` : "2 / 5 required"}
+                    </span>
                   </div>
-                  <Progress value={40} className="h-2 bg-black/30" />
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    <div className="text-center">
-                      <p className="font-mono text-[9px] text-zinc-500">Min Gaze</p>
-                      <p className="font-mono text-[10px] text-green-400">222cs</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-mono text-[9px] text-zinc-500">Entropy</p>
-                      <p className="font-mono text-[10px] text-yellow-400">750</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-mono text-[9px] text-zinc-500">Difficulty</p>
-                      <p className="font-mono text-[10px] text-orange-400">1000</p>
-                    </div>
+                  <Progress value={attestationStatus ? attestationStatus.progress_pct : 40} className="h-2 bg-black/30" />
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="font-mono text-[9px] text-zinc-500">Status: <span className={attestationStatus?.status === "trusted" ? "text-green-400" : "text-yellow-400"}>{attestationStatus?.status || "building_trust"}</span></span>
+                    {attestationStatus && attestationStatus.next_milestone > 0 && (
+                      <span className="font-mono text-[9px] text-zinc-500">{attestationStatus.next_milestone} more needed</span>
+                    )}
                   </div>
                 </div>
+
+                {/* Agent Metadata from ERC-8004 */}
+                {agentMetadata && (
+                  <div className="p-3 rounded-lg bg-black/20 border border-purple-500/10">
+                    <p className="font-mono text-[9px] text-zinc-500 uppercase tracking-wider mb-2">ERC-8004 Agent Identity</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="font-mono text-[9px] text-zinc-500">Agent</span>
+                        <p className="font-mono text-[10px] text-purple-300">{(agentMetadata.identity as Record<string, unknown>)?.name as string || "JOE"}</p>
+                      </div>
+                      <div>
+                        <span className="font-mono text-[9px] text-zinc-500">Soulbound</span>
+                        <p className="font-mono text-[10px] text-green-400">{(agentMetadata.identity as Record<string, unknown>)?.soulbound ? "Yes" : "No"}</p>
+                      </div>
+                      <div>
+                        <span className="font-mono text-[9px] text-zinc-500">Signing</span>
+                        <p className="font-mono text-[10px] text-orange-300">{(agentMetadata.signing as Record<string, unknown>)?.method as string || "deferred"}</p>
+                      </div>
+                      <div>
+                        <span className="font-mono text-[9px] text-zinc-500">Capabilities</span>
+                        <p className="font-mono text-[10px] text-cyan-300">{(agentMetadata.capabilities as string[])?.length || 0}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* On-Chain Addresses */}
                 <div>
