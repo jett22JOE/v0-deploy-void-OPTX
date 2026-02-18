@@ -1,14 +1,15 @@
 'use client';
 
-import { Activity, Eye, BookOpen, MessageSquare, LayoutDashboard, Settings, ArrowLeft, Users } from 'lucide-react';
+import { Activity, Eye, BookOpen, MessageSquare, LayoutDashboard, Settings, ArrowLeft, Users, BarChart3 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 const navigationItems = [
   { title: 'Dashboard', url: '/dojo', icon: LayoutDashboard },
   { title: 'Training', url: '/dojo/training', icon: Activity },
+  { title: 'Analytics', url: '/dojo/analytics', icon: BarChart3 },
   { title: 'Connections', url: '/dojo/Connections', icon: Users },
-  { title: 'Docs', url: '/dojo/docs', icon: BookOpen },
+  { title: 'Augments', url: '/dojo/augments', icon: BookOpen },
 ];
 
 export function DOJOSidebar() {

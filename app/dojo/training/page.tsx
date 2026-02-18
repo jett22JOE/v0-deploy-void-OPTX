@@ -5,8 +5,10 @@ import { useUser } from "@clerk/nextjs"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Send, Video, ArrowLeft } from "lucide-react"
+import { Send, Video, ArrowLeft, Eye, Shield } from "lucide-react"
 import Link from "next/link"
+import { AGTLineCharts } from "@/components/AGTLineCharts"
+import { JETTUX } from "@/components/JETTUX"
 
 interface GazeTensor {
   tensor: "COG" | "ENV" | "EMO"
@@ -44,6 +46,7 @@ export default function TrainingPage() {
   const [chatMessages, setChatMessages] = useState<Array<{id: string, user: string, content: string, tensor?: string}>>([])
   const [wsStatus, setWsStatus] = useState<"connecting" | "connected" | "disconnected">("disconnected")
   const wsRef = useRef<WebSocket | null>(null)
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [cursorPosition, setCursorPosition] = useState({ x: 50, y: 50 })
   const [isSpacePressed, setIsSpacePressed] = useState(false)
@@ -253,16 +256,29 @@ export default function TrainingPage() {
         setChatMessages((prev) => [...prev, { id: `joe_${Date.now()}`, user: "JOE", content: event.data }])
       }
     }
-    ws.onclose = () => setWsStatus("disconnected")
+    ws.onclose = () => {
+      setWsStatus("disconnected")
+      if (joeAgentActive) {
+        reconnectRef.current = setTimeout(connectJoeWs, 5000)
+      }
+    }
     ws.onerror = () => setWsStatus("disconnected")
     wsRef.current = ws
-  }, [])
+  }, [joeAgentActive])
 
   // Connect when JOE agent toggle is ON
   useEffect(() => {
-    if (joeAgentActive) connectJoeWs()
-    else { wsRef.current?.close(); setWsStatus("disconnected") }
-    return () => { wsRef.current?.close() }
+    if (joeAgentActive) {
+      connectJoeWs()
+    } else {
+      if (reconnectRef.current) clearTimeout(reconnectRef.current)
+      wsRef.current?.close()
+      setWsStatus("disconnected")
+    }
+    return () => {
+      if (reconnectRef.current) clearTimeout(reconnectRef.current)
+      wsRef.current?.close()
+    }
   }, [joeAgentActive, connectJoeWs])
 
   const handleSendMessage = () => {
@@ -424,6 +440,27 @@ export default function TrainingPage() {
                       <span className="text-orange-400/50 font-mono text-xs ml-2">({(classification.confidence * 100).toFixed(0)}%)</span>
                     </div>
                   )}
+
+                  {/* Gaze-Lock Status */}
+                  <div className="mt-2 p-1.5 rounded bg-black/10 border border-orange-500/10 flex items-center gap-2">
+                    <Shield className="w-3 h-3 text-green-400" />
+                    <span className="text-[10px] text-green-400/80 font-mono">Gaze-Lock {isTraining ? "Active" : "Standby"}</span>
+                  </div>
+
+                  {/* JETTUX Radar + Donut */}
+                  <div className="mt-2">
+                    <JETTUX
+                      agtWeights={agtWeights}
+                      frameCount={frameCount}
+                      showRadar={true}
+                      showDonut={true}
+                      activeTensor={classification?.tensor || null}
+                      isActive={isTraining}
+                      cursorPosition={cursorPosition}
+                      currentSector={currentSector}
+                      isSpacePressed={isSpacePressed}
+                    />
+                  </div>
                 </CardContent>
               </Card>
 
@@ -460,30 +497,16 @@ export default function TrainingPage() {
 
             {/* Tensor Trend Chart - Bottom */}
             <div className="col-span-12">
-              <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 backdrop-blur shadow-lg shadow-orange-500/5 h-[150px]">
+              <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 backdrop-blur shadow-lg shadow-orange-500/5">
                 <CardHeader className="p-1.5">
                   <CardTitle className="text-sm text-orange-300 font-semibold">AGT Tensor Trends (30s)</CardTitle>
                 </CardHeader>
                 <CardContent className="p-2 pt-1">
-                  <div className="grid grid-cols-3 gap-2 h-[90px]">
-                    {(["COG", "EMO", "ENV"] as const).map((t) => {
-                      const history = t === "COG" ? cogHistory : t === "EMO" ? emoHistory : envHistory
-                      return (
-                        <div key={t} className="rounded bg-black/20 border border-orange-500/10 p-1 flex flex-col">
-                          <span className="text-[9px] font-mono" style={{ color: TENSOR_COLORS[t] }}>{t} {TENSOR_EMOTICONS[t]}</span>
-                          <div className="flex-1 flex items-end gap-[1px]">
-                            {history.slice(-30).map((h, i) => (
-                              <div key={i} className="flex-1 rounded-t" style={{
-                                height: `${Math.min(100, Math.max(5, h.value * 10))}%`,
-                                backgroundColor: TENSOR_COLORS[t],
-                                opacity: 0.7,
-                              }} />
-                            ))}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
+                  <AGTLineCharts
+                    cogHistory={cogHistory}
+                    emoHistory={emoHistory}
+                    envHistory={envHistory}
+                  />
                 </CardContent>
               </Card>
             </div>

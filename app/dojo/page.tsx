@@ -68,8 +68,8 @@ export default function JETTHubPage() {
       parentPos: { x: 50, y: 80 },
       connections: [
         { id: "dojo-training", x: 50, y: 20, tensor: "cog", label: "DOJO Training", icon: Target, route: "/dojo/training" },
-        { id: "docs", x: 25, y: 75, tensor: "emo", label: "Docs", icon: BookOpen, route: "/dojo/docs" },
-        { id: "analytics", x: 75, y: 75, tensor: "env", label: "Analytics", icon: BarChart3 },
+        { id: "augments", x: 25, y: 75, tensor: "emo", label: "Augments", icon: BookOpen, route: "/dojo/augments" },
+        { id: "analytics", x: 75, y: 75, tensor: "env", label: "Analytics", icon: BarChart3, route: "/dojo/analytics" },
       ],
     },
     connections: {
