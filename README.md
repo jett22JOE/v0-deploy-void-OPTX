@@ -77,7 +77,7 @@ Full gaze-tracking developer environment with:
 - **Vercel Team**: space-cowboys
 - **Convex (prod)**: hushed-nightingale-624
 - **Convex (dev)**: agreeable-frog-746
-- **Edge**: Jetson Orin Nano @ REDACTED_IP (Tailscale)
+- **Edge**: Jetson Orin Nano (Tailscale mesh — IP redacted)
 
 ## Related Repos
 

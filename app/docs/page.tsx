@@ -252,7 +252,7 @@ function DocsContent() {
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <p className="font-mono text-[10px] text-zinc-400">Connect to the JOE agent running on the Jetson Orin Nano edge node.</p>
-                  <CodeBlock code={`// Connect to JOE via Tailscale Funnel
+                  <CodeBlock code={`// Connect to JOE via WebSocket RPC
 const ws = new WebSocket("wss://joe-ws.jettoptics.ai/ws/joe")
 
 ws.onopen = () => {

@@ -27,3 +27,16 @@ yarn-error.log*
 next-env.d.ts
 
 .env*.local
+
+# Jetson edge files (deployed via SCP, not git)
+jetson-updates/
+agent_wallet.py
+x402_handler.py
+bridge_monitor.py
+joe-ws-server.py
+joe-boot.sh
+start_ws.sh
+patch_joe_cli.sh
+
+# Sensitive docs (keys removed, never recommit)
+CLERK_SETUP.md

@@ -10,7 +10,8 @@ const path = require('path');
 const WebSocket = require('ws');
 
 // Configuration
-const XAI_API_KEY = process.env.XAI_API_KEY || 'REDACTED_ROTATE_KEY';
+const XAI_API_KEY = process.env.XAI_API_KEY;
+if (!XAI_API_KEY) throw new Error("XAI_API_KEY env var required");
 const VOICE_API_KEY = 'JOE-agent-HEDGEHOG-grok4.1VOICE';
 const PROJECT_ROOT = '/Users/jettoptx/v0-deploy-void-OPTX';
 

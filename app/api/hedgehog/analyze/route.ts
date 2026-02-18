@@ -10,7 +10,7 @@
 import { NextResponse } from "next/server"
 
 // xAI API configuration
-const XAI_API_KEY = process.env.XAI_API_KEY || "REDACTED_ROTATE_KEY"
+const XAI_API_KEY = process.env.XAI_API_KEY
 const XAI_API_URL = "https://api.x.ai/v1/chat/completions"
 
 interface HedgehogAnalysisRequest {

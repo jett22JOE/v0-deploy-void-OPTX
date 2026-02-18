@@ -18,7 +18,8 @@ const fetch = require('node-fetch');
 const FormData = require('form-data');
 
 // Configuration
-const XAI_API_KEY = process.env.XAI_API_KEY || 'REDACTED_ROTATE_KEY';
+const XAI_API_KEY = process.env.XAI_API_KEY;
+if (!XAI_API_KEY) throw new Error("XAI_API_KEY env var required");
 const PROJECT_ROOT = '/Users/jettoptx/v0-deploy-void-OPTX';
 const SESSION_NAME = 'jett-optics-codebase';
 

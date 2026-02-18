@@ -113,7 +113,7 @@ grok-suggestions/          # AI-generated code suggestions
 ### Environment Variables
 ```bash
 # .env.local
-XAI_API_KEY=REDACTED_ROTATE_KEY
+XAI_API_KEY=your-xai-api-key-here
 ```
 
 ### Excluded Files/Folders

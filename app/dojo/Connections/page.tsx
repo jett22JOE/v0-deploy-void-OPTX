@@ -24,7 +24,7 @@ const JTX_MINT = "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
 const OPTX_MINT = "4r9WoPsRjJzrYEuj6VdwowVrFZaXpu16Qt6xogcmdUXC"
 const CSTB_MINT = "4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL"
 
-const JOE_WS_URL = "wss://joe-ws.jettoptics.ai/ws/joe"
+const JOE_WS_URL = process.env.NEXT_PUBLIC_JOE_WS_URL || "wss://joe-ws.jettoptics.ai/ws/joe"
 
 type Tab = "jettchat" | "sessions" | "wallets"
 
