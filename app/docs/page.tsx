@@ -18,7 +18,7 @@ const TABS: { key: DocTab; label: string; icon: typeof Code2; color: string }[] 
   { key: "overview", label: "Overview", icon: BookOpen, color: "orange" },
   { key: "api", label: "API Reference", icon: Code2, color: "yellow" },
   { key: "gaze", label: "Gaze Verification", icon: Eye, color: "green" },
-  { key: "wallet", label: "ERC-4008 Wallet", icon: Wallet, color: "blue" },
+  { key: "wallet", label: "ERC-8004 Wallet", icon: Wallet, color: "blue" },
   { key: "bridge", label: "LayerZero Bridge", icon: Network, color: "purple" },
   { key: "cstb", label: "CSTB / DePIN", icon: Shield, color: "red" },
 ]
@@ -172,7 +172,7 @@ function DocsContent() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                   { icon: Eye, title: "Gaze Verification", desc: "Integrate AGT biometric auth into your app with 3 tensor classification", color: "green", tab: "gaze" as DocTab },
-                  { icon: Wallet, title: "Agent Wallet", desc: "ERC-4008 non-transferable wallet for computational identity", color: "blue", tab: "wallet" as DocTab },
+                  { icon: Wallet, title: "Agent Wallet", desc: "ERC-8004 non-transferable wallet for computational identity", color: "blue", tab: "wallet" as DocTab },
                   { icon: Shield, title: "CSTB Attestation", desc: "On-chain proof of gaze with DePIN reward distribution", color: "purple", tab: "cstb" as DocTab },
                 ].map((card) => {
                   const Icon = card.icon
@@ -430,15 +430,15 @@ function GazeAuth() {
             </div>
           )}
 
-          {/* ===================== ERC-4008 WALLET ===================== */}
+          {/* ===================== ERC-8004 WALLET ===================== */}
           {activeTab === "wallet" && (
             <div className="space-y-6">
               <h2 className="font-mono text-lg text-orange-400 flex items-center gap-2">
-                <Wallet className="w-5 h-5" /> ERC-4008 Agent Wallet
+                <Wallet className="w-5 h-5" /> ERC-8004 Agent Wallet
               </h2>
               <p className="font-mono text-xs text-zinc-400 leading-relaxed max-w-2xl">
                 The OPTX Agent Wallet implements a non-transferable, soulbound identity bound to gaze biometrics.
-                Unlike standard wallets, the ERC-4008 interface links computational proof to the holder's identity.
+                Unlike standard wallets, the ERC-8004 interface links computational proof to the holder's identity.
               </p>
 
               <Card className="border-blue-500/20 bg-black/30">
@@ -488,7 +488,7 @@ function OPTXWallet() {
                   </p>
                   <CodeBlock language="json" code={`{
   "agent_wallet": {
-    "type": "ERC-4008",
+    "type": "ERC-8004",
     "soulbound": true,
     "metadata": {
       "cstb_profile_uri": "https://jettoptics.ai/cstb/profile/...",
