@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, useCallback } from "react"
 import { useUser } from "@clerk/nextjs"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,8 @@ export default function TrainingPage() {
   const [fps, setFps] = useState(0)
   const [chatMessage, setChatMessage] = useState("")
   const [chatMessages, setChatMessages] = useState<Array<{id: string, user: string, content: string, tensor?: string}>>([])
+  const [wsStatus, setWsStatus] = useState<"connecting" | "connected" | "disconnected">("disconnected")
+  const wsRef = useRef<WebSocket | null>(null)
 
   const [cursorPosition, setCursorPosition] = useState({ x: 50, y: 50 })
   const [isSpacePressed, setIsSpacePressed] = useState(false)
@@ -229,17 +231,59 @@ export default function TrainingPage() {
     }
   }, [isSpacePressed, agtWeights, isTraining])
 
+  // WebSocket connection to JOE agent on Jetson
+  const connectJoeWs = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) return
+    setWsStatus("connecting")
+    const ws = new WebSocket("wss://joe-ws.jettoptics.ai/ws/joe")
+    ws.onopen = () => {
+      setWsStatus("connected")
+      setChatMessages((prev) => [...prev, { id: `sys_${Date.now()}`, user: "SYSTEM", content: "Connected to JOE agent via Tailscale" }])
+    }
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        setChatMessages((prev) => [...prev, {
+          id: `joe_${Date.now()}`,
+          user: "JOE",
+          content: data.content || data.response || event.data,
+          tensor: data.tensor,
+        }])
+      } catch {
+        setChatMessages((prev) => [...prev, { id: `joe_${Date.now()}`, user: "JOE", content: event.data }])
+      }
+    }
+    ws.onclose = () => setWsStatus("disconnected")
+    ws.onerror = () => setWsStatus("disconnected")
+    wsRef.current = ws
+  }, [])
+
+  // Connect when JOE agent toggle is ON
+  useEffect(() => {
+    if (joeAgentActive) connectJoeWs()
+    else { wsRef.current?.close(); setWsStatus("disconnected") }
+    return () => { wsRef.current?.close() }
+  }, [joeAgentActive, connectJoeWs])
+
   const handleSendMessage = () => {
     if (!chatMessage.trim() || !user) return
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
+    const msg = {
+      id: Date.now().toString(),
+      user: user.firstName || "anon",
+      content: chatMessage,
+      tensor: classification?.tensor,
+    }
+    setChatMessages((prev) => [...prev, msg])
+
+    // Send to JOE via WebSocket if connected
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: "chat",
         user: user.firstName || "anon",
         content: chatMessage,
         tensor: classification?.tensor,
-      },
-    ])
+      }))
+    }
     setChatMessage("")
   }
 

@@ -79,9 +79,9 @@ export default function JETTHubPage() {
       tensor: "emo",
       parentPos: { x: 75, y: 25 },
       connections: [
-        { id: "community", x: 50, y: 20, tensor: "cog", label: "JettChat", icon: Globe },
-        { id: "wallets", x: 25, y: 75, tensor: "emo", label: "Wallets", icon: Wallet },
-        { id: "sessions", x: 75, y: 75, tensor: "env", label: "Sessions", icon: MessageCircle },
+        { id: "community", x: 50, y: 20, tensor: "cog", label: "JettChat", icon: Globe, route: "/dojo/Connections?tab=jettchat" },
+        { id: "wallets", x: 25, y: 75, tensor: "emo", label: "Wallets", icon: Wallet, route: "/dojo/Connections?tab=wallets" },
+        { id: "sessions", x: 75, y: 75, tensor: "env", label: "Sessions", icon: MessageCircle, route: "/dojo/Connections?tab=sessions" },
       ],
     },
     account: {

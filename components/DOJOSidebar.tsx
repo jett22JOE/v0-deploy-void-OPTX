@@ -1,12 +1,13 @@
 'use client';
 
-import { Activity, Eye, BookOpen, MessageSquare, LayoutDashboard, Settings, ArrowLeft } from 'lucide-react';
+import { Activity, Eye, BookOpen, MessageSquare, LayoutDashboard, Settings, ArrowLeft, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 const navigationItems = [
   { title: 'Dashboard', url: '/dojo', icon: LayoutDashboard },
   { title: 'Training', url: '/dojo/training', icon: Activity },
+  { title: 'Connections', url: '/dojo/Connections', icon: Users },
   { title: 'Docs', url: '/dojo/docs', icon: BookOpen },
 ];
 
