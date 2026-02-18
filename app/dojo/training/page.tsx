@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Send, Video, ArrowLeft, Eye, Shield } from "lucide-react"
+import { Send, Video, ArrowLeft, Eye, Shield, Pencil, User } from "lucide-react"
 import Link from "next/link"
 import { AGTLineCharts } from "@/components/AGTLineCharts"
 import { JETTUX } from "@/components/JETTUX"
@@ -48,6 +48,11 @@ export default function TrainingPage() {
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const [displayName, setDisplayName] = useState<string>("")
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState("")
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
   const [cursorPosition, setCursorPosition] = useState({ x: 50, y: 50 })
   const [isSpacePressed, setIsSpacePressed] = useState(false)
   const [currentSector, setCurrentSector] = useState<"COG" | "EMO" | "ENV" | "CENTER">("CENTER")
@@ -77,6 +82,33 @@ export default function TrainingPage() {
       else return "ENV"
     }
     return "COG"
+  }
+
+  // Pull display name from Clerk: username > firstName > email prefix > anonymous
+  useEffect(() => {
+    if (!user) return
+    const saved = typeof window !== "undefined" ? localStorage.getItem("jettchat-displayname") : null
+    if (saved) {
+      setDisplayName(saved)
+    } else {
+      const clerkName = user.username || user.firstName || user.primaryEmailAddress?.emailAddress?.split("@")[0] || "anonymous"
+      setDisplayName(clerkName)
+    }
+  }, [user])
+
+  const startEditingName = () => {
+    setNameInput(displayName)
+    setIsEditingName(true)
+    setTimeout(() => nameInputRef.current?.focus(), 50)
+  }
+
+  const saveDisplayName = () => {
+    const trimmed = nameInput.trim()
+    if (trimmed && trimmed.length <= 24) {
+      setDisplayName(trimmed)
+      localStorage.setItem("jettchat-displayname", trimmed)
+    }
+    setIsEditingName(false)
   }
 
   const startCamera = async () => {
@@ -283,9 +315,10 @@ export default function TrainingPage() {
 
   const handleSendMessage = () => {
     if (!chatMessage.trim() || !user) return
+    const name = displayName || "anonymous"
     const msg = {
       id: Date.now().toString(),
-      user: user.firstName || "anon",
+      user: name,
       content: chatMessage,
       tensor: classification?.tensor,
     }
@@ -295,7 +328,7 @@ export default function TrainingPage() {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: "chat",
-        user: user.firstName || "anon",
+        user: name,
         content: chatMessage,
         tensor: classification?.tensor,
       }))
@@ -467,7 +500,33 @@ export default function TrainingPage() {
               {/* JettChat */}
               <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 backdrop-blur shadow-lg shadow-orange-500/5 flex flex-col h-[200px]">
                 <CardHeader className="p-1.5 flex-shrink-0">
-                  <CardTitle className="text-sm text-orange-300 font-semibold">JettChat - $OPTX Signature Testing</CardTitle>
+                  <CardTitle className="text-sm text-orange-300 font-semibold flex items-center justify-between">
+                    <span>JettChat - $OPTX Signature Testing</span>
+                    {isEditingName ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          ref={nameInputRef}
+                          type="text"
+                          value={nameInput}
+                          onChange={(e) => setNameInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveDisplayName()
+                            if (e.key === "Escape") setIsEditingName(false)
+                          }}
+                          maxLength={24}
+                          placeholder="Name..."
+                          className="w-24 px-1.5 py-0.5 bg-black/40 border border-orange-500/30 rounded text-orange-200 text-[10px] font-mono placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                        />
+                        <Button size="sm" onClick={saveDisplayName} className="h-5 text-[8px] px-1.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30">OK</Button>
+                      </div>
+                    ) : (
+                      <button onClick={startEditingName} className="flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-orange-500/10 transition-colors" title="Change display name">
+                        <User className="w-3 h-3 text-zinc-500" />
+                        <span className="font-mono text-[10px] text-zinc-400 font-normal">{displayName}</span>
+                        <Pencil className="w-2.5 h-2.5 text-zinc-600" />
+                      </button>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 flex flex-col min-h-0 p-2 pt-1">
                   <div className="flex-1 overflow-y-auto space-y-1 mb-2 min-h-0">

@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import {
   Send, Globe, Wallet, MessageCircle, Activity, ExternalLink,
   ArrowLeft, Wifi, WifiOff, Copy, Check, Clock, Eye, Zap,
-  Shield, Target, RefreshCw, ChevronRight, Hash
+  Shield, Target, RefreshCw, ChevronRight, Hash, Pencil, User
 } from "lucide-react"
 import Link from "next/link"
 
@@ -56,9 +56,13 @@ export default function ConnectionsPage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState("")
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState<string>("")
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState("")
   const wsRef = useRef<WebSocket | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
 
   const [sessions] = useState<Session[]>([
     {
@@ -82,6 +86,40 @@ export default function ConnectionsPage() {
       optxReward: 6.8,
     },
   ])
+
+  // Pull display name from Clerk: username > firstName > email prefix > anonymous
+  useEffect(() => {
+    if (!user) return
+    const saved = typeof window !== "undefined" ? localStorage.getItem("jettchat-displayname") : null
+    if (saved) {
+      setDisplayName(saved)
+    } else {
+      const clerkName = user.username || user.firstName || user.primaryEmailAddress?.emailAddress?.split("@")[0] || "anonymous"
+      setDisplayName(clerkName)
+    }
+  }, [user])
+
+  const startEditingName = () => {
+    setNameInput(displayName)
+    setIsEditingName(true)
+    setTimeout(() => nameInputRef.current?.focus(), 50)
+  }
+
+  const saveDisplayName = () => {
+    const trimmed = nameInput.trim()
+    if (trimmed && trimmed.length <= 24) {
+      setDisplayName(trimmed)
+      localStorage.setItem("jettchat-displayname", trimmed)
+    }
+    setIsEditingName(false)
+  }
+
+  const resetToClerkName = () => {
+    const clerkName = user?.username || user?.firstName || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "anonymous"
+    setDisplayName(clerkName)
+    localStorage.removeItem("jettchat-displayname")
+    setIsEditingName(false)
+  }
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -139,7 +177,7 @@ export default function ConnectionsPage() {
     setChatMessages((prev) => [...prev, { id: `user_${Date.now()}`, role: "user", content: chatInput, timestamp: Date.now() }])
     wsRef.current.send(JSON.stringify({
       type: "chat",
-      user: user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "anon",
+      user: displayName || "anonymous",
       content: chatInput,
     }))
     setChatInput("")
@@ -250,6 +288,46 @@ export default function ConnectionsPage() {
               </Card>
             </div>
 
+            {/* Display Name Editor */}
+            <Card className="border-orange-500/15 bg-black/30">
+              <CardContent className="p-2 flex items-center gap-3">
+                <User className="w-3.5 h-3.5 text-orange-400/60" />
+                {isEditingName ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <input
+                      ref={nameInputRef}
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveDisplayName()
+                        if (e.key === "Escape") setIsEditingName(false)
+                      }}
+                      maxLength={24}
+                      placeholder="Enter display name..."
+                      className="flex-1 px-2 py-1 bg-black/40 border border-orange-500/30 rounded text-orange-200 text-xs font-mono placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                    />
+                    <Button size="sm" onClick={saveDisplayName} className="h-6 text-[9px] px-2 bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30">
+                      Save
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={resetToClerkName} className="h-6 text-[9px] px-2 text-zinc-400 hover:text-orange-400">
+                      Reset
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="font-mono text-xs text-orange-300">{displayName}</span>
+                    <button onClick={startEditingName} className="p-1 hover:bg-orange-500/15 rounded transition-colors" title="Change display name">
+                      <Pencil className="w-3 h-3 text-zinc-500 hover:text-orange-400" />
+                    </button>
+                    <span className="font-mono text-[9px] text-zinc-600 ml-auto">
+                      {user?.username ? `@${user.username}` : "No Clerk username set"}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Chat area */}
             <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent backdrop-blur flex-1 flex flex-col min-h-0">
               <CardContent className="flex-1 flex flex-col min-h-0 p-0">
@@ -287,7 +365,7 @@ export default function ConnectionsPage() {
                           <>
                             <div className="flex items-center gap-2 mb-1.5">
                               <span className="font-mono text-[10px] font-bold" style={{ color: msg.role === "user" ? "#fb923c" : "#60a5fa" }}>
-                                {msg.role === "user" ? (user?.firstName || "You") : "JOE"}
+                                {msg.role === "user" ? displayName : "JOE"}
                               </span>
                               <span className="font-mono text-[9px] text-zinc-600">{formatTime(msg.timestamp)}</span>
                               {msg.tensor && (
