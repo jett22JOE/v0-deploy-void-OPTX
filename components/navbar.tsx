@@ -156,8 +156,20 @@ export function Navbar() {
             </ul>
           </div>
 
-          {/* Right: Logo Button */}
-          <div className="relative">
+          {/* Right: UX Docs + Logo Button */}
+          <div className="relative flex items-center gap-3">
+            {/* UX Docs Link (Desktop) */}
+            <div className="hidden md:block">
+              <Link
+                href="/docs"
+                className="group relative font-mono text-xs tracking-wider text-muted-foreground hover:text-foreground transition-all duration-300 px-3 py-2 rounded-xl hover:bg-white/[0.05]"
+              >
+                <span className="text-accent mr-1">UX</span>
+                Docs
+                <span className="absolute bottom-1 left-3 right-3 h-px bg-gradient-to-r from-transparent via-foreground to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </Link>
+            </div>
+
             {/* Desktop Logo Button */}
             <div className="hidden md:block">
               <Link
@@ -273,10 +285,23 @@ export function Navbar() {
                 </motion.button>
               ))}
 
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ delay: 0.3 }}
+                className="group relative text-4xl font-sans tracking-tight text-foreground"
+              >
+                <Link href="/docs" onClick={() => setIsMenuOpen(false)}>
+                  <span className="text-accent font-mono text-sm mr-2">UX</span>
+                  Docs
+                </Link>
+              </motion.button>
+
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
                 className="mt-8"
               >
                 <Link href="/loading" className="block">

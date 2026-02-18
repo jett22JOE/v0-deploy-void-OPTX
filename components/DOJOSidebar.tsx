@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, Eye, BookOpen, MessageSquare, LayoutDashboard, Settings, ArrowLeft, Users, BarChart3 } from 'lucide-react';
+import { Activity, Eye, BookOpen, MessageSquare, LayoutDashboard, Settings, ArrowLeft, Users, BarChart3, Code2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -51,6 +51,17 @@ export function DOJOSidebar() {
       </nav>
 
       <div className="p-3 border-t border-orange-500/20 space-y-1">
+        <Link
+          href="/docs"
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition-colors ${
+            pathname === '/docs'
+              ? 'bg-orange-500/20 text-orange-400 border-l-2 border-orange-500'
+              : 'text-orange-400/60 hover:text-orange-400 hover:bg-orange-500/10'
+          }`}
+        >
+          <Code2 className="w-4 h-4" />
+          <span>OPTX Suite</span>
+        </Link>
         <Link
           href="/security"
           className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono text-orange-400/60 hover:text-orange-400 hover:bg-orange-500/10 transition-colors"
