@@ -14,6 +14,7 @@ import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 export default function LoadingPage() {
   const router = useRouter()
   const [showButton, setShowButton] = useState(false)
+  const [videoError, setVideoError] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // Verify Clerk is loaded before allowing submission
@@ -35,6 +36,13 @@ export default function LoadingPage() {
     if (isSignedIn && clerkLoaded) {
       router.push("/dojo")
     }
+    // Fallback: if Clerk hasn't resolved after 5s, allow manual navigation
+    const fallbackTimer = setTimeout(() => {
+      if (!clerkLoaded) {
+        setShowButton(true)
+      }
+    }, 5000)
+    return () => clearTimeout(fallbackTimer)
   }, [isSignedIn, clerkLoaded, router])
 
   return (
@@ -123,11 +131,20 @@ export default function LoadingPage() {
         </div>
       )}
 
-      {/* Loading indicator for signed-in users */}
+      {/* Loading indicator + Enter DOJO button for signed-in users */}
       {isSignedIn && (
         <div className="absolute top-[20vh] left-1/2 -translate-x-1/2 md:top-[calc(50%_-_320px)] z-20 flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent" />
-          <p className="font-mono text-xs text-zinc-500">Redirecting to account...</p>
+          <p className="font-mono text-xs text-zinc-500">Redirecting to DOJO...</p>
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2, duration: 0.5 }}
+            onClick={() => router.push("/dojo")}
+            className="mt-2 font-mono text-xs tracking-[0.2em] uppercase text-accent hover:text-white border border-accent/30 hover:border-accent/60 px-6 py-2 rounded-full transition-all duration-300 hover:bg-accent/10"
+          >
+            Enter DOJO
+          </motion.button>
         </div>
       )}
 
@@ -137,13 +154,32 @@ export default function LoadingPage() {
         loop
         muted
         playsInline
-        className="relative z-[5] w-[90vw] h-[90vh] max-w-[800px] max-h-[600px] object-contain border-transparent opacity-50 border-8"
+        preload="auto"
+        onError={() => setVideoError(true)}
+        onCanPlay={() => {
+          // Force play on canplay event (handles strict autoplay policies)
+          videoRef.current?.play().catch(() => {})
+        }}
+        className={`relative z-[5] w-[90vw] h-[90vh] max-w-[800px] max-h-[600px] object-contain border-transparent opacity-50 border-8 ${videoError ? "hidden" : ""}`}
       >
         <source
           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/OPTXloading-AFybU8f6imhbRHtfXrwTvpU4IP1OXQ.mp4"
           type="video/mp4"
         />
       </video>
+
+      {/* Fallback if video fails to load */}
+      {videoError && (
+        <div className="relative z-[5] flex items-center justify-center">
+          <Image
+            src="/images/jettoptics-logo.png"
+            alt="OPTX Loading"
+            width={200}
+            height={200}
+            className="opacity-50 animate-pulse"
+          />
+        </div>
+      )}
 
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none z-[6]"
