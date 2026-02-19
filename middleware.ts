@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
+import { NextResponse } from "next/server"
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -15,6 +16,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/optx-login(.*)",
   "/gaze-verify(.*)",
+  "/vault(.*)",
   // OAuth callback routes - critical for social login flows
   "/sso-callback(.*)",
   "/oauth-callback(.*)",
@@ -22,12 +24,23 @@ const isPublicRoute = createRouteMatcher([
 
 // Clerk middleware for Next.js 16 - handles auth state and OAuth flows
 export default clerkMiddleware(async (auth, request) => {
-  const { pathname } = new URL(request.url)
-  
+  const url = new URL(request.url)
+  const hostname = url.hostname
+
+  // Subdomain routing: vault.jettoptics.ai → /vault
+  if (hostname === "vault.jettoptics.ai") {
+    if (!url.pathname.startsWith("/vault")) {
+      url.pathname = `/vault${url.pathname === "/" ? "" : url.pathname}`
+      return NextResponse.rewrite(url)
+    }
+  }
+
+  const { pathname } = url
+
   // CRITICAL FIX: Do NOT early return for OAuth/SSO callbacks
   // These need to be processed by Clerk to set session cookies
   const isCallback = pathname.startsWith('/oauth-callback') || pathname.startsWith('/sso-callback')
-  
+
   // For public routes (except callbacks), don't require authentication
   // This allows the Waitlist component to work properly
   if (isPublicRoute(request) && !isCallback) {
