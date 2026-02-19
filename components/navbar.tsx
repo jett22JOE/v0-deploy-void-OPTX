@@ -156,8 +156,19 @@ export function Navbar() {
             </ul>
           </div>
 
-          {/* Right: UX Docs + Logo Button */}
+          {/* Right: Vault + UX Docs + Logo Button */}
           <div className="relative flex items-center gap-3">
+            {/* Vault Link (Desktop) */}
+            <div className="hidden md:block">
+              <Link
+                href="/vault"
+                className="group relative font-mono text-xs tracking-wider text-muted-foreground hover:text-foreground transition-all duration-300 px-3 py-2 rounded-xl hover:bg-white/[0.05]"
+              >
+                <span className="text-accent">Vault</span>
+                <span className="absolute bottom-1 left-3 right-3 h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </Link>
+            </div>
+
             {/* UX Docs Link (Desktop) */}
             <div className="hidden md:block">
               <Link
@@ -290,6 +301,18 @@ export function Navbar() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ delay: 0.3 }}
+                className="group relative text-4xl font-sans tracking-tight text-foreground"
+              >
+                <Link href="/vault" onClick={() => setIsMenuOpen(false)}>
+                  <span className="text-accent">Vault</span>
+                </Link>
+              </motion.button>
+
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ delay: 0.4 }}
                 className="group relative text-4xl font-sans tracking-tight text-foreground"
               >
                 <Link href="/docs" onClick={() => setIsMenuOpen(false)}>
