@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { BrainCircuit, Eye, ScanLine, Zap, Network, Copy, Check } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { BrainCircuit, Eye, ScanLine, Zap, Network, Copy, Check, ChevronRight } from "lucide-react"
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 
 const augments = [
   {
     id: "neuromorphic",
     title: "Neuromorphic Augments",
     icon: BrainCircuit,
+    sections: ["What Are Neuromorphic Augments?", "How the DOJO Trains Augmentation", "Spiking Neural Networks (SNNs)", "Training Protocol"],
     content: `# Neuromorphic Augments
 
 ## What Are Neuromorphic Augments?
@@ -34,6 +36,7 @@ Unlike traditional artificial neural networks, spiking neural networks process i
     id: "emdr",
     title: "EMDR",
     icon: Eye,
+    sections: ["Overview", "Connection to Gaze Training", "DOJO EMDR Protocol", "Benefits", "Research Foundation"],
     content: `# EMDR — Eye Movement Desensitization and Reprocessing
 
 ## Overview
@@ -66,6 +69,7 @@ EMDR was developed by Francine Shapiro in 1987 and has been extensively validate
     id: "ophthalmology",
     title: "Ophthalmology",
     icon: ScanLine,
+    sections: ["Ocular Anatomy for Gaze Auth", "Pupil Detection", "Retinal Scanning (Future)", "Visual Acuity & Tensor Resolution", "Key Metrics"],
     content: `# Ophthalmology — The Science Behind Gaze Tracking
 
 ## Ocular Anatomy for Gaze Auth
@@ -103,6 +107,7 @@ JETT's roadmap includes retinal vasculature mapping:
     id: "jett",
     title: "JETT Protocol",
     icon: Zap,
+    sections: ["What is JETT?", "How It Works", "Quantum Resistance", "The JETT PIN", "JETT Signature for Web3 Wallet", "How Analytics/Training Feed Your Signature", "Integration with CSTB"],
     content: `# JETT — Joule Encryption Temporal Template
 
 ## What is JETT?
@@ -156,6 +161,7 @@ The CompuStable (CSTB) smart contract validates JETT attestations:
     id: "astroknots",
     title: "Astro.knots Hypothesis",
     icon: Network,
+    sections: ["Overview", "Core Thesis", "EEG-Gaze Correlation", "BCI Applications", "The Knot Invariant", "Research Status"],
     content: `# The Astro.knots Hypothesis — EEG Training for BCIs
 
 ## Overview
@@ -198,6 +204,8 @@ The Astro.knots Hypothesis is under active investigation at JETT Optics. Current
 export default function AugmentsPage() {
   const [activeAugment, setActiveAugment] = useState("neuromorphic")
   const [copied, setCopied] = useState(false)
+  const [activeSection, setActiveSection] = useState("")
+  const contentRef = useRef<HTMLDivElement>(null)
   const active = augments.find((a) => a.id === activeAugment)
 
   const copyCode = (code: string) => {
@@ -206,21 +214,68 @@ export default function AugmentsPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  // Track active section on scroll
+  useEffect(() => {
+    const container = contentRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const headings = container.querySelectorAll('[data-section]')
+      let current = ""
+      headings.forEach((heading) => {
+        const el = heading as HTMLElement
+        const rect = el.getBoundingClientRect()
+        if (rect.top <= 120) {
+          current = el.getAttribute('data-section') || ""
+        }
+      })
+      setActiveSection(current)
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [activeAugment])
+
+  const scrollToSection = (section: string) => {
+    const container = contentRef.current
+    if (!container) return
+    const el = container.querySelector(`[data-section="${section}"]`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   return (
-    <div className="flex h-screen">
-      {/* Augment Nav */}
-      <div className="w-52 border-r border-orange-500/20 bg-zinc-950/50 p-3 space-y-1 shrink-0">
-        <p className="text-[10px] text-orange-400/50 font-mono uppercase tracking-wider px-2 mb-3">
+    <div className="flex h-screen relative">
+      {/* Subtle dotted background */}
+      <DottedGlowBackground
+        className="pointer-events-none z-0 !fixed"
+        opacity={0.4}
+        gap={18}
+        radius={1}
+        color="rgba(181, 82, 0, 0.2)"
+        glowColor="rgba(181, 82, 0, 0.5)"
+        darkColor="rgba(181, 82, 0, 0.2)"
+        darkGlowColor="rgba(181, 82, 0, 0.5)"
+        backgroundOpacity={0}
+        speedMin={0.1}
+        speedMax={0.4}
+        speedScale={0.5}
+      />
+
+      {/* Augment Nav — secondary sidebar */}
+      <div className="w-52 border-r border-orange-500/15 bg-zinc-950/80 backdrop-blur-sm p-3 space-y-1 shrink-0 relative z-10">
+        <p className="text-[9px] text-orange-400/40 font-mono uppercase tracking-widest px-2 mb-3">
           Augment Journal
         </p>
         {augments.map((aug) => (
           <button
             key={aug.id}
-            onClick={() => setActiveAugment(aug.id)}
-            className={`flex items-start gap-2 w-full px-3 py-2.5 rounded-lg text-xs font-mono transition-colors text-left ${
+            onClick={() => { setActiveAugment(aug.id); setActiveSection(""); }}
+            className={`group flex items-start gap-2 w-full px-3 py-2.5 rounded-lg text-xs font-mono transition-all duration-200 text-left ${
               activeAugment === aug.id
-                ? "bg-orange-500/20 text-orange-400 border-l-2 border-orange-500"
-                : "text-orange-400/60 hover:text-orange-400 hover:bg-orange-500/10"
+                ? "bg-orange-500/15 text-orange-400 border-l-2 border-orange-500"
+                : "text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/8"
             }`}
           >
             <aug.icon className="w-3.5 h-3.5 shrink-0 mt-0.5" />
@@ -230,7 +285,7 @@ export default function AugmentsPage() {
       </div>
 
       {/* Augment Content */}
-      <div className="flex-1 overflow-auto p-8 max-w-4xl">
+      <div ref={contentRef} className="flex-1 overflow-auto p-8 max-w-4xl relative z-10">
         {active && (
           <div className="prose prose-invert prose-orange max-w-none">
             <div className="font-mono text-orange-100/90 text-sm leading-relaxed whitespace-pre-wrap">
@@ -245,7 +300,7 @@ export default function AugmentsPage() {
                       >
                         {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-zinc-400" />}
                       </button>
-                      <pre className="bg-zinc-900/80 border border-orange-500/20 rounded-lg p-4 text-xs overflow-x-auto">
+                      <pre className="bg-zinc-900/80 border border-orange-500/15 rounded-lg p-4 text-xs overflow-x-auto">
                         <code className="text-orange-200/80">{code}</code>
                       </pre>
                     </div>
@@ -255,9 +310,26 @@ export default function AugmentsPage() {
                   <span key={i}>
                     {part.split("\n").map((line, j) => {
                       if (line.startsWith("# ")) return <h1 key={j} className="text-2xl font-bold text-orange-400 mt-6 mb-3 font-mono">{line.slice(2)}</h1>
-                      if (line.startsWith("## ")) return <h2 key={j} className="text-lg font-bold text-orange-300 mt-5 mb-2 font-mono">{line.slice(3)}</h2>
+                      if (line.startsWith("## ")) {
+                        const text = line.slice(3)
+                        return <h2 key={j} data-section={text} className="text-lg font-bold text-orange-300 mt-5 mb-2 font-mono scroll-mt-4">{text}</h2>
+                      }
                       if (line.startsWith("### ")) return <h3 key={j} className="text-sm font-bold text-orange-200 mt-4 mb-1 font-mono">{line.slice(4)}</h3>
-                      if (line.startsWith("- ")) return <div key={j} className="pl-4 py-0.5 text-orange-100/70">{line}</div>
+                      if (line.startsWith("- ")) {
+                        // Parse bold markers
+                        const parts = line.slice(2).split(/(\*\*.*?\*\*)/g)
+                        return (
+                          <div key={j} className="pl-4 py-0.5 text-orange-100/70">
+                            <span className="text-orange-500/60 mr-1">•</span>
+                            {parts.map((p, k) =>
+                              p.startsWith("**") && p.endsWith("**")
+                                ? <strong key={k} className="text-orange-300">{p.slice(2, -2)}</strong>
+                                : <span key={k}>{p}</span>
+                            )}
+                          </div>
+                        )
+                      }
+                      if (/^\d+\./.test(line)) return <div key={j} className="pl-4 py-0.5 text-orange-100/70">{line}</div>
                       if (line.trim() === "") return <div key={j} className="h-2" />
                       return <div key={j} className="text-orange-100/70">{line}</div>
                     })}
@@ -268,6 +340,33 @@ export default function AugmentsPage() {
           </div>
         )}
       </div>
+
+      {/* On this page — right TOC sidebar (desktop only) */}
+      {active && (
+        <div className="hidden xl:block w-48 shrink-0 p-4 relative z-10">
+          <div className="sticky top-8">
+            <p className="text-[9px] text-orange-400/40 font-mono uppercase tracking-widest mb-3 flex items-center gap-1">
+              <ChevronRight className="w-3 h-3" />
+              On this page
+            </p>
+            <div className="space-y-0.5 border-l border-orange-500/10">
+              {active.sections.map((section) => (
+                <button
+                  key={section}
+                  onClick={() => scrollToSection(section)}
+                  className={`block w-full text-left pl-3 py-1 text-[11px] font-mono transition-all duration-200 border-l-2 -ml-px ${
+                    activeSection === section
+                      ? "border-orange-500 text-orange-400"
+                      : "border-transparent text-orange-400/40 hover:text-orange-400/70 hover:border-orange-500/30"
+                  }`}
+                >
+                  {section}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
