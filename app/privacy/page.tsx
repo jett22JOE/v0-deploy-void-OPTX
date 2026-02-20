@@ -56,12 +56,12 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg text-orange-300 font-bold mb-3">4. Edge Processing</h2>
-            <p>Jett Optics uses edge compute (Jetson Orin Nano) for privacy-preserving AI inference. When gaze data is processed on our infrastructure:</p>
+            <p>Jett Optics uses dedicated edge compute hardware for privacy-preserving AI inference. When gaze data is processed on our infrastructure:</p>
             <ul className="list-disc list-inside mt-2 space-y-1 text-zinc-400">
               <li>Processing occurs on sovereign hardware (not shared cloud)</li>
-              <li>Data is encrypted in transit via Tailscale WireGuard mesh</li>
+              <li>Data is encrypted in transit via WireGuard tunnels</li>
               <li>No data is retained after processing completes</li>
-              <li>SpacetimeDB stores only hashed signatures, never raw biometrics</li>
+              <li>Our database stores only hashed signatures, never raw biometrics</li>
             </ul>
           </section>
 
@@ -93,9 +93,9 @@ export default function PrivacyPage() {
             <ul className="list-disc list-inside space-y-1 text-zinc-400">
               <li>Account data: Retained while your account is active</li>
               <li>Gaze training data: Deleted after session ends (not stored)</li>
-              <li>Gaze signatures: Stored as hashes in SpacetimeDB until deletion request</li>
+              <li>Gaze signatures: Stored as hashes until deletion request</li>
               <li>On-chain attestations: Permanent (blockchain immutability)</li>
-              <li>Chat messages: Retained in SpacetimeDB, deletable on request</li>
+              <li>Chat messages: Retained in encrypted storage, deletable on request</li>
             </ul>
           </section>
 
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
             <p>We employ industry-standard security measures including:</p>
             <ul className="list-disc list-inside mt-2 space-y-1 text-zinc-400">
               <li>HTTPS/TLS encryption for all web traffic</li>
-              <li>WireGuard (Tailscale) for edge-to-cloud communication</li>
+              <li>WireGuard encrypted tunnels for edge-to-cloud communication</li>
               <li>One-way hashing for biometric signatures</li>
               <li>Clerk-managed authentication with MFA support</li>
               <li>No plaintext storage of passwords or keys</li>

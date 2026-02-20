@@ -250,17 +250,17 @@ export default function AugmentsPage() {
       {/* Subtle dotted background */}
       <DottedGlowBackground
         className="pointer-events-none z-0 !fixed"
-        opacity={0.4}
-        gap={18}
-        radius={1}
-        color="rgba(181, 82, 0, 0.2)"
-        glowColor="rgba(181, 82, 0, 0.5)"
-        darkColor="rgba(181, 82, 0, 0.2)"
-        darkGlowColor="rgba(181, 82, 0, 0.5)"
+        opacity={0.7}
+        gap={14}
+        radius={1.5}
+        color="rgba(181, 82, 0, 0.35)"
+        glowColor="rgba(181, 82, 0, 0.8)"
+        darkColor="rgba(181, 82, 0, 0.35)"
+        darkGlowColor="rgba(181, 82, 0, 0.8)"
         backgroundOpacity={0}
-        speedMin={0.1}
-        speedMax={0.4}
-        speedScale={0.5}
+        speedMin={0.2}
+        speedMax={0.6}
+        speedScale={0.7}
       />
 
       {/* Augment Nav — secondary sidebar */}

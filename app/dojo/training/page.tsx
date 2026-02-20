@@ -266,14 +266,14 @@ export default function TrainingPage() {
     }
   }, [isSpacePressed, agtWeights, isTraining])
 
-  // WebSocket connection to JOE agent on Jetson
+  // WebSocket connection to JOE agent
   const connectJoeWs = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     setWsStatus("connecting")
     const ws = new WebSocket(process.env.NEXT_PUBLIC_JOE_WS_URL || "wss://joe-ws.jettoptics.ai/ws/joe")
     ws.onopen = () => {
       setWsStatus("connected")
-      setChatMessages((prev) => [...prev, { id: `sys_${Date.now()}`, user: "SYSTEM", content: "Connected to JOE agent via Tailscale" }])
+      setChatMessages((prev) => [...prev, { id: `sys_${Date.now()}`, user: "SYSTEM", content: "Connected to JOE agent" }])
     }
     ws.onmessage = (event) => {
       try {

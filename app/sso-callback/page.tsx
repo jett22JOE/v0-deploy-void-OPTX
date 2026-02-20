@@ -7,15 +7,9 @@ import { AuthenticateWithRedirectCallback } from "@clerk/nextjs"
 /**
  * SSO Callback Page - Handles OAuth redirects from social providers
  *
- * HEDGEHOG MCP Analysis:
- * - X/Twitter OAuth uses OAuth 2.0 PKCE flow
- * - State parameter must be validated to prevent CSRF
- * - Clerk's AuthenticateWithRedirectCallback handles token exchange
- *
- * Fix for infinite loop:
- * - Remove manual redirect logic that competes with Clerk
- * - Let AuthenticateWithRedirectCallback handle all redirects
- * - Only manually handle error states
+ * Handles OAuth redirects from social providers.
+ * Uses Clerk's AuthenticateWithRedirectCallback for token exchange.
+ * Only manually handles error states.
  */
 export default function SSOCallbackPage() {
   const router = useRouter()

@@ -26,6 +26,10 @@ const CSTB_MINT = "4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL"
 
 const JOE_WS_URL = process.env.NEXT_PUBLIC_JOE_WS_URL || "wss://joe-ws.jettoptics.ai/ws/joe"
 
+// Founder-only gating — Clerk user ID + Solana wallet
+const FOUNDER_USER_IDS = ["user_37RFcXc9CeZJYdDIPEWdiuiZXpb"]
+const FOUNDER_WALLETS = ["FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"]
+
 type Tab = "jettchat" | "sessions" | "wallets"
 
 interface ChatMessage {
@@ -55,6 +59,13 @@ export default function ConnectionsPage() {
   const initialTab = (searchParams.get("tab") as Tab) || "jettchat"
   const { publicKey: phantomKey, connected: phantomConnected } = useWallet()
   const { setVisible: setWalletModalVisible } = useWalletModal()
+
+  // Founder gating — Clerk user ID (primary) + Solana wallet (secondary)
+  const isFounder = (() => {
+    const clerkMatch = FOUNDER_USER_IDS.includes(user?.id || "")
+    const walletMatch = phantomKey ? FOUNDER_WALLETS.includes(phantomKey.toBase58()) : false
+    return clerkMatch || walletMatch
+  })()
 
   const [activeTab, setActiveTab] = useState<Tab>(initialTab)
   const [wsStatus, setWsStatus] = useState<"connecting" | "connected" | "disconnected">("disconnected")
@@ -165,7 +176,7 @@ export default function ConnectionsPage() {
       setWsStatus("connected")
       setChatMessages((prev) => [
         ...prev,
-        { id: `sys_${Date.now()}`, role: "system", content: "Connected to JOE agent on Jetson Orin Nano via Tailscale Funnel", timestamp: Date.now() },
+        { id: `sys_${Date.now()}`, role: "system", content: "Connected to JOE agent on edge compute node", timestamp: Date.now() },
       ])
     }
 
@@ -334,7 +345,7 @@ export default function ConnectionsPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-mono text-xs text-orange-300">JOE Agent Chat</p>
-                    <p className="font-mono text-[9px] text-zinc-500">$OPTX Signature Testing via hedgehog-spacetime MCP</p>
+                    <p className="font-mono text-[9px] text-zinc-500">$OPTX Signature Testing via OPTX edge protocol</p>
                   </div>
                   <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[9px]">CSTB Protocol</Badge>
                 </CardContent>
@@ -392,11 +403,11 @@ export default function ConnectionsPage() {
                       </div>
                       <p className="text-orange-400/60 font-mono text-sm mb-1">JOE Agent</p>
                       <p className="text-zinc-500 font-mono text-xs max-w-md mx-auto">
-                        Real-time AI chat via Tailscale Funnel. Ask about CSTB attestation, $OPTX rewards, gaze analysis, or anything.
+                        Real-time AI chat via encrypted edge tunnel. Ask about CSTB attestation, $OPTX rewards, gaze analysis, or anything.
                       </p>
                       {wsStatus === "disconnected" && (
                         <Button onClick={connectWs} size="sm" className="mt-6 bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 font-mono">
-                          <Wifi className="w-3 h-3 mr-2" /> Connect to Jetson
+                          <Wifi className="w-3 h-3 mr-2" /> Connect to JOE
                         </Button>
                       )}
                     </div>
@@ -456,7 +467,7 @@ export default function ConnectionsPage() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder={wsStatus === "connected" ? "Message JOE..." : "Connecting to Jetson..."}
+                    placeholder={wsStatus === "connected" ? "Message JOE..." : "Connecting to JOE..."}
                     disabled={wsStatus !== "connected"}
                     className="flex-1 px-4 py-2.5 bg-black/40 border border-orange-500/20 rounded-xl text-orange-200 text-xs font-mono placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-orange-500/40 disabled:opacity-40 transition-all"
                   />
@@ -598,7 +609,8 @@ export default function ConnectionsPage() {
         {/* ===================== WALLETS TAB ===================== */}
         {activeTab === "wallets" && (
           <div className="max-w-5xl mx-auto space-y-4">
-            {/* JOE Agent Wallet — Live Balances */}
+            {/* JOE Agent Wallet — Founder Only */}
+            {isFounder ? (
             <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
               <CardHeader className="p-4 border-b border-orange-500/15">
@@ -649,7 +661,7 @@ export default function ConnectionsPage() {
 
                 {wsStatus !== "connected" && !walletBalances && (
                   <div className="text-center py-3">
-                    <p className="font-mono text-[10px] text-zinc-500 mb-2">Connect to Jetson to load live balances</p>
+                    <p className="font-mono text-[10px] text-zinc-500 mb-2">Connect to JOE to load live balances</p>
                     <Button onClick={connectWs} size="sm" className="bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 font-mono text-xs">
                       <Wifi className="w-3 h-3 mr-2" /> Connect
                     </Button>
@@ -658,7 +670,17 @@ export default function ConnectionsPage() {
               </CardContent>
             </Card>
 
-            {/* User Phantom Wallet */}
+            ) : (
+              <Card className="border-zinc-500/20 bg-gradient-to-br from-zinc-500/5 to-zinc-800/5">
+                <CardContent className="p-6 text-center">
+                  <Shield className="w-8 h-8 text-zinc-500 mx-auto mb-3" />
+                  <p className="font-mono text-sm text-zinc-400 mb-1">Agent Wallet — Restricted</p>
+                  <p className="font-mono text-[10px] text-zinc-600">JOE&apos;s internal wallet data is only visible to authorized administrators.</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* User Phantom Wallet — visible to ALL users */}
             <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-indigo-500/5">
               <CardHeader className="p-4 border-b border-blue-500/15">
                 <CardTitle className="text-sm text-blue-300 font-semibold flex items-center gap-2">
@@ -699,7 +721,8 @@ export default function ConnectionsPage() {
               </CardContent>
             </Card>
 
-            {/* x402 Payment Policy */}
+            {/* x402 Payment Policy — Founder Only */}
+            {isFounder && (
             <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
               <CardHeader className="p-4 border-b border-green-500/15">
                 <CardTitle className="text-sm text-green-300 font-semibold flex items-center gap-2">
@@ -730,13 +753,16 @@ export default function ConnectionsPage() {
                   </>
                 ) : (
                   <p className="font-mono text-[10px] text-zinc-500 text-center py-3">
-                    {wsStatus === "connected" ? <><Loader2 className="w-3 h-3 inline mr-1 animate-spin" /> Loading policy...</> : "Connect to Jetson to view payment policy"}
+                    {wsStatus === "connected" ? <><Loader2 className="w-3 h-3 inline mr-1 animate-spin" /> Loading policy...</> : "Connect to JOE to view payment policy"}
                   </p>
                 )}
               </CardContent>
             </Card>
 
-            {/* LayerZero Bridge Status */}
+            )}
+
+            {/* LayerZero Bridge Status — Founder Only */}
+            {isFounder && (
             <Card className="border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5">
               <CardHeader className="p-4 border-b border-cyan-500/15">
                 <CardTitle className="text-sm text-cyan-300 font-semibold flex items-center gap-2">
@@ -781,13 +807,16 @@ export default function ConnectionsPage() {
                   </>
                 ) : (
                   <p className="font-mono text-[10px] text-zinc-500 text-center py-3">
-                    {wsStatus === "connected" ? <><Loader2 className="w-3 h-3 inline mr-1 animate-spin" /> Loading bridge status...</> : "Connect to Jetson to view bridge status"}
+                    {wsStatus === "connected" ? <><Loader2 className="w-3 h-3 inline mr-1 animate-spin" /> Loading bridge status...</> : "Connect to JOE to view bridge status"}
                   </p>
                 )}
               </CardContent>
             </Card>
 
-            {/* CSTB Profile */}
+            )}
+
+            {/* CSTB Profile — Founder Only */}
+            {isFounder && (
             <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
               <CardHeader className="p-4 border-b border-purple-500/15">
                 <CardTitle className="text-sm text-purple-300 font-semibold flex items-center gap-2">
@@ -890,6 +919,8 @@ export default function ConnectionsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            )}
 
             {/* Protocol Footer */}
             <div className="text-center py-2">

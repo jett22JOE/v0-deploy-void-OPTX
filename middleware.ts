@@ -28,7 +28,8 @@ export default clerkMiddleware(async (auth, request) => {
   const hostname = url.hostname
 
   // Subdomain routing: vault.jettoptics.ai → /vault
-  if (hostname === "vault.jettoptics.ai") {
+  // Domain routing: astroknots.space → /vault (SNS .sol domain landing)
+  if (hostname === "vault.jettoptics.ai" || hostname === "astroknots.space" || hostname === "www.astroknots.space") {
     if (!url.pathname.startsWith("/vault")) {
       url.pathname = `/vault${url.pathname === "/" ? "" : url.pathname}`
       return NextResponse.rewrite(url)

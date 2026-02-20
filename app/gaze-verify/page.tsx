@@ -83,8 +83,8 @@ export default function GazeVerifyPage() {
       const mockResponse: GazeVerificationResponse = {
         success: true,
         verified: true,
-        hedgehogApproved: true,
-        joshCtoApproved: true,
+        edgeApproved: true,
+        adminApproved: true,
         verificationId: crypto.randomUUID(),
       }
 
@@ -254,7 +254,7 @@ export default function GazeVerifyPage() {
         {state === "connecting" && (
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent mx-auto mb-4" />
-            <p className="font-mono text-sm text-accent">Verifying with HEDGEHOG MCP...</p>
+            <p className="font-mono text-sm text-accent">Verifying gaze signature...</p>
           </div>
         )}
 

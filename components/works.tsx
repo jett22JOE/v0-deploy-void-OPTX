@@ -94,12 +94,12 @@ const projects = [
         Agent
       </>
     ),
-    tags: ["FastAPI", "HEDGEHOG", "𝕏AI", "Python"],
+    tags: ["FastAPI", "MCP", "𝕏AI", "Python"],
     image: "/images/joe-agent-cowboy.png",
     largeHoverWindow: true,
     scope: "AI",
     description:
-      "Meet HEDGEHOG: Handshake Encrypted Delegated Gesture Envelope Handler Optical Gateway. The MCP orchestration layer that transforms XR gestures into encrypted intelligence—bridging your gaze, AI reasoning, and quantum-resistant key generation in real-time.",
+      "The MCP orchestration layer that transforms XR gestures into encrypted intelligence—bridging your gaze, AI reasoning, and quantum-resistant key generation in real-time.",
   },
   {
     title: "Neuromorphic Applications",

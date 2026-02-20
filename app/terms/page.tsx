@@ -44,7 +44,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg text-orange-300 font-bold mb-3">5. Gaze Biometric Data</h2>
-            <p>Gaze calibration data is processed locally on your device or on Jett Optics edge infrastructure (Jetson Orin Nano). Gaze signatures are one-way hashed before any on-chain storage. Raw gaze data is never transmitted to cloud servers. You retain ownership of your biometric data and may request deletion at any time.</p>
+            <p>Gaze calibration data is processed locally on your device or on Jett Optics dedicated edge infrastructure. Gaze signatures are one-way hashed before any on-chain storage. Raw gaze data is never transmitted to cloud servers. You retain ownership of your biometric data and may request deletion at any time.</p>
           </section>
 
           <section>

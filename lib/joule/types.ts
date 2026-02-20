@@ -49,8 +49,8 @@ export interface GazeVerificationRequest {
 export interface GazeVerificationResponse {
   success: boolean;
   verified: boolean;
-  hedgehogApproved: boolean;
-  joshCtoApproved: boolean;
+  edgeApproved: boolean;
+  adminApproved: boolean;
   errorMessage?: string;
   mintTransactionSig?: string; // If $OPTX was minted
   verificationId?: string;

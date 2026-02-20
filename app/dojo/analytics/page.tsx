@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-mono text-green-400 font-semibold">Gaze-Lock Verification</p>
-                <p className="text-xs text-orange-400/60 font-mono">AGT biometric signature ready for CSTB attestation. Tailscale mesh secured.</p>
+                <p className="text-xs text-orange-400/60 font-mono">AGT biometric signature ready for CSTB attestation. Edge-encrypted.</p>
               </div>
               <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs flex items-center gap-1">
                 <Zap className="w-3 h-3" />
