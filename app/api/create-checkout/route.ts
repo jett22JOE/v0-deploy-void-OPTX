@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { VALID_PRICE_IDS, STRIPE_PRICE_TO_TIER } from "@/lib/stripe"
+import { auth } from "@clerk/nextjs/server"
 
 function getStripeClient() {
   const key = process.env.STRIPE_SECRET_KEY
@@ -14,11 +15,16 @@ function getStripeClient() {
 
 export async function POST(req: Request) {
   try {
-    const { priceId, clerkUserId, customerEmail } = await req.json()
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-    if (!priceId || !clerkUserId) {
+    const { priceId, customerEmail } = await req.json()
+
+    if (!priceId) {
       return NextResponse.json(
-        { error: "Missing priceId or clerkUserId" },
+        { error: "Missing priceId" },
         { status: 400 }
       )
     }
@@ -36,10 +42,10 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://jettoptics.ai"}/dojo?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://jettoptics.ai"}/security`,
-      metadata: { clerkUserId, tier },
+      metadata: { clerkUserId: userId, tier },
       customer_email: customerEmail,
       subscription_data: {
-        metadata: { clerkUserId, tier },
+        metadata: { clerkUserId: userId, tier },
       },
     })
 

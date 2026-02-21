@@ -95,29 +95,35 @@ export function Navbar() {
         className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4"
       >
         <nav className="relative flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
-          {/* Left: DAPP Branding */}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault()
-              window.scrollTo({ top: 0, behavior: "smooth" })
-            }}
-            className="group flex items-center gap-2"
-          >
-            <div className="relative w-8 h-8 md:w-6 md:h-6 flex items-center justify-center">
-              <span className="relative flex h-full w-full">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-                <Image
-                  src="/images/astroknots-logo.png"
-                  alt="DAPP Logo"
-                  width={32}
-                  height={32}
-                  className="relative inline-flex rounded-full object-contain"
-                />
-              </span>
-            </div>
-            <span className="font-mono text-xs tracking-widest text-muted-foreground">DAPP</span>
-          </a>
+          {/* Left: DAPP Branding + ASTRO.KNOTS */}
+          <div className="flex items-center gap-3">
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }}
+              className="group flex items-center gap-2"
+            >
+              <div className="relative w-8 h-8 md:w-6 md:h-6 flex items-center justify-center">
+                <span className="relative flex h-full w-full">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+                  <Image
+                    src="/images/astroknots-logo.png"
+                    alt="DAPP Logo"
+                    width={32}
+                    height={32}
+                    className="relative inline-flex rounded-full object-contain"
+                  />
+                </span>
+              </div>
+              <span className="font-mono text-xs tracking-widest text-muted-foreground">DAPP</span>
+            </a>
+            <Link href="https://astroknots.space" className="hidden md:flex items-center gap-1.5 font-mono text-xs tracking-widest text-muted-foreground hover:text-foreground transition-colors duration-300">
+              <span className="text-accent">Δ</span>
+              <span>ASTRO.KNOTS</span>
+            </Link>
+          </div>
 
           {/* Center: Navigation Links with glass pill (Desktop only) */}
           <div
@@ -158,17 +164,6 @@ export function Navbar() {
 
           {/* Right: Vault + UX Docs + Logo Button */}
           <div className="relative flex items-center gap-3">
-            {/* Vault Link (Desktop) */}
-            <div className="hidden md:block">
-              <Link
-                href="/vault"
-                className="group relative font-mono text-xs tracking-wider text-muted-foreground hover:text-foreground transition-all duration-300 px-3 py-2 rounded-xl hover:bg-white/[0.05]"
-              >
-                <span className="text-accent">Vault</span>
-                <span className="absolute bottom-1 left-3 right-3 h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </Link>
-            </div>
-
             {/* UX Docs Link (Desktop) */}
             <div className="hidden md:block">
               <Link
@@ -303,8 +298,9 @@ export function Navbar() {
                 transition={{ delay: 0.3 }}
                 className="group relative text-4xl font-sans tracking-tight text-foreground"
               >
-                <Link href="/vault" onClick={() => setIsMenuOpen(false)}>
-                  <span className="text-accent">Vault</span>
+                <Link href="https://astroknots.space" onClick={() => setIsMenuOpen(false)}>
+                  <span className="text-accent mr-2">Δ</span>
+                  ASTRO.KNOTS
                 </Link>
               </motion.button>
 

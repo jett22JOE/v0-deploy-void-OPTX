@@ -32,6 +32,12 @@ export async function POST(req: Request) {
         })
       }
 
+      // Verify the session belongs to the authenticated user
+      const sessionClerkUserId = session.metadata?.clerkUserId
+      if (sessionClerkUserId && sessionClerkUserId !== userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+      }
+
       const subscription = session.subscription as Stripe.Subscription
       if (!subscription) {
         return NextResponse.json({

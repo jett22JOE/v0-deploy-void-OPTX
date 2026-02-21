@@ -10,9 +10,10 @@ import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import {
   Copy, Check, ExternalLink, ChevronDown,
   Sun, Moon, Wallet, Trophy, Clock, HelpCircle,
-  Smartphone, Shield, Zap, Globe, Instagram,
+  Smartphone, Shield, Zap,
   ArrowRight, DollarSign, Box, GitBranch, RotateCcw,
 } from "lucide-react"
+import { InstagramIcon, XIcon, ZoraIcon, FarcasterIcon, CosmosIcon } from "@/components/icons/social-icons"
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const JTX_MINT = "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
@@ -81,13 +82,7 @@ const FAQ_ITEMS = [
   { q: "Who controls the vault?", a: "Nobody. The vault is a trustless Solana program. Once deployed, the rules are enforced by code. There is no admin key that can withdraw funds. The only outcomes are pool launch or refund." },
 ]
 
-// ─── SVG Icons ───────────────────────────────────────────────────────────────
-function XIcon({ className }: { className?: string }) {
-  return <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-}
-function FarcasterIcon({ className }: { className?: string }) {
-  return <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M18.24 2.4H5.76a3.36 3.36 0 0 0-3.36 3.36v12.48a3.36 3.36 0 0 0 3.36 3.36h12.48a3.36 3.36 0 0 0 3.36-3.36V5.76a3.36 3.36 0 0 0-3.36-3.36zm-1.2 13.44c0 .72-.6 1.32-1.32 1.32H8.28c-.72 0-1.32-.6-1.32-1.32V8.16c0-.72.6-1.32 1.32-1.32h7.44c.72 0 1.32.6 1.32 1.32v7.68z" /></svg>
-}
+// Social icons imported from @/components/icons/social-icons
 
 // ─── Countdown Hook ──────────────────────────────────────────────────────────
 function useCountdown(target: Date) {
@@ -1135,23 +1130,21 @@ export default function VaultPage() {
             </p>
           </div>
 
-          {/* Center: Social icons */}
+          {/* Center: Social icons (same as landing page footer) */}
           <div className="flex gap-4">
-            <a href="https://instagram.com/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
-              <Instagram className="w-5 h-5" />
-            </a>
-            <a href="https://x.com/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
-              <XIcon className="w-5 h-5" />
-            </a>
-            <a href="https://zora.co/@jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
-              <span className="text-sm font-bold leading-5 block w-5 h-5 text-center">Z</span>
-            </a>
-            <a href="https://farcaster.xyz/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
-              <FarcasterIcon className="w-5 h-5" />
-            </a>
-            <a href="https://www.cosmos.so/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
-              <Globe className="w-5 h-5" />
-            </a>
+            {[
+              { name: "Instagram", href: "https://instagram.com/jettoptx", icon: InstagramIcon },
+              { name: "X", href: "https://x.com/jettoptx?s=21&t=FxRpqXgpbbk57hTB5gaUnw", icon: XIcon },
+              { name: "Zora", href: "https://zora.co/@jettoptx", icon: ZoraIcon },
+              { name: "Farcaster", href: "https://farcaster.xyz/jettoptx", icon: FarcasterIcon },
+              { name: "Cosmos", href: "https://www.cosmos.so/jettoptx", icon: CosmosIcon },
+            ].map((social) => (
+              <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer"
+                className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors duration-300`}
+                aria-label={social.name}>
+                <social.icon className="w-5 h-5" />
+              </a>
+            ))}
           </div>
 
           {/* Right: JettOptics logo + copyright + TechForce OPTX */}
