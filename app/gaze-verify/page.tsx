@@ -57,10 +57,12 @@ export default function GazeVerifyPage() {
   const [hasJtx, setHasJtx] = useState(false)
 
   // Initialize verification session
+  const isLocalDev = typeof window !== "undefined" && window.location.hostname === "localhost"
   useEffect(() => {
-    if (!authLoaded) return
+    // DEV: Skip Clerk auth check on localhost
+    if (!isLocalDev && !authLoaded) return
 
-    if (!isSignedIn) {
+    if (!isSignedIn && !isLocalDev) {
       router.push("/optx-login")
       return
     }
@@ -68,7 +70,7 @@ export default function GazeVerifyPage() {
     const nonce = crypto.randomUUID()
     setSessionNonce(nonce)
     setState("setup")
-  }, [authLoaded, isSignedIn, router])
+  }, [authLoaded, isSignedIn, router, isLocalDev])
 
   // Handle polynomial PIN completion
   const handlePinComplete = useCallback(async (template: JOULETemplate) => {
@@ -110,7 +112,7 @@ export default function GazeVerifyPage() {
   }, [connected, publicKey, router])
 
   // Loading state
-  if (state === "loading" || !authLoaded) {
+  if (state === "loading" || (!authLoaded && !isLocalDev)) {
     return (
       <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
         <DottedGlowBackground
