@@ -5,6 +5,8 @@ import { useWallet } from "@solana/wallet-adapter-react"
 import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { Connection, PublicKey } from "@solana/web3.js"
 import Link from "next/link"
+import Image from "next/image"
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import {
   Copy, Check, ExternalLink, ChevronDown,
   Sun, Moon, Wallet, Trophy, Clock, HelpCircle,
@@ -33,6 +35,42 @@ const STAR_POSITIONS = Array.from({ length: 40 }, (_, i) => ({
   delay: ((i * 17) % 30) / 10,
   duration: 2 + ((i * 23) % 30) / 10,
 }))
+
+// ─── Shooting Stars (deterministic) ─────────────────────────────────────────
+const SHOOTING_STARS = Array.from({ length: 8 }, (_, i) => ({
+  startX: ((i * 29 + 5) % 80) + 10,
+  startY: ((i * 41 + 3) % 40),
+  angle: 25 + ((i * 13) % 20),
+  delay: ((i * 31) % 50) / 10,
+  duration: 2.5 + ((i * 19) % 20) / 10,
+  length: 40 + ((i * 23) % 40),
+}))
+
+// ─── DEX & Tracker Links with correct URLs ──────────────────────────────────
+const DEX_LINKS = [
+  { name: "Jupiter", url: "https://jup.ag", color: "from-green-400 to-emerald-500", letter: "J" },
+  { name: "Raydium", url: "https://raydium.io", color: "from-purple-400 to-indigo-500", letter: "R" },
+  { name: "Orca", url: "https://orca.so", color: "from-teal-300 to-cyan-500", letter: "O" },
+  { name: "Meteora", url: "https://meteora.ag", color: "from-blue-400 to-sky-500", letter: "M" },
+]
+
+const TRACKER_LINKS = [
+  { name: "DexScreener", url: "https://dexscreener.com/solana/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj", color: "from-lime-400 to-green-500", letter: "DS", hasLogo: true },
+  { name: "Birdeye", url: "https://birdeye.so/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj?chain=solana", color: "from-orange-400 to-red-500", letter: "BE" },
+  { name: "DexTools", url: "https://dextools.io/app/en/solana/pair-explorer/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj", color: "from-cyan-400 to-blue-500", letter: "DT" },
+  { name: "CoinGecko", url: "https://coingecko.com", color: "from-green-400 to-lime-500", letter: "CG" },
+  { name: "CoinMarketCap", url: "https://coinmarketcap.com", color: "from-blue-400 to-indigo-500", letter: "CMC" },
+  { name: "Solscan", url: "https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj", color: "from-purple-400 to-violet-500", letter: "SS" },
+]
+
+// ─── Social Links ────────────────────────────────────────────────────────────
+const SOCIAL_LINKS = [
+  { name: "Instagram", href: "https://instagram.com/jettoptx" },
+  { name: "X", href: "https://x.com/jettoptx" },
+  { name: "Zora", href: "https://zora.co/@jettoptx" },
+  { name: "Farcaster", href: "https://farcaster.xyz/jettoptx" },
+  { name: "Cosmos", href: "https://www.cosmos.so/jettoptx" },
+]
 
 // ─── FAQ Data ────────────────────────────────────────────────────────────────
 const FAQ_ITEMS = [
@@ -111,7 +149,7 @@ export default function VaultPage() {
   // Share on X after donation
   const shareOnX = (amount: string) => {
     const text = encodeURIComponent(
-      `I just contributed ${amount} SOL to the JTX Community Vault! 🚀\n\nEarly donors earn 2x OPTX multiplier. Join the mission:\n\nvault.jettoptics.ai\n\n@jettoptx #JTX #OPTX #Solana #DePIN`
+      `I just contributed ${amount} SOL to the JTX Community Vault! 🚀\n\nEarly donors earn 2x OPTX multiplier. Join the mission:\n\nastroknots.space\n\n@jettoptx #JTX #OPTX #Solana #DePIN #AstroKnots`
     )
     window.open(`https://x.com/intent/tweet?text=${text}`, "_blank")
   }
@@ -150,12 +188,13 @@ export default function VaultPage() {
 
   return (
     <div className={`min-h-screen ${bg} ${textPrimary} transition-colors duration-300`}>
-      {/* Animated star background (dark mode only) — deterministic positions to avoid hydration mismatch */}
+      {/* ─── Dark Mode: Pulsing stars + Shooting stars ─── */}
       {darkMode && (
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+          {/* Pulsing ambient stars */}
           {STAR_POSITIONS.map((star, i) => (
             <div
-              key={i}
+              key={`star-${i}`}
               className="absolute w-0.5 h-0.5 bg-orange-400/30 rounded-full animate-pulse"
               style={{
                 left: `${star.x}%`,
@@ -165,48 +204,154 @@ export default function VaultPage() {
               }}
             />
           ))}
+          {/* Shooting stars */}
+          {SHOOTING_STARS.map((s, i) => (
+            <div
+              key={`shoot-${i}`}
+              className="absolute"
+              style={{
+                left: `${s.startX}%`,
+                top: `${s.startY}%`,
+                width: `${s.length}px`,
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(251,146,60,0.6) 40%, rgba(255,255,255,0.8) 100%)',
+                transform: `rotate(${s.angle}deg)`,
+                opacity: 0,
+                animation: `shootingStar ${s.duration}s ease-in-out ${s.delay}s infinite`,
+              }}
+            />
+          ))}
+          <style>{`
+            @keyframes shootingStar {
+              0% { opacity: 0; transform: translateX(0) translateY(0) rotate(var(--angle, 30deg)); }
+              5% { opacity: 0.8; }
+              15% { opacity: 0.8; }
+              30% { opacity: 0; transform: translateX(200px) translateY(120px) rotate(var(--angle, 30deg)); }
+              100% { opacity: 0; }
+            }
+          `}</style>
         </div>
       )}
 
-      {/* Jett Optics Logo — top left, links to jettoptics.ai */}
-      <a
-        href="https://jettoptics.ai"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed top-4 left-4 z-50 w-12 h-12 rounded-full overflow-hidden border-2 border-orange-500/50 transition-all duration-300 hover:scale-110 hover:border-orange-400 hover:shadow-lg hover:shadow-orange-500/30 group"
-      >
-        <img src="/icons/lightLOGOjettoptics.jpeg" alt="Jett Optics" className="w-full h-full object-cover transition-transform duration-300 group-hover:rotate-12" />
-      </a>
+      {/* ─── Light Mode: Orange dotted glow background ─── */}
+      {!darkMode && (
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <DottedGlowBackground
+            opacity={0.4}
+            gap={14}
+            radius={1.5}
+            color="rgba(181, 82, 0, 0.2)"
+            glowColor="rgba(181, 82, 0, 0.5)"
+            speedMin={0.2}
+            speedMax={0.6}
+            speedScale={0.7}
+          />
+        </div>
+      )}
 
-      {/* Header — top right: dark/light toggle + Connect */}
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-3">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className={`w-10 h-10 rounded-full flex items-center justify-center border transition-colors ${
-            darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10" : "border-orange-300 bg-white hover:bg-orange-50"
-          }`}
-        >
-          {darkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-orange-600" />}
-        </button>
+      {/* ═══ Full-Width Header Navbar — matches landing page ═══ */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4">
+        <nav className="relative flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+          {/* Left: Vault Branding (replaces DAPP) */}
+          <Link href="/" className="group flex items-center gap-2">
+            <div className="relative w-8 h-8 md:w-6 md:h-6 flex items-center justify-center">
+              <span className="relative flex h-full w-full">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75" />
+                <Image
+                  src="/images/astroknots-logo.png"
+                  alt="Astro Knots"
+                  width={32}
+                  height={32}
+                  className="relative inline-flex rounded-full object-contain"
+                />
+              </span>
+            </div>
+            <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}>VAULT</span>
+          </Link>
 
-        {connected && publicKey ? (
-          <div className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-mono border ${
-            darkMode ? "border-orange-500/30 bg-[#111118]" : "border-orange-300 bg-white"
-          }`}>
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+          {/* Center: Navigation Pills (Desktop only) */}
+          <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
+            <ul className="flex items-center gap-2 px-2 py-1">
+              {[
+                { label: "SPATIAL UX", href: "/#spatial-encryption" },
+                { label: "JOE AI", href: "/#joe-agent" },
+                { label: "CONTACT", href: "/#contact" },
+              ].map((link, index) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className={`group relative font-mono text-xs tracking-wider px-4 py-2 rounded-xl transition-all duration-300 ${
+                      darkMode ? "text-white/40 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-gray-900 hover:bg-black/5"
+                    }`}
+                  >
+                    <span className="text-orange-500 mr-1">0{index + 1}</span>
+                    {link.label}
+                    <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : (
-          <button
-            onClick={() => setVisible(true)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border transition-colors ${
-              darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10 text-white" : "border-orange-300 bg-white hover:bg-orange-50 text-[#1a1a2e]"
-            }`}
-          >
-            <Wallet className="w-4 h-4" /> Connect
-          </button>
-        )}
-      </div>
+
+          {/* Right: Vault + UX Docs + Theme Toggle + Wallet + Logo */}
+          <div className="flex items-center gap-3">
+            {/* Vault link (desktop) */}
+            <div className="hidden md:block">
+              <span className={`font-mono text-xs tracking-wider px-3 py-2 ${darkMode ? "text-orange-500" : "text-orange-600"}`}>
+                Vault
+              </span>
+            </div>
+
+            {/* UX Docs link (desktop) */}
+            <div className="hidden md:block">
+              <Link href="/docs" className={`group relative font-mono text-xs tracking-wider px-3 py-2 rounded-xl transition-all duration-300 ${
+                darkMode ? "text-white/40 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-gray-900 hover:bg-black/5"
+              }`}>
+                <span className="text-orange-500 mr-1">UX</span>Docs
+                <span className="absolute bottom-1 left-3 right-3 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </Link>
+            </div>
+
+            {/* Dark/light toggle */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`w-10 h-10 rounded-full flex items-center justify-center border transition-colors ${
+                darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10" : "border-orange-300 bg-white hover:bg-orange-50"
+              }`}
+            >
+              {darkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-orange-600" />}
+            </button>
+
+            {/* Wallet connect */}
+            {connected && publicKey ? (
+              <div className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-mono border ${
+                darkMode ? "border-orange-500/30 bg-[#111118]" : "border-orange-300 bg-white"
+              }`}>
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+              </div>
+            ) : (
+              <button
+                onClick={() => setVisible(true)}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border transition-colors ${
+                  darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10 text-white" : "border-orange-300 bg-white hover:bg-orange-50 text-[#1a1a2e]"
+                }`}
+              >
+                <Wallet className="w-4 h-4" /> Connect
+              </button>
+            )}
+
+            {/* JettOptics logo button (desktop) */}
+            <Link href="/loading" className="hidden md:flex items-center">
+              <div className={`relative w-11 h-11 overflow-hidden rounded-xl flex items-center justify-center transition-all duration-500 border ${
+                darkMode ? "border-orange-500/40 bg-[#111118]" : "border-orange-300 bg-white"
+              } hover:shadow-[0_0_20px_rgba(181,82,0,0.4)]`}>
+                <Image src="/images/jettoptics-logo.png" alt="JettOptics" width={36} height={36} className="w-9 h-9 object-contain" />
+              </div>
+            </Link>
+          </div>
+        </nav>
+      </header>
 
       <main className="relative z-10 max-w-3xl mx-auto px-4 pt-20 pb-32 space-y-8">
         {/* ═══ Title ═══ */}
@@ -333,11 +478,13 @@ export default function VaultPage() {
           <div className="mb-4">
             <p className={`text-xs uppercase tracking-wider ${textMuted} mb-2`} style={{ fontFamily: "var(--font-orbitron)" }}>DEX / Liquidity Pools</p>
             <div className="grid grid-cols-4 gap-2">
-              {["Jupiter", "Raydium", "Orca", "Meteora"].map(dex => (
-                <a key={dex} href={`https://${dex.toLowerCase()}.com`} target="_blank" rel="noopener noreferrer"
-                  className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-colors ${cardBgAlt} hover:border-orange-500/40`}>
-                  <span className="w-4 h-4 rounded-full bg-gradient-to-br from-green-400 to-cyan-500 flex-shrink-0" />
-                  {dex}
+              {DEX_LINKS.map(dex => (
+                <a key={dex.name} href={dex.url} target="_blank" rel="noopener noreferrer"
+                  className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-all ${cardBgAlt} hover:border-orange-500/40 hover:scale-[1.02]`}>
+                  <span className={`w-5 h-5 rounded-full bg-gradient-to-br ${dex.color} flex-shrink-0 flex items-center justify-center text-[8px] font-black text-white`}>
+                    {dex.letter}
+                  </span>
+                  {dex.name}
                 </a>
               ))}
             </div>
@@ -347,11 +494,17 @@ export default function VaultPage() {
           <div>
             <p className={`text-xs uppercase tracking-wider ${textMuted} mb-2`} style={{ fontFamily: "var(--font-orbitron)" }}>Trackers / Analytics</p>
             <div className="grid grid-cols-3 gap-2">
-              {["DexScreener", "Birdeye", "DexTools", "CoinGecko", "CoinMarketCap", "Solscan"].map(t => (
-                <a key={t} href={`https://${t.toLowerCase().replace(/\s/g, "")}.com`} target="_blank" rel="noopener noreferrer"
-                  className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-colors ${cardBgAlt} hover:border-orange-500/40`}>
-                  <span className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex-shrink-0" />
-                  {t}
+              {TRACKER_LINKS.map(t => (
+                <a key={t.name} href={t.url} target="_blank" rel="noopener noreferrer"
+                  className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-all ${cardBgAlt} hover:border-orange-500/40 hover:scale-[1.02]`}>
+                  {t.hasLogo ? (
+                    <Image src="/icons/dexscreener.png" alt={t.name} width={20} height={20} className="w-5 h-5 rounded-full flex-shrink-0" />
+                  ) : (
+                    <span className={`w-5 h-5 rounded-full bg-gradient-to-br ${t.color} flex-shrink-0 flex items-center justify-center text-[7px] font-black text-white leading-none`}>
+                      {t.letter}
+                    </span>
+                  )}
+                  {t.name}
                 </a>
               ))}
             </div>
@@ -840,7 +993,7 @@ export default function VaultPage() {
               </div>
               <div>
                 <h3 className="font-bold text-base" style={{ fontFamily: "var(--font-orbitron)" }}>DEVNET PREVIEW</h3>
-                <p className={`text-xs ${textMuted}`}>vault.jettoptics.ai</p>
+                <p className={`text-xs ${textMuted}`}>astroknots.space</p>
               </div>
             </div>
 
@@ -949,7 +1102,7 @@ export default function VaultPage() {
 
             <div className={`p-3 rounded-lg ${darkMode ? "bg-black/30" : "bg-gray-50"}`}>
               <p className={`${accentOrange} font-bold mb-1`}>Domains</p>
-              <p>vault.jettoptics.ai → Vercel (Web2)</p>
+              <p>astroknots.space → Vercel (primary)</p>
               <p>astro.knots.sol → SNS mask</p>
               <p>jettoptx.dev → JOE Agent (Conway)</p>
             </div>
@@ -965,41 +1118,52 @@ export default function VaultPage() {
         </div>
       )}
 
-      {/* ═══ Sticky Footer ═══ */}
-      <footer className={`fixed bottom-0 left-0 right-0 z-40 border-t py-2 px-4 ${
+      {/* ═══ Sticky Footer — matches landing page footer ═══ */}
+      <footer className={`fixed bottom-0 left-0 right-0 z-40 border-t py-3 px-4 md:px-8 ${
         darkMode ? "bg-[#0a0a0f]/95 border-white/5 backdrop-blur-md" : "bg-white/95 border-orange-100 backdrop-blur-md"
       }`}>
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          {/* Left: social icons */}
-          <div className="flex items-center gap-3">
-            <a href="https://jettoptics.ai" target="_blank" rel="noopener noreferrer" className={`text-xs ${textSecondary} hover:${accentOrange} transition-colors`}>
-              jettoptics.ai
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+          {/* Left: Contact + UTC clock */}
+          <div className="flex flex-col items-center md:items-start gap-1">
+            <a href="mailto:founder@jettoptics.ai" className={`font-mono text-xs tracking-widest hover:opacity-80 transition-opacity`}>
+              <span className={accentOrange}>Contact: </span>
+              <span className={darkMode ? "text-white" : "text-[#1a1a2e]"}>founder@jettoptics.ai</span>
             </a>
-            <span className={textMuted}>|</span>
-            <span className={`text-xs ${textMuted}`}>&copy; 2026</span>
-            <div className="flex items-center gap-2 ml-2">
-              <a href="https://instagram.com/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:text-orange-400 transition-colors`}>
-                <Instagram className="w-3.5 h-3.5" />
-              </a>
-              <a href="https://x.com/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:text-orange-400 transition-colors`}>
-                <XIcon className="w-3.5 h-3.5" />
-              </a>
-              <a href="https://zora.co" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:text-orange-400 transition-colors`}>
-                <span className="text-[10px] font-bold">Z</span>
-              </a>
-              <a href="https://warpcast.com" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:text-orange-400 transition-colors`}>
-                <FarcasterIcon className="w-3.5 h-3.5" />
-              </a>
-              <a href="#" className={`${textMuted} hover:text-orange-400 transition-colors`}>
-                <Globe className="w-3.5 h-3.5" />
-              </a>
-            </div>
+            <p className={`font-mono text-xs tracking-widest ${textMuted}`}>
+              <span className={accentOrange}>UTC(GMT) - </span>
+              <span className={darkMode ? "text-white" : "text-[#1a1a2e]"}>{utcTime}</span>
+            </p>
           </div>
 
-          {/* Right: contact + UTC */}
-          <div className="flex items-center gap-4">
-            <span className={`text-xs ${accentOrange}`}>Contact: founder@jettoptics.ai</span>
-            <span className={`text-xs font-mono ${textMuted}`}>UTC(GMT) - {utcTime}</span>
+          {/* Center: Social icons */}
+          <div className="flex gap-4">
+            <a href="https://instagram.com/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
+              <Instagram className="w-5 h-5" />
+            </a>
+            <a href="https://x.com/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
+              <XIcon className="w-5 h-5" />
+            </a>
+            <a href="https://zora.co/@jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
+              <span className="text-sm font-bold leading-5 block w-5 h-5 text-center">Z</span>
+            </a>
+            <a href="https://farcaster.xyz/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
+              <FarcasterIcon className="w-5 h-5" />
+            </a>
+            <a href="https://www.cosmos.so/jettoptx" target="_blank" rel="noopener noreferrer" className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors`}>
+              <Globe className="w-5 h-5" />
+            </a>
+          </div>
+
+          {/* Right: JettOptics logo + copyright + TechForce OPTX */}
+          <div className="flex items-center gap-3">
+            <Link href="/optical-spatial-encryption"
+              className={`w-10 h-10 rounded-lg border flex items-center justify-center p-1.5 transition-all ${
+                darkMode ? "bg-white border-orange-500/30 hover:border-orange-400 hover:shadow-[0_0_15px_rgba(181,82,0,0.3)]" : "bg-white border-orange-200 hover:border-orange-400 hover:shadow-[0_0_15px_rgba(181,82,0,0.3)]"
+              }`}>
+              <Image src="/images/jettoptics-logo.png" alt="JettOptics" width={32} height={32} className="w-full h-full object-contain" />
+            </Link>
+            <p className={`font-mono text-xs tracking-widest ${textMuted}`}>&copy; {new Date().getFullYear()}</p>
+            <Image src="/icons/techforce_OPTX.png" alt="TechForce OPTX" width={50} height={50} className="object-contain" />
           </div>
         </div>
       </footer>

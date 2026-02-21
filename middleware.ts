@@ -27,9 +27,13 @@ export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url)
   const hostname = url.hostname
 
-  // Subdomain routing: vault.jettoptics.ai → /vault
-  // Domain routing: astroknots.space → /vault (SNS .sol domain landing)
-  if (hostname === "vault.jettoptics.ai" || hostname === "astroknots.space" || hostname === "www.astroknots.space") {
+  // Redirect vault.jettoptics.ai → astroknots.space (permanent)
+  if (hostname === "vault.jettoptics.ai") {
+    return NextResponse.redirect(`https://astroknots.space${url.pathname === "/vault" ? "" : url.pathname.replace(/^\/vault/, "")}`, 301)
+  }
+
+  // Primary vault domain: astroknots.space → /vault
+  if (hostname === "astroknots.space" || hostname === "www.astroknots.space") {
     if (!url.pathname.startsWith("/vault")) {
       url.pathname = `/vault${url.pathname === "/" ? "" : url.pathname}`
       return NextResponse.rewrite(url)
