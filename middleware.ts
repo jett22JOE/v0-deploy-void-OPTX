@@ -16,6 +16,9 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/optx-login(.*)",
   "/gaze-verify(.*)",
+  "/docs(.*)",
+  "/privacy(.*)",
+  "/terms(.*)",
   "/vault(.*)",
   // OAuth callback routes - critical for social login flows
   "/sso-callback(.*)",

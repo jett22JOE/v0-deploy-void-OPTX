@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useUser, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -872,14 +872,5 @@ pub mod cstb_depin {
 }
 
 export default function DocsPage() {
-  return (
-    <>
-      <SignedIn>
-        <DocsContent />
-      </SignedIn>
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
-    </>
-  )
+  return <DocsContent />
 }
