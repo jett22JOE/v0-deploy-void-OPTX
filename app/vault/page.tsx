@@ -10,7 +10,7 @@ import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import {
   Copy, Check, ExternalLink, ChevronDown,
   Sun, Moon, Wallet, Trophy, Clock, HelpCircle,
-  Smartphone, Shield, Zap,
+  Smartphone, Shield, Zap, Globe,
   ArrowRight, DollarSign, Box, GitBranch, RotateCcw,
 } from "lucide-react"
 import { InstagramIcon, XIcon, ZoraIcon, FarcasterIcon, CosmosIcon } from "@/components/icons/social-icons"
