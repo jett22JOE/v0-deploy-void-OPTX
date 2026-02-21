@@ -7,7 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
-import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
+// AnimatedMetalBorder removed for hydration performance
 import { PolynomialGazePinInput } from "@/components/gaze/PolynomialGazePinInput"
 import { AGTCircle } from "@/components/gaze/AGTCircle"
 import {
@@ -135,7 +135,7 @@ export default function GazeVerifyPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-start overflow-y-auto pt-20 pb-12">
       <DottedGlowBackground
         className="pointer-events-none z-[1]"
         opacity={0.6}
@@ -195,7 +195,7 @@ export default function GazeVerifyPage() {
           >
             Gaze Verification
           </h1>
-          <p className="font-mono text-xs text-zinc-500">
+          <p className="font-mono text-sm text-orange-400">
             {state === "setup" && "Hold 1 (COG) · 2 (EMO) · 3 (ENV) to create your 4-position gaze pattern"}
             {state === "verify" && "Verify your gaze pattern to continue"}
             {state === "connecting" && "Verifying gaze pattern..."}
@@ -206,50 +206,38 @@ export default function GazeVerifyPage() {
         </div>
 
         {/* AGT Circle visualization */}
-        <AnimatedMetalBorder
-          containerClassName="rounded-2xl"
-          borderWidth={3}
-          borderRadius={16}
-        >
-          <div className="bg-black/80 p-6 rounded-2xl">
-            <AGTCircle
-              gazeSection={currentGaze}
-              isTracking={isTracking}
-              isHolding={state === "setup" || state === "verify"}
-              size="large"
-              onSectionSelect={(section) => {
-                setCurrentGaze(section)
-                setIsTracking(true)
-              }}
-            />
-          </div>
-        </AnimatedMetalBorder>
+        <div className="rounded-2xl border border-orange-500/20 bg-black/80 p-6 shadow-xl shadow-black/30">
+          <AGTCircle
+            gazeSection={currentGaze}
+            isTracking={isTracking}
+            isHolding={state === "setup" || state === "verify"}
+            size="large"
+            onSectionSelect={(section) => {
+              setCurrentGaze(section)
+              setIsTracking(true)
+            }}
+          />
+        </div>
 
         {/* Polynomial PIN Input */}
         {(state === "setup" || state === "verify") && (
-          <AnimatedMetalBorder
-            containerClassName="rounded-xl w-full"
-            borderWidth={2}
-            borderRadius={12}
-          >
-            <div className="bg-zinc-900/90 p-6 rounded-xl">
-              <PolynomialGazePinInput
-                positions={4}
-                holdThreshold={800}
-                sessionNonce={sessionNonce}
-                onComplete={handlePinComplete}
-                onPositionChange={(index, tensor) => {
-                  console.log(`Position ${index + 1}: ${tensor}`)
-                }}
-                onError={(err) => {
-                  setError(err)
-                  setState("error")
-                }}
-                isVerifying={state === "connecting" || state === "minting"}
-                gazePosition={null}
-              />
-            </div>
-          </AnimatedMetalBorder>
+          <div className="rounded-xl w-full border border-orange-500/20 bg-zinc-900/90 p-6 shadow-lg shadow-black/20">
+            <PolynomialGazePinInput
+              positions={4}
+              holdThreshold={800}
+              sessionNonce={sessionNonce}
+              onComplete={handlePinComplete}
+              onPositionChange={(index, tensor) => {
+                console.log(`Position ${index + 1}: ${tensor}`)
+              }}
+              onError={(err) => {
+                setError(err)
+                setState("error")
+              }}
+              isVerifying={state === "connecting" || state === "minting"}
+              gazePosition={null}
+            />
+          </div>
         )}
 
         {/* Status states */}
@@ -321,10 +309,14 @@ export default function GazeVerifyPage() {
 
         {/* Info text */}
         <div className="text-center max-w-sm">
-          <p className="font-mono text-[10px] text-zinc-600 leading-relaxed">
-            Your gaze pattern creates a unique polynomial key (3^4 = 81 combinations).
-            Combined with JOULE temporal binding, this prevents replay attacks.
-            {connected && " After verification, $OPTX will be minted to your wallet."}
+          <p className="font-mono text-xs italic text-zinc-600 leading-relaxed">
+            &ldquo;Your gaze pattern creates a unique polynomial key (3⁴ = 81 combinations).
+            Combined with JOULE temporal binding, this prevents replay attacks.&rdquo;
+            {connected && (
+              <span className="block mt-1 text-orange-400/60 not-italic">
+                After verification, $OPTX will be minted to your wallet.
+              </span>
+            )}
           </p>
         </div>
       </div>

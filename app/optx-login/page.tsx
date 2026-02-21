@@ -9,7 +9,7 @@ import Link from "next/link"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
-import { AnimatedMetalBorder } from "@/components/ui/animated-metal-border"
+// AnimatedMetalBorder removed for hydration performance
 import { useWallet } from "@solana/wallet-adapter-react"
 import { Shield, Eye, Fingerprint, Wallet, Brain, Link2, ChevronRight, ChevronLeft } from "lucide-react"
 
@@ -25,13 +25,27 @@ const WalletMultiButton = nextDynamic(
    transition matrix heatmap, and trefoil knot
    ───────────────────────────────────────────────────────── */
 function AGTDiagram({ activeStep }: { activeStep: number }) {
-  // Highlight different parts of the diagram based on step
-  const cogActive = activeStep === 0 || activeStep === 4
+  const cogActive = activeStep === 0 || activeStep === 4 || activeStep === 5
   const walletActive = activeStep === 1
   const mintActive = activeStep === 2
   const knotActive = activeStep === 3
   const gazeActive = activeStep === 4
   const allActive = activeStep === 5
+
+  // Triangle path for draw-on animation
+  const triPath = "M160,45 L75,185 L245,185 Z"
+  const triLen = 490 // approximate path length
+
+  // Orbital angle for barycentric point
+  const baryTargets = [
+    { cx: 160, cy: 90 },   // step 0 — near COG
+    { cx: 160, cy: 138 },  // step 1 — center (wallet)
+    { cx: 160, cy: 138 },  // step 2 — center (mint)
+    { cx: 160, cy: 160 },  // step 3 — lower (knot)
+    { cx: 130, cy: 138 },  // step 4 — leftish (gaze)
+    { cx: 160, cy: 138 },  // step 5 — center (all)
+  ]
+  const bary = baryTargets[activeStep] || baryTargets[5]
 
   return (
     <svg viewBox="0 0 320 260" className="w-full max-w-[280px] mx-auto" xmlns="http://www.w3.org/2000/svg">
@@ -40,38 +54,67 @@ function AGTDiagram({ activeStep }: { activeStep: number }) {
           <stop offset="0%" stopColor="#dc2626" stopOpacity="0.3" />
           <stop offset="100%" stopColor="#b91c1c" stopOpacity="0.08" />
         </linearGradient>
-        <linearGradient id="orangeGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#f97316" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#ea580c" stopOpacity="0.4" />
+        <linearGradient id="cogGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#eab308" />
+          <stop offset="100%" stopColor="#ca8a04" />
         </linearGradient>
+        <linearGradient id="emoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ec4899" />
+          <stop offset="100%" stopColor="#db2777" />
+        </linearGradient>
+        <linearGradient id="envGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#2563eb" />
+        </linearGradient>
+        <radialGradient id="baryGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="white" stopOpacity="1" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </radialGradient>
         <filter id="glow">
           <feGaussianBlur stdDeviation="2" result="blur" />
           <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
-        <filter id="softGlow">
-          <feGaussianBlur stdDeviation="4" result="blur" />
+        <filter id="bigGlow">
+          <feGaussianBlur stdDeviation="6" result="blur" />
           <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
+        <marker id="arrowBlue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#3b82f6" />
+        </marker>
       </defs>
 
-      {/* R³ Cube wireframe */}
-      <g opacity="0.15" stroke="#94a3b8" strokeWidth="0.5" fill="none">
-        <path d="M60,30 L260,30 L280,60 L80,60 Z" />
-        <path d="M60,30 L60,180 L80,210 L80,60" />
-        <path d="M260,30 L260,180 L280,210 L280,60" />
-        <path d="M60,180 L260,180 L280,210 L80,210 Z" />
-      </g>
+      {/* R³ Cube wireframe — draws in on mount */}
+      <motion.g
+        opacity={0.15}
+        stroke="#94a3b8"
+        strokeWidth="0.5"
+        fill="none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.15 }}
+        transition={{ duration: 1.5, delay: 0.2 }}
+      >
+        {["M60,30 L260,30 L280,60 L80,60 Z", "M60,30 L60,180 L80,210 L80,60", "M260,30 L260,180 L280,210 L280,60", "M60,180 L260,180 L280,210 L80,210 Z"].map((d, i) => (
+          <motion.path
+            key={`cube${i}`}
+            d={d}
+            strokeDasharray="600"
+            initial={{ strokeDashoffset: 600 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 1.8, delay: 0.1 * i, ease: "easeOut" }}
+          />
+        ))}
+      </motion.g>
 
       {/* Dual-space functional plane (red) */}
-      <polygon
+      <motion.polygon
         points="70,130 270,130 240,170 100,170"
         fill="url(#redPlane)"
         stroke="#dc2626"
         strokeWidth="0.5"
         strokeOpacity="0.3"
-        opacity={allActive || mintActive ? 1 : 0.6}
+        animate={{ opacity: allActive || mintActive ? 1 : 0.5 }}
+        transition={{ duration: 0.6 }}
       />
-      {/* Grid on red plane */}
       <g opacity="0.08" stroke="#dc2626" strokeWidth="0.3">
         {[0,1,2,3,4,5].map(i => (
           <line key={`hg${i}`} x1={80+i*32} y1={132} x2={106+i*22} y2={168} />
@@ -81,85 +124,202 @@ function AGTDiagram({ activeStep }: { activeStep: number }) {
         ))}
       </g>
 
-      {/* Triangle simplex — COG (top), EMO (bottom-left), ENV (bottom-right) */}
-      <g filter="url(#glow)">
-        <polygon
-          points="160,45 75,185 245,185"
-          fill="none"
-          stroke="white"
-          strokeWidth={allActive ? 2 : 1.2}
-          strokeOpacity={allActive ? 0.9 : 0.6}
-        />
-      </g>
-
-      {/* Barycentric point (center) */}
-      <motion.circle
-        cx="160" cy="138"
-        r={allActive ? 5 : 4}
-        fill="white"
-        opacity={0.9}
-        animate={{ r: [3.5, 5, 3.5] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      {/* Triangle simplex — draws itself with stroke-dashoffset */}
+      <motion.path
+        d={triPath}
+        fill="none"
+        stroke="white"
+        strokeLinejoin="round"
+        filter="url(#glow)"
+        strokeDasharray={triLen}
+        initial={{ strokeDashoffset: triLen, strokeWidth: 1 }}
+        animate={{
+          strokeDashoffset: 0,
+          strokeWidth: allActive ? 2.2 : 1.2,
+          strokeOpacity: allActive ? 0.95 : 0.6,
+        }}
+        transition={{ strokeDashoffset: { duration: 2, ease: "easeInOut" }, strokeWidth: { duration: 0.5 }, strokeOpacity: { duration: 0.5 } }}
       />
 
-      {/* Saccade update arrows — blue EMDR arrows */}
-      <g opacity={gazeActive || allActive ? 0.9 : 0.25}>
-        {/* COG arrow */}
-        <motion.line
-          x1="160" y1="135" x2="160" y2="65"
-          stroke="#3b82f6" strokeWidth="1.5"
-          markerEnd="url(#arrowBlue)"
-          animate={gazeActive ? { opacity: [0.4, 1, 0.4] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity }}
+      {/* Pulsing triangle echo on "All Connected" step */}
+      {allActive && (
+        <motion.path
+          d={triPath}
+          fill="none"
+          stroke="white"
+          strokeLinejoin="round"
+          strokeWidth="1"
+          initial={{ opacity: 0.6, scale: 1 }}
+          animate={{ opacity: [0.5, 0, 0.5], scale: [1, 1.06, 1] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transformOrigin: "160px 138px" }}
         />
-        {/* EMO arrow */}
-        <motion.line
-          x1="157" y1="140" x2="95" y2="175"
-          stroke="#3b82f6" strokeWidth="1.5"
-          markerEnd="url(#arrowBlue)"
-          animate={gazeActive ? { opacity: [0.4, 1, 0.4] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
-        />
-        {/* ENV arrow */}
-        <motion.line
-          x1="163" y1="140" x2="225" y2="175"
-          stroke="#3b82f6" strokeWidth="1.5"
-          markerEnd="url(#arrowBlue)"
-          animate={gazeActive ? { opacity: [0.4, 1, 0.4] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity, delay: 1 }}
-        />
-      </g>
-      <defs>
-        <marker id="arrowBlue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#3b82f6" />
-        </marker>
-      </defs>
+      )}
 
-      {/* COG vertex */}
+      {/* Barycentric point — animates position between steps */}
+      <motion.circle
+        r={allActive ? 5 : 3.5}
+        fill="white"
+        filter="url(#glow)"
+        animate={{
+          cx: bary.cx,
+          cy: bary.cy,
+          r: allActive ? [4, 6, 4] : [3, 4, 3],
+          opacity: [0.7, 1, 0.7],
+        }}
+        transition={{
+          cx: { duration: 0.8, ease: "easeInOut" },
+          cy: { duration: 0.8, ease: "easeInOut" },
+          r: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+          opacity: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+      {/* Barycentric glow ring */}
+      <motion.circle
+        r="12"
+        fill="none"
+        stroke="white"
+        strokeWidth="0.5"
+        animate={{
+          cx: bary.cx,
+          cy: bary.cy,
+          opacity: [0.15, 0.05, 0.15],
+          r: [10, 16, 10],
+        }}
+        transition={{
+          cx: { duration: 0.8, ease: "easeInOut" },
+          cy: { duration: 0.8, ease: "easeInOut" },
+          opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+          r: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+        }}
+      />
+
+      {/* Saccade arrows — sequential draw with stagger */}
+      <motion.g animate={{ opacity: gazeActive || allActive ? 0.9 : 0.2 }} transition={{ duration: 0.5 }}>
+        {[
+          { x1: 160, y1: 135, x2: 160, y2: 65, delay: 0 },
+          { x1: 157, y1: 140, x2: 95, y2: 175, delay: 0.3 },
+          { x1: 163, y1: 140, x2: 225, y2: 175, delay: 0.6 },
+        ].map(({ x1, y1, x2, y2, delay }, i) => (
+          <motion.line
+            key={`sac${i}`}
+            x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke="#3b82f6"
+            strokeWidth="1.5"
+            markerEnd="url(#arrowBlue)"
+            strokeDasharray="80"
+            animate={gazeActive
+              ? { strokeDashoffset: [80, 0, 0, 80], opacity: [0, 1, 1, 0] }
+              : { strokeDashoffset: 0, opacity: 1 }
+            }
+            transition={gazeActive
+              ? { duration: 2, repeat: Infinity, delay, times: [0, 0.3, 0.7, 1] }
+              : { duration: 0.5 }
+            }
+          />
+        ))}
+      </motion.g>
+
+      {/* COG vertex — yellow to match 1/COG key badge */}
       <g>
-        <motion.circle cx="160" cy="45" r="6" fill={cogActive ? "#f97316" : "#64748b"} filter="url(#glow)"
-          animate={cogActive ? { scale: [1, 1.3, 1] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity }}
+        <motion.circle
+          cx="160" cy="45" r="6"
+          filter="url(#glow)"
+          animate={{
+            fill: cogActive ? "#eab308" : "#64748b",
+            r: cogActive ? [5, 8, 5] : 6,
+          }}
+          transition={{
+            fill: { duration: 0.4 },
+            r: cogActive ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" } : { duration: 0.4 },
+          }}
         />
-        <text x="160" y="30" textAnchor="middle" fill={cogActive ? "#f97316" : "#94a3b8"} fontSize="11" fontFamily="monospace" fontWeight="bold">COG</text>
+        {cogActive && (
+          <motion.circle
+            cx="160" cy="45" r="12"
+            fill="none" stroke="#eab308" strokeWidth="1"
+            initial={{ opacity: 0, r: 6 }}
+            animate={{ opacity: [0.6, 0], r: [6, 20] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+        )}
+        <motion.text
+          x="160" y="30"
+          textAnchor="middle"
+          fontSize="11"
+          fontFamily="monospace"
+          fontWeight="bold"
+          animate={{ fill: cogActive ? "#eab308" : "#94a3b8" }}
+          transition={{ duration: 0.4 }}
+        >COG</motion.text>
       </g>
 
       {/* EMO vertex */}
       <g>
-        <motion.circle cx="75" cy="185" r="6" fill={gazeActive || allActive ? "#ec4899" : "#64748b"} filter="url(#glow)"
-          animate={(gazeActive || allActive) ? { scale: [1, 1.3, 1] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
+        <motion.circle
+          cx="75" cy="185" r="6"
+          filter="url(#glow)"
+          animate={{
+            fill: gazeActive || allActive ? "#ec4899" : "#64748b",
+            r: (gazeActive || allActive) ? [5, 8, 5] : 6,
+          }}
+          transition={{
+            fill: { duration: 0.4 },
+            r: (gazeActive || allActive) ? { duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.3 } : { duration: 0.4 },
+          }}
         />
-        <text x="55" y="202" textAnchor="middle" fill={gazeActive || allActive ? "#ec4899" : "#94a3b8"} fontSize="11" fontFamily="monospace" fontWeight="bold">EMO</text>
+        {(gazeActive || allActive) && (
+          <motion.circle
+            cx="75" cy="185" r="12"
+            fill="none" stroke="#ec4899" strokeWidth="1"
+            initial={{ opacity: 0, r: 6 }}
+            animate={{ opacity: [0.6, 0], r: [6, 20] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
+          />
+        )}
+        <motion.text
+          x="55" y="202"
+          textAnchor="middle"
+          fontSize="11"
+          fontFamily="monospace"
+          fontWeight="bold"
+          animate={{ fill: (gazeActive || allActive) ? "#ec4899" : "#94a3b8" }}
+          transition={{ duration: 0.4 }}
+        >EMO</motion.text>
       </g>
 
       {/* ENV vertex */}
       <g>
-        <motion.circle cx="245" cy="185" r="6" fill={gazeActive || allActive ? "#3b82f6" : "#64748b"} filter="url(#glow)"
-          animate={(gazeActive || allActive) ? { scale: [1, 1.3, 1] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
+        <motion.circle
+          cx="245" cy="185" r="6"
+          filter="url(#glow)"
+          animate={{
+            fill: gazeActive || allActive ? "#3b82f6" : "#64748b",
+            r: (gazeActive || allActive) ? [5, 8, 5] : 6,
+          }}
+          transition={{
+            fill: { duration: 0.4 },
+            r: (gazeActive || allActive) ? { duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.6 } : { duration: 0.4 },
+          }}
         />
-        <text x="265" y="202" textAnchor="middle" fill={gazeActive || allActive ? "#3b82f6" : "#94a3b8"} fontSize="11" fontFamily="monospace" fontWeight="bold">ENV</text>
+        {(gazeActive || allActive) && (
+          <motion.circle
+            cx="245" cy="185" r="12"
+            fill="none" stroke="#3b82f6" strokeWidth="1"
+            initial={{ opacity: 0, r: 6 }}
+            animate={{ opacity: [0.6, 0], r: [6, 20] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
+          />
+        )}
+        <motion.text
+          x="265" y="202"
+          textAnchor="middle"
+          fontSize="11"
+          fontFamily="monospace"
+          fontWeight="bold"
+          animate={{ fill: (gazeActive || allActive) ? "#3b82f6" : "#94a3b8" }}
+          transition={{ duration: 0.4 }}
+        >ENV</motion.text>
       </g>
 
       {/* R³ label */}
@@ -167,8 +327,12 @@ function AGTDiagram({ activeStep }: { activeStep: number }) {
         R<tspan baselineShift="super" fontSize="9">3</tspan>
       </text>
 
-      {/* Transition matrix heatmap (bottom-left) */}
-      <g transform="translate(15, 215)" opacity={knotActive || allActive ? 0.9 : 0.3}>
+      {/* Transition matrix heatmap (bottom-left) — fades in per step */}
+      <motion.g
+        transform="translate(15, 215)"
+        animate={{ opacity: knotActive || allActive ? 0.9 : 0.25 }}
+        transition={{ duration: 0.6 }}
+      >
         {[0,1,2,3,4,5,6].map((row) =>
           [0,1,2,3,4,5,6,7,8].map((col) => {
             const val = Math.abs(Math.sin(row * 3 + col * 2) * 0.8 + Math.cos(row + col * 5) * 0.2)
@@ -176,39 +340,85 @@ function AGTDiagram({ activeStep }: { activeStep: number }) {
             const g = Math.round(40 + (1 - val) * 120)
             const b = Math.round(80 + (1 - val) * 150)
             return (
-              <rect
+              <motion.rect
                 key={`hm${row}${col}`}
                 x={col * 11} y={row * 5}
                 width="10" height="4"
                 fill={`rgb(${r},${g},${b})`}
                 rx="0.5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: (row * 9 + col) * 0.008 }}
               />
             )
           })
         )}
         <text x="0" y="-3" fill="#64748b" fontSize="6" fontFamily="monospace">27x27 transition</text>
-      </g>
+      </motion.g>
 
-      {/* Trefoil knot (bottom-right) */}
-      <g transform="translate(230, 218)" opacity={knotActive || allActive ? 0.9 : 0.3}>
-        <g fill="none" stroke="#94a3b8" strokeWidth="1.2" opacity="0.7">
+      {/* Trefoil knot (bottom-right) — rotates when active */}
+      <motion.g
+        transform="translate(230, 218)"
+        animate={{ opacity: knotActive || allActive ? 0.9 : 0.25 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.g
+          fill="none"
+          stroke="#94a3b8"
+          strokeWidth="1.2"
+          opacity="0.7"
+          animate={knotActive ? { rotate: [0, 360] } : { rotate: 0 }}
+          transition={knotActive ? { duration: 8, repeat: Infinity, ease: "linear" } : { duration: 0.5 }}
+          style={{ transformOrigin: "21px 18px" }}
+        >
           <ellipse cx="20" cy="12" rx="14" ry="10" transform="rotate(-30, 20, 12)" />
           <ellipse cx="32" cy="22" rx="14" ry="10" transform="rotate(30, 32, 22)" />
           <ellipse cx="10" cy="22" rx="14" ry="10" transform="rotate(90, 10, 22)" />
-        </g>
+        </motion.g>
         <text x="21" y="38" textAnchor="middle" fill="#64748b" fontSize="5.5" fontFamily="serif" fontStyle="italic">
           LTx = Jones / Alexander
         </text>
-      </g>
+      </motion.g>
 
-      {/* Wallet icon overlay when wallet step active */}
+      {/* Wallet dashed orbit when wallet step active */}
       {walletActive && (
-        <motion.g
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transform="translate(140, 115)"
-        >
-          <circle cx="20" cy="20" r="16" fill="none" stroke="#a855f7" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
+        <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          <motion.circle
+            cx="160" cy="138" r="35"
+            fill="none" stroke="#a855f7" strokeWidth="1" strokeDasharray="6 4"
+            animate={{ strokeDashoffset: [0, -40] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.circle
+            cx="160" cy="103" r="3"
+            fill="#a855f7" filter="url(#glow)"
+            animate={{
+              cx: [160, 195, 160, 125, 160],
+              cy: [103, 138, 173, 138, 103],
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          />
+        </motion.g>
+      )}
+
+      {/* Mint energy burst when mint step active */}
+      {mintActive && (
+        <motion.g>
+          {[0, 60, 120, 180, 240, 300].map((angle, i) => {
+            const rad = (angle * Math.PI) / 180
+            const x2 = 160 + Math.cos(rad) * 50
+            const y2 = 138 + Math.sin(rad) * 50
+            return (
+              <motion.line
+                key={`ray${i}`}
+                x1="160" y1="138" x2={x2} y2={y2}
+                stroke="#06b6d4" strokeWidth="0.8"
+                initial={{ opacity: 0, pathLength: 0 }}
+                animate={{ opacity: [0, 0.6, 0], pathLength: [0, 1, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.15 }}
+              />
+            )
+          })}
         </motion.g>
       )}
     </svg>
@@ -358,8 +568,8 @@ function JettAuthModal({ onDismiss }: { onDismiss: () => void }) {
                 {current.title}
               </h2>
 
-              {/* Description */}
-              <p className="text-sm text-zinc-400 leading-relaxed max-w-sm">
+              {/* Description — orange mono, larger than quote */}
+              <p className="text-sm md:text-[15px] font-mono text-orange-400 leading-relaxed max-w-sm">
                 {current.description}
               </p>
 
@@ -558,11 +768,7 @@ export default function OptxLoginPage() {
             </button>
           </div>
 
-          <AnimatedMetalBorder
-            containerClassName="rounded-2xl w-full"
-            borderWidth={4}
-            borderRadius={16}
-          >
+          <div className="rounded-2xl w-full border border-zinc-800/60 bg-zinc-950/40 backdrop-blur-sm shadow-xl shadow-black/30">
             <div className="clerk-auth-wrapper rounded-2xl w-full">
               {/* CSS overrides for Clerk components */}
               <style jsx global>{`
@@ -669,7 +875,7 @@ export default function OptxLoginPage() {
                 />
               )}
             </div>
-          </AnimatedMetalBorder>
+          </div>
 
           {/* Gaze verify link — after Clerk auth, go to gaze pattern */}
           <div className="mt-4 text-center">
