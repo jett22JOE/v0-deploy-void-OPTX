@@ -57,6 +57,16 @@ export default function TrainingPage() {
   const [isSpacePressed, setIsSpacePressed] = useState(false)
   const [currentSector, setCurrentSector] = useState<"COG" | "EMO" | "ENV" | "CENTER">("CENTER")
 
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  useEffect(() => {
+    const saved = localStorage.getItem('dojo-theme') as 'dark' | 'light' | null;
+    if (saved) setTheme(saved);
+    const handler = (e: Event) => setTheme((e as CustomEvent).detail);
+    window.addEventListener('dojo-theme-change', handler);
+    return () => window.removeEventListener('dojo-theme-change', handler);
+  }, []);
+  const isDark = theme === 'dark';
+
   // AGT Line Chart History
   const [cogHistory, setCogHistory] = useState<Array<{ time: number; value: number }>>([])
   const [emoHistory, setEmoHistory] = useState<Array<{ time: number; value: number }>>([])
@@ -338,8 +348,8 @@ export default function TrainingPage() {
 
   if (!isLoaded) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <p className="text-orange-400 text-xl font-mono">Loading DOJO...</p>
+      <div className={`fixed inset-0 ${isDark ? 'bg-black' : 'bg-white'} flex items-center justify-center`}>
+        <p className={`${isDark ? 'text-orange-400' : 'text-orange-600'} text-xl font-mono`}>Loading DOJO...</p>
       </div>
     )
   }
@@ -347,23 +357,23 @@ export default function TrainingPage() {
   const totalWeight = agtWeights.COG + agtWeights.ENV + agtWeights.EMO || 1
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-gray-900 via-slate-900 to-black">
+    <div className={`h-screen flex flex-col overflow-hidden bg-gradient-to-br ${isDark ? 'from-gray-900 via-slate-900 to-black' : 'from-orange-50/50 via-white to-zinc-50'}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-orange-500/20">
+      <div className={`flex items-center justify-between px-4 py-2 border-b ${isDark ? 'border-orange-500/20' : 'border-orange-200/30'}`}>
         <div className="flex items-center gap-3">
-          <Link href="/dojo" className="text-orange-400 hover:text-orange-300 transition-colors">
+          <Link href="/dojo" className={`${isDark ? 'text-orange-400 hover:text-orange-300' : 'text-orange-600 hover:text-orange-500'} transition-colors`}>
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="font-mono text-lg text-orange-400 tracking-widest">DOJO TRAINING</h1>
-          <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs">
+          <h1 className={`font-mono text-lg ${isDark ? 'text-orange-400' : 'text-orange-800'} tracking-widest`}>DOJO TRAINING</h1>
+          <Badge className={`${isDark ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-orange-100 text-orange-700 border-orange-200/50'} text-xs`}>
             {isTraining ? "LIVE" : "READY"}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-orange-300 border-orange-500/30 text-xs bg-black/20">
+          <Badge variant="outline" className={`text-xs ${isDark ? 'text-orange-300 border-orange-500/30 bg-black/20' : 'text-orange-700 border-orange-200/50 bg-white/60'}`}>
             FPS: {fps}
           </Badge>
-          <Badge variant="outline" className="text-orange-400 border-orange-500/30 text-xs bg-black/20">
+          <Badge variant="outline" className={`text-xs ${isDark ? 'text-orange-400 border-orange-500/30 bg-black/20' : 'text-orange-700 border-orange-200/50 bg-white/60'}`}>
             {frameCount} Frames
           </Badge>
         </div>
@@ -376,20 +386,20 @@ export default function TrainingPage() {
 
             {/* Camera Feed - 5 columns */}
             <div className="col-span-12 lg:col-span-5">
-              <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 backdrop-blur shadow-lg shadow-orange-500/5 h-full">
+              <Card className={`${isDark ? 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 shadow-lg shadow-orange-500/5' : 'border-orange-200/30 bg-white/60 shadow-lg shadow-orange-100/20'} backdrop-blur h-full`}>
                 <CardHeader className="p-1.5">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <CardTitle className="text-sm text-orange-300 font-semibold flex items-center gap-2">
+                    <CardTitle className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-700'} font-semibold flex items-center gap-2`}>
                       Camera Feed
                       <Badge variant={cameraActive ? "default" : "outline"}
-                        className={`text-xs px-2 ${cameraActive ? "bg-red-500/30 text-red-400 border-red-500/40" : "text-orange-400/70 border-orange-500/30"}`}>
+                        className={`text-xs px-2 ${cameraActive ? "bg-red-500/30 text-red-400 border-red-500/40" : isDark ? "text-orange-400/70 border-orange-500/30" : "text-orange-600/70 border-orange-200/50"}`}>
                         {cameraActive ? "Live" : "Off"}
                       </Badge>
                     </CardTitle>
                     <div className="flex items-center gap-1.5">
                       <Button size="sm" variant={joeAgentActive ? "default" : "outline"}
                         onClick={() => setJoeAgentActive(!joeAgentActive)}
-                        className={`h-6 text-[9px] px-2 ${joeAgentActive ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-0" : "border-orange-500/30 text-orange-400 hover:bg-orange-500/10"}`}>
+                        className={`h-6 text-[9px] px-2 ${joeAgentActive ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-0" : isDark ? "border-orange-500/30 text-orange-400 hover:bg-orange-500/10" : "border-orange-200/50 text-orange-700 hover:bg-orange-100/50"}`}>
                         JOE {joeAgentActive ? "ON" : "OFF"}
                       </Button>
                       {!cameraActive ? (
@@ -407,7 +417,7 @@ export default function TrainingPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-2 pt-1">
-                  <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border border-orange-500/40 bg-black shadow-inner">
+                  <div className={`relative w-full aspect-[4/3] rounded-lg overflow-hidden border ${isDark ? 'border-orange-500/40 bg-black' : 'border-orange-200/40 bg-zinc-100'} shadow-inner`}>
                     <video ref={videoRef} width="640" height="480" autoPlay className="absolute inset-0 w-full h-full object-contain" />
                     <canvas ref={canvasRef} width="640" height="480" className="absolute inset-0 w-full h-full pointer-events-none" />
                     <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
@@ -421,11 +431,11 @@ export default function TrainingPage() {
                       </circle>
                     </svg>
                     {!cameraActive && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-black/90 to-orange-500/10">
+                      <div className={`absolute inset-0 flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-black/90 to-orange-500/10' : 'bg-gradient-to-br from-zinc-100/90 to-orange-100/30'}`}>
                         <div className="text-center">
-                          <Video className="w-16 h-16 text-orange-500/30 mx-auto mb-2" />
-                          <p className="text-orange-400/70 text-sm font-mono">Camera Off</p>
-                          <p className="text-orange-400/40 text-xs font-mono mt-1">Click Cam to start</p>
+                          <Video className={`w-16 h-16 ${isDark ? 'text-orange-500/30' : 'text-orange-400/40'} mx-auto mb-2`} />
+                          <p className={`${isDark ? 'text-orange-400/70' : 'text-orange-600/70'} text-sm font-mono`}>Camera Off</p>
+                          <p className={`${isDark ? 'text-orange-400/40' : 'text-orange-500/50'} text-xs font-mono mt-1`}>Click Cam to start</p>
                         </div>
                       </div>
                     )}
@@ -437,11 +447,11 @@ export default function TrainingPage() {
             {/* Analytics + JettChat - 7 columns */}
             <div className="col-span-12 lg:col-span-7 flex flex-col gap-2">
               {/* AGT Tensor Analytics */}
-              <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 backdrop-blur shadow-lg shadow-orange-500/5 flex-1">
+              <Card className={`${isDark ? 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 shadow-lg shadow-orange-500/5' : 'border-orange-200/30 bg-white/60 shadow-lg shadow-orange-100/20'} backdrop-blur flex-1`}>
                 <CardHeader className="p-1.5">
-                  <CardTitle className="text-sm text-orange-300 font-semibold flex items-center gap-2">
+                  <CardTitle className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-700'} font-semibold flex items-center gap-2`}>
                     AGT Tensor Analytics
-                    <Badge className="ml-auto bg-gradient-to-r from-orange-500/30 to-yellow-500/20 text-orange-400 border-orange-500/40 text-xs px-2">
+                    <Badge className={`ml-auto text-xs px-2 ${isDark ? 'bg-gradient-to-r from-orange-500/30 to-yellow-500/20 text-orange-400 border-orange-500/40' : 'bg-orange-100 text-orange-700 border-orange-200/50'}`}>
                       {isTraining ? "Live" : "Idle"}
                     </Badge>
                   </CardTitle>
@@ -455,29 +465,29 @@ export default function TrainingPage() {
                         <div key={t} className="flex items-center gap-2">
                           <span className="text-xs font-mono w-8" style={{ color: TENSOR_COLORS[t] }}>{t}</span>
                           <span className="text-sm">{TENSOR_EMOTICONS[t]}</span>
-                          <div className="flex-1 h-3 rounded-full bg-black/30 border border-orange-500/20 overflow-hidden">
+                          <div className={`flex-1 h-3 rounded-full ${isDark ? 'bg-black/30 border border-orange-500/20' : 'bg-zinc-100 border border-orange-200/30'} overflow-hidden`}>
                             <div className="h-full rounded-full transition-all duration-300"
                               style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${TENSOR_COLORS[t]}, ${TENSOR_COLORS[t]}80)` }} />
                           </div>
-                          <span className="text-xs font-mono text-orange-300 w-12 text-right">{pct}%</span>
-                          <span className="text-xs font-mono text-orange-400/50 w-10 text-right">{agtWeights[t]}</span>
+                          <span className={`text-xs font-mono ${isDark ? 'text-orange-300' : 'text-zinc-600'} w-12 text-right`}>{pct}%</span>
+                          <span className={`text-xs font-mono ${isDark ? 'text-orange-400/50' : 'text-zinc-400'} w-10 text-right`}>{agtWeights[t]}</span>
                         </div>
                       )
                     })}
                   </div>
                   {/* Current Detection */}
                   {classification && (
-                    <div className="mt-3 p-2 rounded bg-black/20 border border-orange-500/20 text-center">
+                    <div className={`mt-3 p-2 rounded ${isDark ? 'bg-black/20 border border-orange-500/20' : 'bg-orange-50/50 border border-orange-200/30'} text-center`}>
                       <span className="text-2xl">{TENSOR_EMOTICONS[classification.tensor]}</span>
-                      <span className="text-orange-300 font-mono text-sm ml-2">{classification.tensor}</span>
-                      <span className="text-orange-400/50 font-mono text-xs ml-2">({(classification.confidence * 100).toFixed(0)}%)</span>
+                      <span className={`${isDark ? 'text-orange-300' : 'text-orange-700'} font-mono text-sm ml-2`}>{classification.tensor}</span>
+                      <span className={`${isDark ? 'text-orange-400/50' : 'text-zinc-500'} font-mono text-xs ml-2`}>({(classification.confidence * 100).toFixed(0)}%)</span>
                     </div>
                   )}
 
                   {/* Gaze-Lock Status */}
-                  <div className="mt-2 p-1.5 rounded bg-black/10 border border-orange-500/10 flex items-center gap-2">
-                    <Shield className="w-3 h-3 text-green-400" />
-                    <span className="text-[10px] text-green-400/80 font-mono">Gaze-Lock {isTraining ? "Active" : "Standby"}</span>
+                  <div className={`mt-2 p-1.5 rounded ${isDark ? 'bg-black/10 border border-orange-500/10' : 'bg-green-50/50 border border-green-200/30'} flex items-center gap-2`}>
+                    <Shield className={`w-3 h-3 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                    <span className={`text-[10px] ${isDark ? 'text-green-400/80' : 'text-green-700'} font-mono`}>Gaze-Lock {isTraining ? "Active" : "Standby"}</span>
                   </div>
 
                   {/* JETTUX Radar + Donut */}
@@ -498,9 +508,9 @@ export default function TrainingPage() {
               </Card>
 
               {/* JettChat */}
-              <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 backdrop-blur shadow-lg shadow-orange-500/5 flex flex-col h-[200px]">
+              <Card className={`${isDark ? 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 shadow-lg shadow-orange-500/5' : 'border-orange-200/30 bg-white/60 shadow-lg shadow-orange-100/20'} backdrop-blur flex flex-col h-[200px]`}>
                 <CardHeader className="p-1.5 flex-shrink-0">
-                  <CardTitle className="text-sm text-orange-300 font-semibold flex items-center justify-between">
+                  <CardTitle className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-700'} font-semibold flex items-center justify-between`}>
                     <span>JettChat - $OPTX Signature Testing</span>
                     {isEditingName ? (
                       <div className="flex items-center gap-1">
@@ -515,9 +525,9 @@ export default function TrainingPage() {
                           }}
                           maxLength={24}
                           placeholder="Name..."
-                          className="w-24 px-1.5 py-0.5 bg-black/40 border border-orange-500/30 rounded text-orange-200 text-[10px] font-mono placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                          className={`w-24 px-1.5 py-0.5 ${isDark ? 'bg-black/40 border-orange-500/30 text-orange-200 placeholder:text-zinc-600 focus:ring-orange-500/40' : 'bg-white/80 border-orange-200/50 text-zinc-800 placeholder:text-zinc-400 focus:ring-orange-400/40'} border rounded text-[10px] font-mono focus:outline-none focus:ring-1`}
                         />
-                        <Button size="sm" onClick={saveDisplayName} className="h-5 text-[8px] px-1.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30">OK</Button>
+                        <Button size="sm" onClick={saveDisplayName} className={`h-5 text-[8px] px-1.5 ${isDark ? 'bg-orange-500/20 text-orange-400 border-orange-500/30 hover:bg-orange-500/30' : 'bg-orange-100 text-orange-700 border-orange-200/50 hover:bg-orange-200/50'} border`}>OK</Button>
                       </div>
                     ) : (
                       <button onClick={startEditingName} className="flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-orange-500/10 transition-colors" title="Change display name">
@@ -531,12 +541,12 @@ export default function TrainingPage() {
                 <CardContent className="flex-1 flex flex-col min-h-0 p-2 pt-1">
                   <div className="flex-1 overflow-y-auto space-y-1 mb-2 min-h-0">
                     {chatMessages.map((msg) => (
-                      <div key={msg.id} className="p-1 rounded text-[10px] bg-black/30 border-l-2 border-orange-500/20">
+                      <div key={msg.id} className={`p-1 rounded text-[10px] ${isDark ? 'bg-black/30 border-l-2 border-orange-500/20' : 'bg-orange-50/50 border-l-2 border-orange-300/30'}`}>
                         <div className="flex items-center gap-1">
                           <span className="text-xs">{msg.tensor ? TENSOR_EMOTICONS[msg.tensor] : "\u{1F464}"}</span>
-                          <span className="font-semibold text-orange-300">{msg.user}</span>
+                          <span className={`font-semibold ${isDark ? 'text-orange-300' : 'text-orange-700'}`}>{msg.user}</span>
                         </div>
-                        <p className="text-orange-200/80 leading-tight">{msg.content}</p>
+                        <p className={`${isDark ? 'text-orange-200/80' : 'text-zinc-700'} leading-tight`}>{msg.content}</p>
                       </div>
                     ))}
                     <div ref={chatEndRef} />
@@ -545,7 +555,7 @@ export default function TrainingPage() {
                     <input type="text" value={chatMessage} onChange={(e) => setChatMessage(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                       placeholder="Type message... (hold Space + gaze for emoji)"
-                      className="flex-1 px-2 py-1 bg-black/30 border border-orange-500/30 rounded text-orange-200 text-[10px] placeholder:text-orange-400/40 focus:outline-none focus:ring-1 focus:ring-orange-500/50" />
+                      className={`flex-1 px-2 py-1 ${isDark ? 'bg-black/30 border-orange-500/30 text-orange-200 placeholder:text-orange-400/40 focus:ring-orange-500/50' : 'bg-white/80 border-orange-200/50 text-zinc-800 placeholder:text-zinc-400 focus:ring-orange-400/50'} border rounded text-[10px] focus:outline-none focus:ring-1`} />
                     <Button onClick={handleSendMessage} size="sm" className="bg-gradient-to-r from-orange-500 to-orange-600 border-0 h-6">
                       <Send className="w-2.5 h-2.5" />
                     </Button>
@@ -556,9 +566,9 @@ export default function TrainingPage() {
 
             {/* Tensor Trend Chart - Bottom */}
             <div className="col-span-12">
-              <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 backdrop-blur shadow-lg shadow-orange-500/5">
+              <Card className={`${isDark ? 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 shadow-lg shadow-orange-500/5' : 'border-orange-200/30 bg-white/60 shadow-lg shadow-orange-100/20'} backdrop-blur`}>
                 <CardHeader className="p-1.5">
-                  <CardTitle className="text-sm text-orange-300 font-semibold">AGT Tensor Trends (30s)</CardTitle>
+                  <CardTitle className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-700'} font-semibold`}>AGT Tensor Trends (30s)</CardTitle>
                 </CardHeader>
                 <CardContent className="p-2 pt-1">
                   <AGTLineCharts

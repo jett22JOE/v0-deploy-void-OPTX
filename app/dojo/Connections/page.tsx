@@ -67,6 +67,16 @@ export default function ConnectionsPage() {
     return clerkMatch || walletMatch
   })()
 
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  useEffect(() => {
+    const saved = localStorage.getItem('dojo-theme') as 'dark' | 'light' | null;
+    if (saved) setTheme(saved);
+    const handler = (e: Event) => setTheme((e as CustomEvent).detail);
+    window.addEventListener('dojo-theme-change', handler);
+    return () => window.removeEventListener('dojo-theme-change', handler);
+  }, []);
+  const isDark = theme === 'dark';
+
   const [activeTab, setActiveTab] = useState<Tab>(initialTab)
   const [wsStatus, setWsStatus] = useState<"connecting" | "connected" | "disconnected">("disconnected")
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
@@ -260,8 +270,8 @@ export default function ConnectionsPage() {
 
   if (!isLoaded) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <p className="text-orange-400 text-xl font-mono animate-pulse">Loading Connections...</p>
+      <div className={`fixed inset-0 ${isDark ? 'bg-black' : 'bg-white'} flex items-center justify-center`}>
+        <p className={`${isDark ? 'text-orange-400' : 'text-orange-600'} text-xl font-mono animate-pulse`}>Loading Connections...</p>
       </div>
     )
   }
@@ -277,19 +287,19 @@ export default function ConnectionsPage() {
   const totalRewards = sessions.reduce((a, s) => a + s.optxReward, 0)
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-gray-900 via-slate-900 to-black">
+    <div className={`h-screen flex flex-col overflow-hidden bg-gradient-to-br ${isDark ? 'from-gray-900 via-slate-900 to-black' : 'from-orange-50/50 via-white to-zinc-50'}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-orange-500/20 bg-black/40 backdrop-blur">
+      <div className={`flex items-center justify-between px-4 py-2.5 border-b ${isDark ? 'border-orange-500/20 bg-black/40' : 'border-orange-200/30 bg-white/60'} backdrop-blur`}>
         <div className="flex items-center gap-3">
-          <Link href="/dojo" className="text-orange-400 hover:text-orange-300 transition-colors">
+          <Link href="/dojo" className={`${isDark ? 'text-orange-400 hover:text-orange-300' : 'text-orange-600 hover:text-orange-500'} transition-colors`}>
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-red-400" />
+          <div className={`w-8 h-8 rounded-lg ${isDark ? 'bg-red-500/20' : 'bg-red-100'} flex items-center justify-center`}>
+            <Zap className={`w-4 h-4 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
           </div>
           <div>
-            <h1 className="font-mono text-sm text-orange-400 tracking-widest">CONNECTIONS</h1>
-            <p className="font-mono text-[9px] text-zinc-500">EMO tensor branch</p>
+            <h1 className={`font-mono text-sm ${isDark ? 'text-orange-400' : 'text-orange-800'} tracking-widest`}>CONNECTIONS</h1>
+            <p className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>EMO tensor branch</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -310,7 +320,7 @@ export default function ConnectionsPage() {
       </div>
 
       {/* Tab Bar */}
-      <div className="flex border-b border-orange-500/15 px-4 bg-black/20">
+      <div className={`flex border-b ${isDark ? 'border-orange-500/15 bg-black/20' : 'border-orange-200/20 bg-white/40'} px-4`}>
         {tabs.map((tab) => {
           const Icon = tab.icon
           return (
@@ -319,8 +329,8 @@ export default function ConnectionsPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-5 py-3 font-mono text-xs transition-all border-b-2 ${
                 activeTab === tab.key
-                  ? "text-orange-400 border-orange-500 bg-orange-500/5"
-                  : "text-zinc-500 border-transparent hover:text-orange-400/70 hover:bg-orange-500/5"
+                  ? isDark ? "text-orange-400 border-orange-500 bg-orange-500/5" : "text-orange-700 border-orange-500 bg-orange-50"
+                  : isDark ? "text-zinc-500 border-transparent hover:text-orange-400/70 hover:bg-orange-500/5" : "text-zinc-400 border-transparent hover:text-orange-600 hover:bg-orange-50/50"
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -338,24 +348,24 @@ export default function ConnectionsPage() {
           <div className="h-full flex flex-col max-w-5xl mx-auto gap-3">
             {/* Status bar */}
             <div className="flex items-center gap-3">
-              <Card className="border-orange-500/20 bg-black/40 flex-1">
+              <Card className={`${isDark ? 'border-orange-500/20 bg-black/40' : 'border-orange-200/30 bg-white/60'} flex-1`}>
                 <CardContent className="p-2.5 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-                    <Globe className="w-4 h-4 text-orange-400" />
+                  <div className={`w-8 h-8 rounded-full ${isDark ? 'bg-orange-500/20' : 'bg-orange-100'} flex items-center justify-center`}>
+                    <Globe className={`w-4 h-4 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
                   </div>
                   <div className="flex-1">
-                    <p className="font-mono text-xs text-orange-300">JOE Agent Chat</p>
-                    <p className="font-mono text-[9px] text-zinc-500">$OPTX Signature Testing via OPTX edge protocol</p>
+                    <p className={`font-mono text-xs ${isDark ? 'text-orange-300' : 'text-orange-800'}`}>JOE Agent Chat</p>
+                    <p className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>$OPTX Signature Testing via OPTX edge protocol</p>
                   </div>
-                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[9px]">CSTB Protocol</Badge>
+                  <Badge className={`${isDark ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-orange-100 text-orange-700 border-orange-200/30'} text-[9px]`}>CSTB Protocol</Badge>
                 </CardContent>
               </Card>
             </div>
 
             {/* Display Name Editor */}
-            <Card className="border-orange-500/15 bg-black/30">
+            <Card className={`${isDark ? 'border-orange-500/15 bg-black/30' : 'border-orange-200/20 bg-white/50'}`}>
               <CardContent className="p-2 flex items-center gap-3">
-                <User className="w-3.5 h-3.5 text-orange-400/60" />
+                <User className={`w-3.5 h-3.5 ${isDark ? 'text-orange-400/60' : 'text-orange-400'}`} />
                 {isEditingName ? (
                   <div className="flex items-center gap-2 flex-1">
                     <input
@@ -369,7 +379,7 @@ export default function ConnectionsPage() {
                       }}
                       maxLength={24}
                       placeholder="Enter display name..."
-                      className="flex-1 px-2 py-1 bg-black/40 border border-orange-500/30 rounded text-orange-200 text-xs font-mono placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                      className={`flex-1 px-2 py-1 ${isDark ? 'bg-black/40 border-orange-500/30 text-orange-200 placeholder:text-zinc-600' : 'bg-white border-orange-300 text-zinc-900 placeholder:text-zinc-400'} border rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-orange-500/40`}
                     />
                     <Button size="sm" onClick={saveDisplayName} className="h-6 text-[9px] px-2 bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30">
                       Save
@@ -380,7 +390,7 @@ export default function ConnectionsPage() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 flex-1">
-                    <span className="font-mono text-xs text-orange-300">{displayName}</span>
+                    <span className={`font-mono text-xs ${isDark ? 'text-orange-300' : 'text-orange-700'}`}>{displayName}</span>
                     <button onClick={startEditingName} className="p-1 hover:bg-orange-500/15 rounded transition-colors" title="Change display name">
                       <Pencil className="w-3 h-3 text-zinc-500 hover:text-orange-400" />
                     </button>
@@ -393,16 +403,16 @@ export default function ConnectionsPage() {
             </Card>
 
             {/* Chat area */}
-            <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent backdrop-blur flex-1 flex flex-col min-h-0">
+            <Card className={`${isDark ? 'border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent' : 'border-orange-200/30 bg-white/60'} backdrop-blur flex-1 flex flex-col min-h-0`}>
               <CardContent className="flex-1 flex flex-col min-h-0 p-0">
                 <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
                   {chatMessages.length === 0 && (
                     <div className="text-center py-16">
-                      <div className="w-20 h-20 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mx-auto mb-4">
-                        <Globe className="w-10 h-10 text-orange-500/30" />
+                      <div className={`w-20 h-20 rounded-full ${isDark ? 'bg-orange-500/10 border-orange-500/20' : 'bg-orange-100 border-orange-200'} border flex items-center justify-center mx-auto mb-4`}>
+                        <Globe className={`w-10 h-10 ${isDark ? 'text-orange-500/30' : 'text-orange-400'}`} />
                       </div>
-                      <p className="text-orange-400/60 font-mono text-sm mb-1">JOE Agent</p>
-                      <p className="text-zinc-500 font-mono text-xs max-w-md mx-auto">
+                      <p className={`${isDark ? 'text-orange-400/60' : 'text-orange-600'} font-mono text-sm mb-1`}>JOE Agent</p>
+                      <p className={`${isDark ? 'text-zinc-500' : 'text-zinc-400'} font-mono text-xs max-w-md mx-auto`}>
                         Real-time AI chat via encrypted edge tunnel. Ask about CSTB attestation, $OPTX rewards, gaze analysis, or anything.
                       </p>
                       {wsStatus === "disconnected" && (
@@ -416,9 +426,9 @@ export default function ConnectionsPage() {
                     <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : msg.role === "system" ? "justify-center" : "justify-start"}`}>
                       <div className={`max-w-[80%] ${
                         msg.role === "user"
-                          ? "bg-orange-500/15 border border-orange-500/25 rounded-2xl rounded-br-md"
+                          ? isDark ? "bg-orange-500/15 border border-orange-500/25 rounded-2xl rounded-br-md" : "bg-orange-100 border border-orange-200 rounded-2xl rounded-br-md"
                           : msg.role === "joe"
-                            ? "bg-zinc-800/60 border border-zinc-700/40 rounded-2xl rounded-bl-md"
+                            ? isDark ? "bg-zinc-800/60 border border-zinc-700/40 rounded-2xl rounded-bl-md" : "bg-zinc-100 border border-zinc-200 rounded-2xl rounded-bl-md"
                             : "bg-transparent"
                       } ${msg.role === "system" ? "" : "p-3"}`}>
                         {msg.role === "system" ? (
@@ -441,7 +451,7 @@ export default function ConnectionsPage() {
                                 </Badge>
                               )}
                             </div>
-                            <p className="font-mono text-xs leading-relaxed text-orange-100/80">{msg.content}</p>
+                            <p className={`font-mono text-xs leading-relaxed ${isDark ? 'text-orange-100/80' : 'text-zinc-700'}`}>{msg.content}</p>
                             {msg.tools_used && msg.tools_used.length > 0 && (
                               <div className="mt-2 flex gap-1 flex-wrap">
                                 {msg.tools_used.map((t) => (
@@ -469,7 +479,7 @@ export default function ConnectionsPage() {
                     onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                     placeholder={wsStatus === "connected" ? "Message JOE..." : "Connecting to JOE..."}
                     disabled={wsStatus !== "connected"}
-                    className="flex-1 px-4 py-2.5 bg-black/40 border border-orange-500/20 rounded-xl text-orange-200 text-xs font-mono placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-orange-500/40 disabled:opacity-40 transition-all"
+                    className={`flex-1 px-4 py-2.5 ${isDark ? 'bg-black/40 border-orange-500/20 text-orange-200 placeholder:text-zinc-600' : 'bg-white border-orange-200 text-zinc-900 placeholder:text-zinc-400'} border rounded-xl text-xs font-mono focus:outline-none focus:ring-1 focus:ring-orange-500/40 disabled:opacity-40 transition-all`}
                   />
                   <Button
                     onClick={sendMessage}
@@ -503,8 +513,8 @@ export default function ConnectionsPage() {
                         <Icon className={`w-5 h-5 text-${stat.color}-400`} />
                       </div>
                       <div>
-                        <p className="font-mono text-lg text-white font-bold">{stat.value}</p>
-                        <p className="font-mono text-[9px] text-zinc-500">{stat.label}</p>
+                        <p className={`font-mono text-lg ${isDark ? 'text-white' : 'text-zinc-900'} font-bold`}>{stat.value}</p>
+                        <p className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>{stat.label}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -513,15 +523,15 @@ export default function ConnectionsPage() {
             </div>
 
             {/* Start Training CTA */}
-            <Card className="border-green-500/20 bg-gradient-to-r from-green-500/10 to-emerald-500/5">
+            <Card className={`${isDark ? 'border-green-500/20 bg-gradient-to-r from-green-500/10 to-emerald-500/5' : 'border-green-200/30 bg-green-50/60'}`}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <Target className="w-5 h-5 text-green-400" />
+                  <div className={`w-10 h-10 rounded-lg ${isDark ? 'bg-green-500/20' : 'bg-green-100'} flex items-center justify-center`}>
+                    <Target className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
                   </div>
                   <div>
-                    <p className="font-mono text-sm text-green-300 font-semibold">Start New Training Session</p>
-                    <p className="font-mono text-[10px] text-zinc-500">Calibrate gaze biometrics for on-chain CSTB attestation</p>
+                    <p className={`font-mono text-sm ${isDark ? 'text-green-300' : 'text-green-700'} font-semibold`}>Start New Training Session</p>
+                    <p className={`font-mono text-[10px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>Calibrate gaze biometrics for on-chain CSTB attestation</p>
                   </div>
                 </div>
                 <Link href="/dojo/training">
@@ -535,10 +545,10 @@ export default function ConnectionsPage() {
 
             {/* Session List */}
             <div>
-              <h3 className="font-mono text-xs text-zinc-500 uppercase tracking-wider mb-3">Session History</h3>
+              <h3 className={`font-mono text-xs ${isDark ? 'text-zinc-500' : 'text-zinc-400'} uppercase tracking-wider mb-3`}>Session History</h3>
               <div className="space-y-3">
                 {sessions.map((session) => (
-                  <Card key={session.id} className="border-orange-500/15 bg-gradient-to-br from-orange-500/5 to-transparent hover:border-orange-500/30 transition-colors">
+                  <Card key={session.id} className={`${isDark ? 'border-orange-500/15 bg-gradient-to-br from-orange-500/5 to-transparent hover:border-orange-500/30' : 'border-orange-200/20 bg-white/60 hover:border-orange-300/40'} transition-colors`}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -546,7 +556,7 @@ export default function ConnectionsPage() {
                             <Eye className="w-4 h-4 text-orange-400" />
                           </div>
                           <div>
-                            <span className="font-mono text-xs text-orange-300 font-semibold">{session.id}</span>
+                            <span className={`font-mono text-xs ${isDark ? 'text-orange-300' : 'text-orange-700'} font-semibold`}>{session.id}</span>
                             <div className="flex items-center gap-2 mt-0.5">
                               <Clock className="w-3 h-3 text-zinc-500" />
                               <span className="font-mono text-[9px] text-zinc-500">{session.started}</span>
@@ -574,16 +584,16 @@ export default function ConnectionsPage() {
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div>
                           <span className="font-mono text-[9px] text-zinc-500 block mb-1">Duration</span>
-                          <span className="font-mono text-xs text-white">{session.duration}</span>
+                          <span className={`font-mono text-xs ${isDark ? 'text-white' : 'text-zinc-900'}`}>{session.duration}</span>
                         </div>
                         <div>
-                          <span className="font-mono text-[9px] text-zinc-500 block mb-1">Frames</span>
-                          <span className="font-mono text-xs text-white">{session.frames.toLocaleString()}</span>
+                          <span className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'} block mb-1`}>Frames</span>
+                          <span className={`font-mono text-xs ${isDark ? 'text-white' : 'text-zinc-900'}`}>{session.frames.toLocaleString()}</span>
                         </div>
                         <div className="col-span-2">
                           <span className="font-mono text-[9px] text-zinc-500 block mb-1">AGT Distribution</span>
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 flex h-2 rounded-full overflow-hidden bg-black/30">
+                            <div className={`flex-1 flex h-2 rounded-full overflow-hidden ${isDark ? 'bg-black/30' : 'bg-zinc-200/60'}`}>
                               <div style={{ width: `${session.agt.cog}%`, backgroundColor: "oklch(0.82 0.18 95)" }} className="transition-all" />
                               <div style={{ width: `${session.agt.emo}%`, backgroundColor: "oklch(0.65 0.25 25)" }} className="transition-all" />
                               <div style={{ width: `${session.agt.env}%`, backgroundColor: "oklch(0.60 0.20 250)" }} className="transition-all" />
@@ -611,14 +621,14 @@ export default function ConnectionsPage() {
           <div className="max-w-5xl mx-auto space-y-4">
             {/* JOE Agent Wallet — Founder Only */}
             {isFounder ? (
-            <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <CardHeader className="p-4 border-b border-orange-500/15">
-                <CardTitle className="text-sm text-orange-300 font-semibold flex items-center gap-2">
+            <Card className={`${isDark ? 'border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-yellow-500/5' : 'border-orange-200/30 bg-white/60'} overflow-hidden relative`}>
+              <div className={`absolute top-0 right-0 w-32 h-32 ${isDark ? 'bg-orange-500/5' : 'bg-orange-100/30'} rounded-full -translate-y-1/2 translate-x-1/2`} />
+              <CardHeader className={`p-4 border-b ${isDark ? 'border-orange-500/15' : 'border-orange-200/20'}`}>
+                <CardTitle className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-800'} font-semibold flex items-center gap-2`}>
                   <Wallet className="w-4 h-4" />
                   JOE Agent Wallet
-                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[9px]">ERC-8004</Badge>
-                  <Badge className="ml-auto bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[9px]">DEVNET</Badge>
+                  <Badge className={`${isDark ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-orange-100 text-orange-700 border-orange-200/30'} text-[9px]`}>ERC-8004</Badge>
+                  <Badge className={`ml-auto ${isDark ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 'bg-yellow-100 text-yellow-700 border-yellow-200/30'} text-[9px]`}>DEVNET</Badge>
                   <button onClick={requestWalletData} disabled={wsStatus !== "connected" || walletLoading} className="p-1 hover:bg-orange-500/15 rounded transition-colors disabled:opacity-30" title="Refresh balances">
                     <RefreshCw className={`w-3.5 h-3.5 text-orange-400 ${walletLoading ? "animate-spin" : ""}`} />
                   </button>
@@ -627,9 +637,9 @@ export default function ConnectionsPage() {
               <CardContent className="p-4 space-y-4">
                 {/* Agent public key */}
                 {walletBalances?.public_key && (
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-black/20 border border-orange-500/10">
-                    <span className="font-mono text-[9px] text-zinc-500">Agent:</span>
-                    <code className="font-mono text-[10px] text-orange-300/80">{walletBalances.public_key.slice(0, 8)}...{walletBalances.public_key.slice(-6)}</code>
+                  <div className={`flex items-center gap-2 p-2 rounded-lg ${isDark ? 'bg-black/20 border-orange-500/10' : 'bg-zinc-50 border-orange-200/20'} border`}>
+                    <span className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>Agent:</span>
+                    <code className={`font-mono text-[10px] ${isDark ? 'text-orange-300/80' : 'text-orange-700'}`}>{walletBalances.public_key.slice(0, 8)}...{walletBalances.public_key.slice(-6)}</code>
                     <button onClick={() => copyAddress(walletBalances.public_key!)} className="p-0.5 hover:bg-orange-500/15 rounded">
                       {copiedAddress === walletBalances.public_key ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-zinc-500" />}
                     </button>
@@ -637,22 +647,22 @@ export default function ConnectionsPage() {
                 )}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
+                  <div className={`p-3 rounded-lg ${isDark ? 'bg-black/30 border-orange-500/10' : 'bg-zinc-50 border-orange-200/20'} border`}>
                     <p className="font-mono text-[9px] text-zinc-500 mb-1">SOL</p>
                     <p className="font-mono text-lg text-blue-400 font-bold">{walletBalances ? walletBalances.sol.toFixed(4) : "—"}</p>
                     <p className="font-mono text-[9px] text-zinc-600">Devnet</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
+                  <div className={`p-3 rounded-lg ${isDark ? 'bg-black/30 border-orange-500/10' : 'bg-zinc-50 border-orange-200/20'} border`}>
                     <p className="font-mono text-[9px] text-zinc-500 mb-1">$OPTX</p>
                     <p className="font-mono text-lg text-orange-400 font-bold">{walletBalances ? walletBalances.optx.toFixed(2) : "—"}</p>
                     <p className="font-mono text-[9px] text-zinc-600">Governance</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
+                  <div className={`p-3 rounded-lg ${isDark ? 'bg-black/30 border-orange-500/10' : 'bg-zinc-50 border-orange-200/20'} border`}>
                     <p className="font-mono text-[9px] text-zinc-500 mb-1">$JTX</p>
                     <p className="font-mono text-lg text-yellow-400 font-bold">{walletBalances ? walletBalances.jtx.toFixed(2) : "—"}</p>
                     <p className="font-mono text-[9px] text-zinc-600">Utility</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-black/30 border border-orange-500/10">
+                  <div className={`p-3 rounded-lg ${isDark ? 'bg-black/30 border-orange-500/10' : 'bg-zinc-50 border-orange-200/20'} border`}>
                     <p className="font-mono text-[9px] text-zinc-500 mb-1">$CSTB</p>
                     <p className="font-mono text-lg text-purple-400 font-bold">{walletBalances ? walletBalances.cstb.toFixed(0) : "—"}</p>
                     <p className="font-mono text-[9px] text-zinc-600">Soulbound</p>
@@ -671,19 +681,19 @@ export default function ConnectionsPage() {
             </Card>
 
             ) : (
-              <Card className="border-zinc-500/20 bg-gradient-to-br from-zinc-500/5 to-zinc-800/5">
+              <Card className={`${isDark ? 'border-zinc-500/20 bg-gradient-to-br from-zinc-500/5 to-zinc-800/5' : 'border-zinc-200 bg-white/60'}`}>
                 <CardContent className="p-6 text-center">
-                  <Shield className="w-8 h-8 text-zinc-500 mx-auto mb-3" />
-                  <p className="font-mono text-sm text-zinc-400 mb-1">Agent Wallet — Restricted</p>
-                  <p className="font-mono text-[10px] text-zinc-600">JOE&apos;s internal wallet data is only visible to authorized administrators.</p>
+                  <Shield className={`w-8 h-8 ${isDark ? 'text-zinc-500' : 'text-zinc-400'} mx-auto mb-3`} />
+                  <p className={`font-mono text-sm ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mb-1`}>Agent Wallet — Restricted</p>
+                  <p className={`font-mono text-[10px] ${isDark ? 'text-zinc-600' : 'text-zinc-400'}`}>JOE&apos;s internal wallet data is only visible to authorized administrators.</p>
                 </CardContent>
               </Card>
             )}
 
             {/* User Phantom Wallet — visible to ALL users */}
-            <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-indigo-500/5">
-              <CardHeader className="p-4 border-b border-blue-500/15">
-                <CardTitle className="text-sm text-blue-300 font-semibold flex items-center gap-2">
+            <Card className={`${isDark ? 'border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-indigo-500/5' : 'border-blue-200/30 bg-white/60'}`}>
+              <CardHeader className={`p-4 border-b ${isDark ? 'border-blue-500/15' : 'border-blue-200/20'}`}>
+                <CardTitle className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-700'} font-semibold flex items-center gap-2`}>
                   <Wallet className="w-4 h-4" />
                   Your Wallet
                   {phantomConnected && <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[9px]">Connected</Badge>}
@@ -691,12 +701,12 @@ export default function ConnectionsPage() {
               </CardHeader>
               <CardContent className="p-4 space-y-3">
                 {phantomConnected && phantomKey ? (
-                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-black/20 border border-blue-500/10">
+                  <div className={`flex items-center gap-2 p-2.5 rounded-lg ${isDark ? 'bg-black/20 border-blue-500/10' : 'bg-zinc-50 border-blue-200/20'} border`}>
                     <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center">
                       <Wallet className="w-3 h-3 text-purple-400" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-mono text-[10px] text-blue-300">Phantom</p>
+                      <p className={`font-mono text-[10px] ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>Phantom</p>
                       <code className="font-mono text-[9px] text-zinc-400">{phantomKey.toBase58().slice(0, 8)}...{phantomKey.toBase58().slice(-6)}</code>
                     </div>
                     <button onClick={() => copyAddress(phantomKey.toBase58())} className="p-1 hover:bg-blue-500/15 rounded">
@@ -723,12 +733,12 @@ export default function ConnectionsPage() {
 
             {/* x402 Payment Policy — Founder Only */}
             {isFounder && (
-            <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
-              <CardHeader className="p-4 border-b border-green-500/15">
-                <CardTitle className="text-sm text-green-300 font-semibold flex items-center gap-2">
+            <Card className={`${isDark ? 'border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5' : 'border-green-200/30 bg-white/60'}`}>
+              <CardHeader className={`p-4 border-b ${isDark ? 'border-green-500/15' : 'border-green-200/20'}`}>
+                <CardTitle className={`text-sm ${isDark ? 'text-green-300' : 'text-green-700'} font-semibold flex items-center gap-2`}>
                   <CreditCard className="w-4 h-4" />
                   x402 Payment Policy
-                  <Badge className="ml-auto bg-green-500/20 text-green-400 border-green-500/30 text-[9px]">HTTP 402</Badge>
+                  <Badge className={`ml-auto ${isDark ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-green-100 text-green-700 border-green-200/30'} text-[9px]`}>HTTP 402</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-3">
@@ -736,18 +746,18 @@ export default function ConnectionsPage() {
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {Object.entries((x402Policy as Record<string, unknown>).services as Record<string, {description: string; price: number; unit: string; per: string}> || {}).map(([key, svc]) => (
-                        <div key={key} className="p-2.5 rounded-lg bg-black/20 border border-green-500/10 hover:border-green-500/25 transition-colors">
+                        <div key={key} className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20 border-green-500/10 hover:border-green-500/25' : 'bg-zinc-50 border-green-200/20 hover:border-green-300/40'} border transition-colors`}>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-mono text-[10px] text-green-300 font-semibold">{key.replace(/_/g, " ")}</span>
-                            <span className="font-mono text-[10px] text-green-400 font-bold">{svc.price} {svc.unit}/{svc.per}</span>
+                            <span className={`font-mono text-[10px] ${isDark ? 'text-green-300' : 'text-green-700'} font-semibold`}>{key.replace(/_/g, " ")}</span>
+                            <span className={`font-mono text-[10px] ${isDark ? 'text-green-400' : 'text-green-600'} font-bold`}>{svc.price} {svc.unit}/{svc.per}</span>
                           </div>
                           <p className="font-mono text-[9px] text-zinc-500">{svc.description}</p>
                         </div>
                       ))}
                     </div>
-                    <div className="p-2 rounded-lg bg-black/20 border border-green-500/10">
-                      <p className="font-mono text-[9px] text-zinc-400">
-                        <span className="text-green-400">Free tier:</span> {((x402Policy as Record<string, unknown>).free_tier as Record<string, unknown>)?.chat_messages as number || 10} chat messages + {((x402Policy as Record<string, unknown>).free_tier as Record<string, unknown>)?.gaze_sessions as number || 1} gaze session
+                    <div className={`p-2 rounded-lg ${isDark ? 'bg-black/20 border-green-500/10' : 'bg-zinc-50 border-green-200/20'} border`}>
+                      <p className={`font-mono text-[9px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        <span className={`${isDark ? 'text-green-400' : 'text-green-600'}`}>Free tier:</span> {((x402Policy as Record<string, unknown>).free_tier as Record<string, unknown>)?.chat_messages as number || 10} chat messages + {((x402Policy as Record<string, unknown>).free_tier as Record<string, unknown>)?.gaze_sessions as number || 1} gaze session
                       </p>
                     </div>
                   </>
@@ -763,9 +773,9 @@ export default function ConnectionsPage() {
 
             {/* LayerZero Bridge Status — Founder Only */}
             {isFounder && (
-            <Card className="border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5">
-              <CardHeader className="p-4 border-b border-cyan-500/15">
-                <CardTitle className="text-sm text-cyan-300 font-semibold flex items-center gap-2">
+            <Card className={`${isDark ? 'border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5' : 'border-cyan-200/30 bg-white/60'}`}>
+              <CardHeader className={`p-4 border-b ${isDark ? 'border-cyan-500/15' : 'border-cyan-200/20'}`}>
+                <CardTitle className={`text-sm ${isDark ? 'text-cyan-300' : 'text-cyan-700'} font-semibold flex items-center gap-2`}>
                   <ArrowRightLeft className="w-4 h-4" />
                   LayerZero Bridge
                   {bridgeStatus?.bridge && (
@@ -779,17 +789,17 @@ export default function ConnectionsPage() {
                 {bridgeStatus ? (
                   <>
                     {bridgeStatus.supply && (
-                      <div className="p-2.5 rounded-lg bg-black/20 border border-cyan-500/10">
+                      <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20 border-cyan-500/10' : 'bg-zinc-50 border-cyan-200/20'} border`}>
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[10px] text-zinc-400">OPTX Supply (Solana)</span>
-                          <span className="font-mono text-sm text-cyan-400 font-bold">{(bridgeStatus.supply as Record<string, unknown>).supply as number || 0}</span>
+                          <span className={`font-mono text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>OPTX Supply (Solana)</span>
+                          <span className={`font-mono text-sm ${isDark ? 'text-cyan-400' : 'text-cyan-600'} font-bold`}>{(bridgeStatus.supply as Record<string, unknown>).supply as number || 0}</span>
                         </div>
                       </div>
                     )}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {((bridgeStatus.bridge as Record<string, unknown>)?.supported_chains as Array<{chain: string; network: string; status: string; endpoint_id: number}> || []).map((chain) => (
-                        <div key={chain.chain} className="p-2 rounded-lg bg-black/20 border border-cyan-500/10 text-center">
-                          <p className="font-mono text-[10px] text-cyan-300 font-semibold">{chain.chain}</p>
+                        <div key={chain.chain} className={`p-2 rounded-lg ${isDark ? 'bg-black/20 border-cyan-500/10' : 'bg-zinc-50 border-cyan-200/20'} border text-center`}>
+                          <p className={`font-mono text-[10px] ${isDark ? 'text-cyan-300' : 'text-cyan-700'} font-semibold`}>{chain.chain}</p>
                           <p className="font-mono text-[9px] text-zinc-500">{chain.network}</p>
                           <Badge className={`mt-1 text-[8px] h-4 ${chain.status === "active" ? "bg-green-500/15 text-green-400 border-green-500/25" : "bg-zinc-500/15 text-zinc-400 border-zinc-500/25"}`}>
                             {chain.status}
@@ -798,8 +808,8 @@ export default function ConnectionsPage() {
                       ))}
                     </div>
                     {bridgeStatus.bridge && (
-                      <div className="p-2 rounded-lg bg-black/20 border border-cyan-500/10">
-                        <p className="font-mono text-[9px] text-zinc-500">
+                      <div className={`p-2 rounded-lg ${isDark ? 'bg-black/20 border-cyan-500/10' : 'bg-zinc-50 border-cyan-200/20'} border`}>
+                        <p className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
                           OFT Standard • Min: {((bridgeStatus.bridge as Record<string, unknown>).bridge_config as Record<string, unknown>)?.min_bridge_amount as number || 1} OPTX • Fee: {((bridgeStatus.bridge as Record<string, unknown>).bridge_config as Record<string, unknown>)?.bridge_fee_pct as number || 0.1}% • Est: {((bridgeStatus.bridge as Record<string, unknown>).bridge_config as Record<string, unknown>)?.estimated_time_seconds as number || 120}s
                         </p>
                       </div>
@@ -817,29 +827,29 @@ export default function ConnectionsPage() {
 
             {/* CSTB Profile — Founder Only */}
             {isFounder && (
-            <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
-              <CardHeader className="p-4 border-b border-purple-500/15">
-                <CardTitle className="text-sm text-purple-300 font-semibold flex items-center gap-2">
+            <Card className={`${isDark ? 'border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5' : 'border-purple-200/30 bg-white/60'}`}>
+              <CardHeader className={`p-4 border-b ${isDark ? 'border-purple-500/15' : 'border-purple-200/20'}`}>
+                <CardTitle className={`text-sm ${isDark ? 'text-purple-300' : 'text-purple-700'} font-semibold flex items-center gap-2`}>
                   <Shield className="w-4 h-4" />
                   CSTB Identity Profile
-                  <Badge className="ml-auto bg-purple-500/20 text-purple-400 border-purple-500/30 text-[9px]">CompuStable</Badge>
+                  <Badge className={`ml-auto ${isDark ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' : 'bg-purple-100 text-purple-700 border-purple-200/30'} text-[9px]`}>CompuStable</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
-                <p className="font-mono text-[10px] text-zinc-400 leading-relaxed">
-                  JOE Agent Wallet includes CSTB profile URI in <code className="text-purple-400 bg-purple-500/10 px-1 rounded">agentMetadata()</code>.
+                <p className={`font-mono text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} leading-relaxed`}>
+                  JOE Agent Wallet includes CSTB profile URI in <code className={`${isDark ? 'text-purple-400 bg-purple-500/10' : 'text-purple-600 bg-purple-100'} px-1 rounded`}>agentMetadata()</code>.
                   Computational identity verified via proof hash + gaze attestation on Solana devnet.
                 </p>
 
                 {/* Attestation Status — Live from WebSocket */}
-                <div className="p-3 rounded-lg bg-black/30 border border-purple-500/15">
+                <div className={`p-3 rounded-lg ${isDark ? 'bg-black/30 border-purple-500/15' : 'bg-zinc-50 border-purple-200/20'} border`}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-xs text-purple-300">Attestation Progress</span>
-                    <span className="font-mono text-[10px] text-purple-400">
+                    <span className={`font-mono text-xs ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>Attestation Progress</span>
+                    <span className={`font-mono text-[10px] ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
                       {attestationStatus ? `${attestationStatus.attestation_count} / ${attestationStatus.threshold_for_trust} required` : "2 / 5 required"}
                     </span>
                   </div>
-                  <Progress value={attestationStatus ? attestationStatus.progress_pct : 40} className="h-2 bg-black/30" />
+                  <Progress value={attestationStatus ? attestationStatus.progress_pct : 40} className={`h-2 ${isDark ? 'bg-black/30' : 'bg-zinc-200'}`} />
                   <div className="mt-2 flex items-center justify-between">
                     <span className="font-mono text-[9px] text-zinc-500">Status: <span className={attestationStatus?.status === "trusted" ? "text-green-400" : "text-yellow-400"}>{attestationStatus?.status || "building_trust"}</span></span>
                     {attestationStatus && attestationStatus.next_milestone > 0 && (
@@ -850,24 +860,24 @@ export default function ConnectionsPage() {
 
                 {/* Agent Metadata from ERC-8004 */}
                 {agentMetadata && (
-                  <div className="p-3 rounded-lg bg-black/20 border border-purple-500/10">
-                    <p className="font-mono text-[9px] text-zinc-500 uppercase tracking-wider mb-2">ERC-8004 Agent Identity</p>
+                  <div className={`p-3 rounded-lg ${isDark ? 'bg-black/20 border-purple-500/10' : 'bg-zinc-50 border-purple-200/20'} border`}>
+                    <p className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'} uppercase tracking-wider mb-2`}>ERC-8004 Agent Identity</p>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <span className="font-mono text-[9px] text-zinc-500">Agent</span>
-                        <p className="font-mono text-[10px] text-purple-300">{(agentMetadata.identity as Record<string, unknown>)?.name as string || "JOE"}</p>
+                        <p className={`font-mono text-[10px] ${isDark ? 'text-purple-300' : 'text-purple-600'}`}>{(agentMetadata.identity as Record<string, unknown>)?.name as string || "JOE"}</p>
                       </div>
                       <div>
-                        <span className="font-mono text-[9px] text-zinc-500">Soulbound</span>
-                        <p className="font-mono text-[10px] text-green-400">{(agentMetadata.identity as Record<string, unknown>)?.soulbound ? "Yes" : "No"}</p>
+                        <span className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>Soulbound</span>
+                        <p className={`font-mono text-[10px] ${isDark ? 'text-green-400' : 'text-green-600'}`}>{(agentMetadata.identity as Record<string, unknown>)?.soulbound ? "Yes" : "No"}</p>
                       </div>
                       <div>
-                        <span className="font-mono text-[9px] text-zinc-500">Signing</span>
-                        <p className="font-mono text-[10px] text-orange-300">{(agentMetadata.signing as Record<string, unknown>)?.method as string || "deferred"}</p>
+                        <span className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>Signing</span>
+                        <p className={`font-mono text-[10px] ${isDark ? 'text-orange-300' : 'text-orange-600'}`}>{(agentMetadata.signing as Record<string, unknown>)?.method as string || "deferred"}</p>
                       </div>
                       <div>
-                        <span className="font-mono text-[9px] text-zinc-500">Capabilities</span>
-                        <p className="font-mono text-[10px] text-cyan-300">{(agentMetadata.capabilities as string[])?.length || 0}</p>
+                        <span className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>Capabilities</span>
+                        <p className={`font-mono text-[10px] ${isDark ? 'text-cyan-300' : 'text-cyan-600'}`}>{(agentMetadata.capabilities as string[])?.length || 0}</p>
                       </div>
                     </div>
                   </div>
@@ -875,7 +885,7 @@ export default function ConnectionsPage() {
 
                 {/* On-Chain Addresses */}
                 <div>
-                  <h4 className="font-mono text-[10px] text-zinc-500 uppercase tracking-wider mb-2">On-Chain Addresses</h4>
+                  <h4 className={`font-mono text-[10px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'} uppercase tracking-wider mb-2`}>On-Chain Addresses</h4>
                   <div className="space-y-1.5">
                     {[
                       { label: "DePIN Program", addr: DEPIN_PROGRAM, net: "devnet", icon: Zap },
@@ -885,10 +895,10 @@ export default function ConnectionsPage() {
                     ].map((item) => {
                       const Icon = item.icon
                       return (
-                        <div key={item.label} className="flex items-center justify-between p-2.5 rounded-lg bg-black/20 border border-purple-500/10 hover:border-purple-500/25 transition-colors">
+                        <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-lg ${isDark ? 'bg-black/20 border-purple-500/10 hover:border-purple-500/25' : 'bg-zinc-50 border-purple-200/20 hover:border-purple-300/40'} border transition-colors`}>
                           <div className="flex items-center gap-2.5">
-                            <Icon className="w-3.5 h-3.5 text-purple-400/60" />
-                            <span className="font-mono text-[10px] text-zinc-300">{item.label}</span>
+                            <Icon className={`w-3.5 h-3.5 ${isDark ? 'text-purple-400/60' : 'text-purple-400'}`} />
+                            <span className={`font-mono text-[10px] ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>{item.label}</span>
                             <Badge className={`text-[8px] h-4 ${
                               item.net === "mainnet"
                                 ? "bg-green-500/15 text-green-400 border-green-500/25"
@@ -898,7 +908,7 @@ export default function ConnectionsPage() {
                             </Badge>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <code className="font-mono text-[9px] text-purple-300/80 bg-purple-500/5 px-1.5 py-0.5 rounded">
+                            <code className={`font-mono text-[9px] ${isDark ? 'text-purple-300/80 bg-purple-500/5' : 'text-purple-600 bg-purple-50'} px-1.5 py-0.5 rounded`}>
                               {item.addr.slice(0, 6)}...{item.addr.slice(-4)}
                             </code>
                             <button onClick={() => copyAddress(item.addr)} className="p-1 hover:bg-purple-500/15 rounded transition-colors">

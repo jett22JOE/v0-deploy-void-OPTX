@@ -52,8 +52,8 @@ export function DOJOSidebar() {
   const border = isDark ? 'border-orange-500/15' : 'border-orange-200';
   const sidebarBg = isDark ? 'bg-zinc-950/95' : 'bg-white/95';
   const textPrimary = isDark ? 'text-orange-400' : 'text-orange-700';
-  const textMuted = isDark ? 'text-orange-400/50' : 'text-orange-600/60';
-  const textSubtle = isDark ? 'text-orange-500/50' : 'text-orange-500/70';
+  const textMuted = isDark ? 'text-orange-400/50' : 'text-orange-700/70';
+  const textSubtle = isDark ? 'text-orange-500/50' : 'text-orange-600/70';
   const hoverBg = isDark ? 'hover:bg-orange-500/8' : 'hover:bg-orange-50';
   const activeBg = isDark
     ? 'bg-orange-500/15 text-orange-400 border-l-2 border-orange-500 shadow-[inset_0_0_12px_rgba(181,82,0,0.08)]'

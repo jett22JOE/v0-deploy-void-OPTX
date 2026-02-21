@@ -205,6 +205,15 @@ export default function AugmentsPage() {
   const [activeAugment, setActiveAugment] = useState("neuromorphic")
   const [copied, setCopied] = useState(false)
   const [activeSection, setActiveSection] = useState("")
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  useEffect(() => {
+    const saved = localStorage.getItem('dojo-theme') as 'dark' | 'light' | null;
+    if (saved) setTheme(saved);
+    const handler = (e: Event) => setTheme((e as CustomEvent).detail);
+    window.addEventListener('dojo-theme-change', handler);
+    return () => window.removeEventListener('dojo-theme-change', handler);
+  }, []);
+  const isDark = theme === 'dark';
   const contentRef = useRef<HTMLDivElement>(null)
   const active = augments.find((a) => a.id === activeAugment)
 
@@ -250,11 +259,11 @@ export default function AugmentsPage() {
       {/* Subtle dotted background */}
       <DottedGlowBackground
         className="pointer-events-none z-0 !fixed"
-        opacity={0.7}
+        opacity={isDark ? 0.7 : 0.4}
         gap={14}
         radius={1.5}
-        color="rgba(181, 82, 0, 0.35)"
-        glowColor="rgba(181, 82, 0, 0.8)"
+        color={isDark ? "rgba(181, 82, 0, 0.35)" : "rgba(181, 82, 0, 0.2)"}
+        glowColor={isDark ? "rgba(181, 82, 0, 0.8)" : "rgba(181, 82, 0, 0.5)"}
         darkColor="rgba(181, 82, 0, 0.35)"
         darkGlowColor="rgba(181, 82, 0, 0.8)"
         backgroundOpacity={0}
@@ -264,8 +273,8 @@ export default function AugmentsPage() {
       />
 
       {/* Augment Nav — secondary sidebar */}
-      <div className="w-52 border-r border-orange-500/15 bg-zinc-950/80 backdrop-blur-sm p-3 space-y-1 shrink-0 relative z-10">
-        <p className="text-[9px] text-orange-400/40 font-mono uppercase tracking-widest px-2 mb-3">
+      <div className={`w-52 border-r ${isDark ? 'border-orange-500/15 bg-zinc-950/80' : 'border-orange-200/30 bg-white/60'} backdrop-blur-sm p-3 space-y-1 shrink-0 relative z-10`}>
+        <p className={`text-[9px] ${isDark ? 'text-orange-400/40' : 'text-zinc-400'} font-mono uppercase tracking-widest px-2 mb-3`}>
           Augment Journal
         </p>
         {augments.map((aug) => (
@@ -274,8 +283,8 @@ export default function AugmentsPage() {
             onClick={() => { setActiveAugment(aug.id); setActiveSection(""); }}
             className={`group flex items-start gap-2 w-full px-3 py-2.5 rounded-lg text-xs font-mono transition-all duration-200 text-left ${
               activeAugment === aug.id
-                ? "bg-orange-500/15 text-orange-400 border-l-2 border-orange-500"
-                : "text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/8"
+                ? `${isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-800'} border-l-2 border-orange-500`
+                : `${isDark ? 'text-orange-400/50 hover:text-orange-400' : 'text-zinc-500 hover:text-orange-800'} hover:bg-orange-500/8`
             }`}
           >
             <aug.icon className="w-3.5 h-3.5 shrink-0 mt-0.5" />
@@ -287,8 +296,8 @@ export default function AugmentsPage() {
       {/* Augment Content */}
       <div ref={contentRef} className="flex-1 overflow-auto p-8 max-w-4xl relative z-10">
         {active && (
-          <div className="prose prose-invert prose-orange max-w-none">
-            <div className="font-mono text-orange-100/90 text-sm leading-relaxed whitespace-pre-wrap">
+          <div className={`prose ${isDark ? 'prose-invert' : ''} prose-orange max-w-none`}>
+            <div className={`font-mono ${isDark ? 'text-orange-100/90' : 'text-zinc-700'} text-sm leading-relaxed whitespace-pre-wrap`}>
               {active.content.split(/(```[\s\S]*?```)/g).map((part, i) => {
                 if (part.startsWith("```")) {
                   const code = part.replace(/```\w*\n?/, "").replace(/```$/, "").trim()
@@ -300,7 +309,7 @@ export default function AugmentsPage() {
                       >
                         {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-zinc-400" />}
                       </button>
-                      <pre className="bg-zinc-900/80 border border-orange-500/15 rounded-lg p-4 text-xs overflow-x-auto">
+                      <pre className={`${isDark ? 'bg-zinc-900/80 border-orange-500/15' : 'bg-zinc-900/90 border-orange-200/30'} border rounded-lg p-4 text-xs overflow-x-auto`}>
                         <code className="text-orange-200/80">{code}</code>
                       </pre>
                     </div>
@@ -309,29 +318,29 @@ export default function AugmentsPage() {
                 return (
                   <span key={i}>
                     {part.split("\n").map((line, j) => {
-                      if (line.startsWith("# ")) return <h1 key={j} className="text-2xl font-bold text-orange-400 mt-6 mb-3 font-mono">{line.slice(2)}</h1>
+                      if (line.startsWith("# ")) return <h1 key={j} className={`text-2xl font-bold ${isDark ? 'text-orange-400' : 'text-orange-800'} mt-6 mb-3 font-mono`}>{line.slice(2)}</h1>
                       if (line.startsWith("## ")) {
                         const text = line.slice(3)
-                        return <h2 key={j} data-section={text} className="text-lg font-bold text-orange-300 mt-5 mb-2 font-mono scroll-mt-4">{text}</h2>
+                        return <h2 key={j} data-section={text} className={`text-lg font-bold ${isDark ? 'text-orange-300' : 'text-orange-700'} mt-5 mb-2 font-mono scroll-mt-4`}>{text}</h2>
                       }
-                      if (line.startsWith("### ")) return <h3 key={j} className="text-sm font-bold text-orange-200 mt-4 mb-1 font-mono">{line.slice(4)}</h3>
+                      if (line.startsWith("### ")) return <h3 key={j} className={`text-sm font-bold ${isDark ? 'text-orange-200' : 'text-orange-900'} mt-4 mb-1 font-mono`}>{line.slice(4)}</h3>
                       if (line.startsWith("- ")) {
                         // Parse bold markers
                         const parts = line.slice(2).split(/(\*\*.*?\*\*)/g)
                         return (
-                          <div key={j} className="pl-4 py-0.5 text-orange-100/70">
+                          <div key={j} className={`pl-4 py-0.5 ${isDark ? 'text-orange-100/70' : 'text-zinc-600'}`}>
                             <span className="text-orange-500/60 mr-1">•</span>
                             {parts.map((p, k) =>
                               p.startsWith("**") && p.endsWith("**")
-                                ? <strong key={k} className="text-orange-300">{p.slice(2, -2)}</strong>
+                                ? <strong key={k} className={isDark ? 'text-orange-300' : 'text-orange-700'}>{p.slice(2, -2)}</strong>
                                 : <span key={k}>{p}</span>
                             )}
                           </div>
                         )
                       }
-                      if (/^\d+\./.test(line)) return <div key={j} className="pl-4 py-0.5 text-orange-100/70">{line}</div>
+                      if (/^\d+\./.test(line)) return <div key={j} className={`pl-4 py-0.5 ${isDark ? 'text-orange-100/70' : 'text-zinc-600'}`}>{line}</div>
                       if (line.trim() === "") return <div key={j} className="h-2" />
-                      return <div key={j} className="text-orange-100/70">{line}</div>
+                      return <div key={j} className={isDark ? 'text-orange-100/70' : 'text-zinc-600'}>{line}</div>
                     })}
                   </span>
                 )
@@ -345,19 +354,19 @@ export default function AugmentsPage() {
       {active && (
         <div className="hidden xl:block w-48 shrink-0 p-4 relative z-10">
           <div className="sticky top-8">
-            <p className="text-[9px] text-orange-400/40 font-mono uppercase tracking-widest mb-3 flex items-center gap-1">
+            <p className={`text-[9px] ${isDark ? 'text-orange-400/40' : 'text-zinc-400'} font-mono uppercase tracking-widest mb-3 flex items-center gap-1`}>
               <ChevronRight className="w-3 h-3" />
               On this page
             </p>
-            <div className="space-y-0.5 border-l border-orange-500/10">
+            <div className={`space-y-0.5 border-l ${isDark ? 'border-orange-500/10' : 'border-orange-200/30'}`}>
               {active.sections.map((section) => (
                 <button
                   key={section}
                   onClick={() => scrollToSection(section)}
                   className={`block w-full text-left pl-3 py-1 text-[11px] font-mono transition-all duration-200 border-l-2 -ml-px ${
                     activeSection === section
-                      ? "border-orange-500 text-orange-400"
-                      : "border-transparent text-orange-400/40 hover:text-orange-400/70 hover:border-orange-500/30"
+                      ? `border-orange-500 ${isDark ? 'text-orange-400' : 'text-orange-700'}`
+                      : `border-transparent ${isDark ? 'text-orange-400/40 hover:text-orange-400/70' : 'text-zinc-400 hover:text-zinc-600'} hover:border-orange-500/30`
                   }`}
                 >
                   {section}
