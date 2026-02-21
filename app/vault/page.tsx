@@ -261,7 +261,7 @@ export default function VaultPage() {
                 />
               </span>
             </div>
-            <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}>VAULT</span>
+            <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}><span className="text-orange-500">JETT</span> Optics</span>
           </Link>
 
           {/* Center: Navigation Pills (Desktop only) */}
