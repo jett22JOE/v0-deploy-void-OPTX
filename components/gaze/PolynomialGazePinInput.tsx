@@ -81,9 +81,15 @@ export function PolynomialGazePinInput({
   const holdStartRef = useRef<number | null>(null)
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Process gaze position changes
+  // Track which key is currently held
+  const [activeKey, setActiveKey] = useState<string | null>(null)
+
+  // Key-to-tensor mapping: 1=COG, 2=EMO, 3=ENV
+  const KEY_TENSOR_MAP: Record<string, GazeTensor> = { "1": "COG", "2": "EMO", "3": "ENV" }
+
+  // Process gaze position changes (camera-based — works alongside keyboard)
   useEffect(() => {
-    if (!gazePosition || currentIndex >= positions || isVerifying) return
+    if (!gazePosition || currentIndex >= positions || isVerifying || activeKey) return
 
     const detectedTensor = classifyGaze(gazePosition.x, gazePosition.y)
 
@@ -123,7 +129,7 @@ export function PolynomialGazePinInput({
       if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
     }
-  }, [gazePosition, currentTensor, currentIndex, positions, holdThreshold, isVerifying])
+  }, [gazePosition, currentTensor, currentIndex, positions, holdThreshold, isVerifying, activeKey])
 
   // Confirm a position
   const confirmPosition = useCallback((tensor: GazeTensor) => {
@@ -156,6 +162,68 @@ export function PolynomialGazePinInput({
       setCurrentIndex(prev => prev + 1)
     }
   }, [currentIndex, positions, holdThreshold, onPositionChange])
+
+  // Keyboard hold handler — hold 1/2/3 to select COG/EMO/ENV
+  useEffect(() => {
+    if (currentIndex >= positions || isVerifying) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tensor = KEY_TENSOR_MAP[e.key]
+      if (!tensor || e.repeat) return
+
+      // Start hold for this tensor
+      setActiveKey(e.key)
+      setCurrentTensor(tensor)
+      setHoldProgress(0)
+
+      // Clear existing timers
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+
+      holdStartRef.current = Date.now()
+
+      // Start sequence timer on first position
+      if (currentIndex === 0 && sequenceStartRef.current === 0) {
+        sequenceStartRef.current = Date.now()
+      }
+
+      // Progress animation at ~60fps
+      progressIntervalRef.current = setInterval(() => {
+        if (holdStartRef.current) {
+          const elapsed = Date.now() - holdStartRef.current
+          const progress = Math.min((elapsed / holdThreshold) * 100, 100)
+          setHoldProgress(progress)
+        }
+      }, 16)
+
+      // Confirm position after hold threshold
+      holdTimerRef.current = setTimeout(() => {
+        confirmPosition(tensor)
+        setActiveKey(null)
+      }, holdThreshold)
+    }
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!KEY_TENSOR_MAP[e.key]) return
+
+      // Released before threshold — cancel
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+      setHoldProgress(0)
+      setCurrentTensor(null)
+      setActiveKey(null)
+      holdStartRef.current = null
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    window.addEventListener("keyup", handleKeyUp)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("keyup", handleKeyUp)
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+    }
+  }, [currentIndex, positions, holdThreshold, isVerifying, confirmPosition])
 
   // Complete the sequence and generate JOULE template
   const completeSequence = useCallback(async () => {
@@ -295,21 +363,27 @@ export function PolynomialGazePinInput({
       {/* Current tensor indicator */}
       {currentTensor && !isVerifying && currentIndex < positions && (
         <div
-          className="px-4 py-2 rounded-lg font-mono text-sm"
+          className="px-4 py-2 rounded-lg font-mono text-sm flex items-center gap-2"
           style={{
             backgroundColor: `${TENSOR_CONFIG[currentTensor].colors[0]}20`,
             color: TENSOR_CONFIG[currentTensor].colors[0],
           }}
         >
+          {activeKey && (
+            <kbd className="px-2 py-0.5 rounded bg-white/10 border border-white/20 text-xs font-bold">
+              {activeKey}
+            </kbd>
+          )}
           Hold: {TENSOR_CONFIG[currentTensor].label} ({Math.round(holdProgress)}%)
         </div>
       )}
 
-      {/* Manual selection buttons (for testing/fallback) */}
+      {/* Keyboard input buttons — hold 1/2/3 or click */}
       <div className="flex gap-4 mt-4">
         {(Object.keys(TENSOR_CONFIG) as GazeTensor[]).map((tensor) => {
           const config = TENSOR_CONFIG[tensor]
           const isDisabled = currentIndex >= positions || isVerifying
+          const isKeyActive = activeKey === config.number.toString()
 
           return (
             <button
@@ -317,17 +391,22 @@ export function PolynomialGazePinInput({
               onClick={() => selectPosition(tensor)}
               disabled={isDisabled}
               className={cn(
-                "w-16 h-16 rounded-full transition-all duration-200",
+                "relative w-16 h-16 rounded-full transition-all duration-200",
                 "flex flex-col items-center justify-center gap-1",
                 "border-2 hover:scale-105 active:scale-95",
-                isDisabled && "opacity-50 cursor-not-allowed"
+                isDisabled && "opacity-50 cursor-not-allowed",
+                isKeyActive && "scale-110 ring-2 ring-white/40"
               )}
               style={{
                 background: `linear-gradient(135deg, ${config.colors[0]}, ${config.colors[1]})`,
-                borderColor: `${config.colors[0]}80`,
+                borderColor: isKeyActive ? config.colors[0] : `${config.colors[0]}80`,
               }}
             >
-              <span className="text-lg font-bold text-white drop-shadow">{config.number}</span>
+              {/* Key hint badge */}
+              <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-600 text-[9px] font-mono text-zinc-300">
+                {config.number}
+              </span>
+              <span className="text-lg font-bold text-white drop-shadow">{config.emoji}</span>
               <span className="text-[9px] font-bold text-white/80 uppercase">{config.label}</span>
             </button>
           )
@@ -342,7 +421,7 @@ export function PolynomialGazePinInput({
           <p className="font-mono text-sm text-green-400">Pattern complete!</p>
         ) : (
           <p className="font-mono text-xs text-zinc-500">
-            Position {currentIndex + 1} of {positions} — Look at a tensor and hold for {holdThreshold}ms
+            Position {currentIndex + 1} of {positions} — Hold <kbd className="px-1 rounded bg-zinc-800 text-zinc-300">1</kbd> <kbd className="px-1 rounded bg-zinc-800 text-zinc-300">2</kbd> <kbd className="px-1 rounded bg-zinc-800 text-zinc-300">3</kbd> for COG/EMO/ENV ({holdThreshold}ms)
           </p>
         )}
       </div>

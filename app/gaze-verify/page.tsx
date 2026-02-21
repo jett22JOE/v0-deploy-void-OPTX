@@ -194,7 +194,7 @@ export default function GazeVerifyPage() {
             Gaze Verification
           </h1>
           <p className="font-mono text-xs text-zinc-500">
-            {state === "setup" && "Create your 4-position polynomial gaze pattern"}
+            {state === "setup" && "Hold 1 (COG) · 2 (EMO) · 3 (ENV) to create your 4-position gaze pattern"}
             {state === "verify" && "Verify your gaze pattern to continue"}
             {state === "connecting" && "Verifying gaze pattern..."}
             {state === "minting" && "Minting $OPTX tokens..."}

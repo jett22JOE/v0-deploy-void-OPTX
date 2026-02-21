@@ -106,8 +106,15 @@ export function AGTCircle({
         }}
         onClick={() => handleSectionClick(section)}
       >
+        {/* Key hint badge */}
+        <span
+          className="absolute -top-1 -right-1 w-4 h-4 rounded bg-zinc-900/90 border border-zinc-600 flex items-center justify-center"
+          style={{ fontSize: "8px", lineHeight: 1 }}
+        >
+          <span className="font-mono font-bold text-zinc-300">{sectionConfig.number}</span>
+        </span>
         <span className="text-lg font-bold text-white" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
-          {sectionConfig.number}
+          {sectionConfig.emoji}
         </span>
         <span className="font-semibold text-white/80 uppercase" style={{ fontSize: config.labelSize }}>
           {sectionConfig.label}
