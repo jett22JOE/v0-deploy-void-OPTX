@@ -18,6 +18,10 @@ export const metadata: Metadata = {
     "eye tracking security",
     "$JTX token",
     "$OPTX token",
+    "$CSTB token",
+    "ERC-8004 agent wallet",
+    "AARON protocol",
+    "Astro Knots",
   ],
   alternates: {
     canonical: "https://jettoptics.ai/optical-spatial-encryption",
@@ -28,7 +32,7 @@ export const metadata: Metadata = {
     description: "How AGT gaze tensors and Markov chains create post-quantum biometric authentication for Web3 and DePIN.",
     url: "https://jettoptics.ai/optical-spatial-encryption",
     images: ["/icons/lightLOGOjettoptics.jpeg"],
-    publishedTime: "2025-01-15T00:00:00Z",
+    publishedTime: "2026-02-20T00:00:00Z",
     authors: ["Jett Optics"],
   },
 }
@@ -48,14 +52,14 @@ export default function OpticalSpatialEncryptionPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
                 <Image
                   src="/images/astroknots-logo.png"
-                  alt="DAPP Logo"
+                  alt="Jett Optics"
                   width={32}
                   height={32}
                   className="relative inline-flex rounded-full object-contain"
                 />
               </span>
             </div>
-            <span className="font-mono text-xs tracking-widest text-muted-foreground">DAPP</span>
+            <span className="font-mono text-xs tracking-widest text-muted-foreground"><span className="text-orange-500">JETT</span> Optics</span>
           </Link>
           <Link
             href="/#spatial-encryption"
@@ -84,7 +88,7 @@ export default function OpticalSpatialEncryptionPage() {
             <span className="italic text-orange-500">Gaze-Powered Post-Quantum Security</span>
           </h1>
           <p className="font-mono text-sm text-muted-foreground">
-            By Jett Optics Research | January 2025
+            By Jett Optics Research | February 2026
           </p>
         </header>
 
@@ -193,11 +197,15 @@ export default function OpticalSpatialEncryptionPage() {
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
               Every authenticated interaction on the Jett Optics network validates your presence and attention,
               contributing to network security while earning <strong className="text-accent">$OPTX tokens</strong>.
-              This creates a DePIN (Decentralized Physical Infrastructure Network) where:
+              Verified sessions generate <strong className="text-accent">$CSTB trust attestations</strong> on-chain,
+              building a composable reputation score. This creates a DePIN (Decentralized Physical Infrastructure Network) where:
             </p>
             <ul className="space-y-2 mb-6">
               <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • Your attention becomes a scarce, valuable resource
+                • Your attention becomes a scarce, valuable resource rewarded with $OPTX
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • Each session mints a $CSTB attestation proving genuine human engagement
               </li>
               <li className="font-mono text-sm md:text-base text-muted-foreground">
                 • Bots and fake accounts cannot participate (no real eyes = no AGT signature)
@@ -208,103 +216,54 @@ export default function OpticalSpatialEncryptionPage() {
             </ul>
           </section>
 
-          {/* OPTX Tokenomics */}
+          {/* Token Ecosystem */}
           <section className="mb-12">
             <h2 className="font-sans text-2xl md:text-3xl font-light mb-6 text-white">
-              $JTX Token and DePIN Integration
+              Token Ecosystem & DePIN Integration
             </h2>
-            <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
-              Built on Solana for high throughput and low latency, <strong className="text-accent">$JTX</strong> is now live on Raydium and serves multiple functions:
+            <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-6">
+              The Jett Optics protocol operates on Solana with a multi-token architecture, each serving a distinct role in the DePIN economy:
             </p>
-            <ul className="space-y-2 mb-6">
-              <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Authentication fees</strong>—applications pay in $JTX to verify users
-              </li>
-              <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Attention rewards</strong>—users earn $JTX for genuine engagement
-              </li>
-              <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Governance</strong>—token holders vote on protocol upgrades
-              </li>
-              <li className="font-mono text-sm md:text-base text-muted-foreground">
-                • <strong className="text-white">Staking</strong>—secure the network and earn yield
-              </li>
-            </ul>
 
-            {/* Token Links */}
+            {/* $OPTX Token Card */}
             <div className="relative overflow-hidden bg-gradient-to-br from-accent/10 via-white/5 to-purple-500/10 border border-accent/30 rounded-2xl p-8 mb-6">
-              {/* Background glow effect */}
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/20 rounded-full blur-3xl" />
               <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl" />
-
               <div className="relative z-10">
                 <h3 className="font-mono text-sm tracking-[0.3em] text-accent mb-6 flex items-center gap-3">
                   <span className="inline-block w-2 h-2 bg-accent rounded-full animate-pulse" />
-                  $JTX TOKEN — LIVE ON SOLANA
+                  $OPTX — PRIMARY UTILITY TOKEN
                 </h3>
-
-                {/* Contract Address */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-8 p-4 bg-black/30 rounded-xl border border-white/10">
+                <p className="font-mono text-sm text-muted-foreground mb-4">
+                  The core utility token powering DePIN rewards, gaze verification fees, and JOE AI engagement incentives.
+                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6 p-4 bg-black/30 rounded-xl border border-white/10">
                   <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Contract:</span>
                   <code className="font-mono text-sm text-white bg-white/10 px-3 py-2 rounded-lg break-all select-all hover:bg-white/20 transition-colors cursor-pointer">
-                    9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj
+                    4r9W2cLj4BRzJRrYCteoVXkMFVu2bKfCH1bBxBvz7VdS
                   </code>
                 </div>
-
-                {/* Token Link Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <a
-                    href="https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+                    href="https://solscan.io/token/4r9W2cLj4BRzJRrYCteoVXkMFVu2bKfCH1bBxBvz7VdS"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#14F195]/20 to-[#9945FF]/20 hover:from-[#14F195]/30 hover:to-[#9945FF]/30 text-white border border-[#14F195]/40 hover:border-[#14F195]/60 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#14F195]/20"
                   >
-                    <Image
-                      src="/icons/solscan.ico"
-                      alt="Solscan"
-                      width={24}
-                      height={24}
-                      className="rounded"
-                    />
+                    <Image src="/icons/solscan.ico" alt="Solscan" width={24} height={24} className="rounded" />
                     <span className="font-semibold">Solscan</span>
                     <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </a>
-
                   <a
-                    href="https://dexscreener.com/solana/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+                    href="https://dexscreener.com/solana/4r9W2cLj4BRzJRrYCteoVXkMFVu2bKfCH1bBxBvz7VdS"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#1C1C28]/80 to-[#2D2D3A]/80 hover:from-[#1C1C28] hover:to-[#2D2D3A] text-white border border-white/20 hover:border-white/40 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-white/10"
                   >
-                    <Image
-                      src="/icons/dexscreener.png"
-                      alt="DexScreener"
-                      width={24}
-                      height={24}
-                      className="rounded"
-                    />
+                    <Image src="/icons/dexscreener.png" alt="DexScreener" width={24} height={24} className="rounded" />
                     <span className="font-semibold">DexScreener</span>
-                    <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-
-                  <a
-                    href="https://raydium.io/swap/?inputMint=9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj&outputMint=sol"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#2E1065]/80 to-[#7C3AED]/30 hover:from-[#2E1065] hover:to-[#7C3AED]/50 text-white border border-[#7C3AED]/40 hover:border-[#7C3AED]/60 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#7C3AED]/20"
-                  >
-                    <Image
-                      src="/icons/raydium.ico"
-                      alt="Raydium"
-                      width={24}
-                      height={24}
-                      className="rounded"
-                    />
-                    <span className="font-semibold">Trade on Raydium</span>
                     <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
@@ -313,10 +272,197 @@ export default function OpticalSpatialEncryptionPage() {
               </div>
             </div>
 
+            {/* $JTX Token Card */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-cyan-500/10 via-white/5 to-teal-500/10 border border-cyan-500/30 rounded-2xl p-8 mb-6">
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl" />
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-teal-500/20 rounded-full blur-3xl" />
+              <div className="relative z-10">
+                <h3 className="font-mono text-sm tracking-[0.3em] text-cyan-400 mb-6 flex items-center gap-3">
+                  <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                  $JTX — COMMUNITY VAULT & GOVERNANCE
+                </h3>
+                <p className="font-mono text-sm text-muted-foreground mb-4">
+                  The community governance token powering the Astro Knots vault. Token holders vote on protocol upgrades and earn staking yield.
+                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6 p-4 bg-black/30 rounded-xl border border-white/10">
+                  <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Contract:</span>
+                  <code className="font-mono text-sm text-white bg-white/10 px-3 py-2 rounded-lg break-all select-all hover:bg-white/20 transition-colors cursor-pointer">
+                    9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj
+                  </code>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <a
+                    href="https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#14F195]/20 to-[#9945FF]/20 hover:from-[#14F195]/30 hover:to-[#9945FF]/30 text-white border border-[#14F195]/40 hover:border-[#14F195]/60 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#14F195]/20"
+                  >
+                    <Image src="/icons/solscan.ico" alt="Solscan" width={24} height={24} className="rounded" />
+                    <span className="font-semibold">Solscan</span>
+                    <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                  <a
+                    href="https://dexscreener.com/solana/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#1C1C28]/80 to-[#2D2D3A]/80 hover:from-[#1C1C28] hover:to-[#2D2D3A] text-white border border-white/20 hover:border-white/40 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-white/10"
+                  >
+                    <Image src="/icons/dexscreener.png" alt="DexScreener" width={24} height={24} className="rounded" />
+                    <span className="font-semibold">DexScreener</span>
+                    <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                  <a
+                    href="https://raydium.io/swap/?inputMint=9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj&outputMint=sol"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3 font-mono text-sm px-5 py-4 bg-gradient-to-r from-[#2E1065]/80 to-[#7C3AED]/30 hover:from-[#2E1065] hover:to-[#7C3AED]/50 text-white border border-[#7C3AED]/40 hover:border-[#7C3AED]/60 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#7C3AED]/20"
+                  >
+                    <Image src="/icons/raydium.ico" alt="Raydium" width={24} height={24} className="rounded" />
+                    <span className="font-semibold">Raydium</span>
+                    <svg className="w-4 h-4 ml-auto opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* $CSTB + DePIN Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* $CSTB Card */}
+              <div className="relative overflow-hidden bg-gradient-to-br from-green-500/10 via-white/5 to-emerald-500/10 border border-green-500/30 rounded-2xl p-6">
+                <div className="relative z-10">
+                  <h3 className="font-mono text-sm tracking-[0.3em] text-green-400 mb-4 flex items-center gap-3">
+                    <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    $CSTB — TRUST ATTESTATION
+                  </h3>
+                  <p className="font-mono text-xs text-muted-foreground mb-4">
+                    On-chain biometric proofs minted after verified gaze sessions. Composable reputation for the attention economy.
+                  </p>
+                  <div className="p-3 bg-black/30 rounded-xl border border-white/10">
+                    <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Contract:</span>
+                    <code className="font-mono text-xs text-white break-all select-all cursor-pointer">
+                      4waAiAhLDAefLNoBbPkAsLcHRPHmpJpQTzVfiYMkwBwZ
+                    </code>
+                  </div>
+                </div>
+              </div>
+
+              {/* DePIN Program Card */}
+              <div className="relative overflow-hidden bg-gradient-to-br from-yellow-500/10 via-white/5 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-6">
+                <div className="relative z-10">
+                  <h3 className="font-mono text-sm tracking-[0.3em] text-yellow-400 mb-4 flex items-center gap-3">
+                    <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+                    DePIN PROGRAM
+                  </h3>
+                  <p className="font-mono text-xs text-muted-foreground mb-4">
+                    On-chain staking and validation program. Stake $OPTX to secure the network and earn yield from verification fees.
+                  </p>
+                  <div className="p-3 bg-black/30 rounded-xl border border-white/10">
+                    <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Program:</span>
+                    <code className="font-mono text-xs text-white break-all select-all cursor-pointer">
+                      91SqqMPFxMBJbJsAtCEzCoz9HsU8n3FJBCLE3xgo9Lds
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed">
-              The AARON Protocol (Asynchronous Audit RAG Optical Node) handles on-chain verification,
-              using retrieval-augmented generation to audit cryptographic operations across the distributed network.
+              Together, these tokens form a self-reinforcing DePIN economy: $OPTX rewards genuine attention, $JTX governs the community vault,
+              $CSTB attests to biometric authenticity, and the DePIN program anchors staking and validation on-chain.
             </p>
+          </section>
+
+          {/* AARON Protocol */}
+          <section className="mb-12">
+            <h2 className="font-sans text-2xl md:text-3xl font-light mb-6 text-white">
+              AARON Protocol: On-Chain Biometric Verification
+            </h2>
+            <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
+              The <strong className="text-accent">AARON Protocol</strong> (Asynchronous Audit RAG Optical Node) is the backbone of
+              on-chain verification. It processes gaze sessions into biometric proofs anchored to the Astro Knots registry,
+              creating a tamper-proof chain of attestation from raw eye movement data to on-chain identity.
+            </p>
+            <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
+              Each verified session generates a cryptographic proof that:
+            </p>
+            <ul className="space-y-2 mb-6">
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • Confirms a real human was present (anti-bot, anti-deepfake)
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • Mints a $CSTB attestation token to the user&apos;s wallet
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • Distributes $OPTX rewards proportional to session quality
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • Anchors the biometric proof to the Astro Knots on-chain registry
+              </li>
+            </ul>
+          </section>
+
+          {/* Agent Wallet */}
+          <section className="mb-12">
+            <h2 className="font-sans text-2xl md:text-3xl font-light mb-6 text-white">
+              ERC-8004 Agent Wallet: Cross-Chain Identity
+            </h2>
+            <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
+              The Jett Optics ecosystem includes an <strong className="text-accent">ERC-8004 compliant Agent Wallet</strong>—a
+              soulbound identity that bridges Solana and Base (EVM) chains. This enables AI agents to hold assets, sign transactions,
+              and participate in cross-chain DePIN operations autonomously.
+            </p>
+            <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
+              The agent wallet supports:
+            </p>
+            <ul className="space-y-2 mb-6">
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • <strong className="text-white">x402 payment protocol</strong>—API-level micropayments for AI services
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • <strong className="text-white">LayerZero bridge</strong>—cross-chain asset transfers between Solana and Base
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • <strong className="text-white">Soulbound metadata</strong>—non-transferable identity tied to the agent&apos;s gaze verification history
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • <strong className="text-white">CSTB attestation binding</strong>—trust scores portable across chains
+              </li>
+            </ul>
+          </section>
+
+          {/* AI Orchestration */}
+          <section className="mb-12">
+            <h2 className="font-sans text-2xl md:text-3xl font-light mb-6 text-white">
+              AI Orchestration: Edge Compute & Dual-Model Architecture
+            </h2>
+            <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
+              Jett Optics processes gaze data through a <strong className="text-accent">dual-AI architecture</strong> running on
+              dedicated edge infrastructure. A primary reasoning model handles spatial analysis and tensor classification,
+              while a secondary model provides fallback verification and cross-validation.
+            </p>
+            <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
+              The edge compute layer ensures:
+            </p>
+            <ul className="space-y-2 mb-6">
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • <strong className="text-white">Low-latency inference</strong>—gaze classification at the edge, not in the cloud
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • <strong className="text-white">Privacy-first</strong>—raw biometric data never leaves the encrypted mesh network
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • <strong className="text-white">Real-time AGT generation</strong>—tensor computation during active gaze sessions
+              </li>
+              <li className="font-mono text-sm md:text-base text-muted-foreground">
+                • <strong className="text-white">Federated communication</strong>—secure inter-node messaging for distributed validation
+              </li>
+            </ul>
           </section>
 
           {/* Comparison */}
@@ -381,8 +527,35 @@ export default function OpticalSpatialEncryptionPage() {
               password, your attention becomes valuable, and your identity becomes truly unbreakable.
             </p>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed">
-              Join us in pioneering the next evolution of digital security.
+              Join the Astro Knots community and help pioneer the next evolution of digital security.
             </p>
+          </section>
+
+          {/* Astro Knots CTA */}
+          <section className="mb-12">
+            <div className="relative overflow-hidden bg-gradient-to-br from-cyan-500/10 via-accent/5 to-teal-500/10 border border-cyan-500/30 rounded-2xl p-8 text-center">
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/15 rounded-full blur-3xl" />
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/15 rounded-full blur-3xl" />
+              <div className="relative z-10">
+                <h3 className="font-mono text-sm tracking-[0.3em] text-cyan-400 mb-4">
+                  ASTRO KNOTS COMMUNITY VAULT
+                </h3>
+                <p className="font-mono text-sm text-muted-foreground mb-6 max-w-lg mx-auto">
+                  Explore the community vault, stake $JTX, earn DePIN rewards, and join the mission to build decentralized spatial security.
+                </p>
+                <a
+                  href="https://astroknots.space"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-mono text-sm tracking-widest rounded-full border border-cyan-500/40 hover:border-cyan-500/60 transition-all duration-300 hover:scale-[1.02]"
+                >
+                  VISIT ASTROKNOTS.SPACE
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            </div>
           </section>
 
           {/* CTA */}
@@ -413,13 +586,13 @@ export default function OpticalSpatialEncryptionPage() {
                 url: "https://jettoptics.ai/icons/lightLOGOjettoptics.jpeg",
               },
             },
-            datePublished: "2025-01-15",
-            dateModified: "2025-01-15",
+            datePublished: "2026-02-20",
+            dateModified: "2026-02-20",
             mainEntityOfPage: {
               "@type": "WebPage",
               "@id": "https://jettoptics.ai/optical-spatial-encryption",
             },
-            keywords: "spatial encryption, DePIN, gaze-based encryption, AGT tensors, proof-of-attention, post-quantum cryptography, Markov chains, $JTX, $OPTX, Solana token",
+            keywords: "spatial encryption, DePIN, gaze-based encryption, AGT tensors, proof-of-attention, post-quantum cryptography, Markov chains, $JTX, $OPTX, $CSTB, ERC-8004, AARON protocol, Astro Knots, Solana token",
           }),
         }}
       />
