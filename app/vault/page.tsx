@@ -270,11 +270,14 @@ export default function VaultPage() {
               {[
                 { label: "SPATIAL UX", href: "https://jettoptics.ai/#spatial-encryption" },
                 { label: "JOE AI", href: "https://jettoptics.ai/#joe-agent" },
-                { label: "CONTACT", href: "https://jettoptics.ai/#contact" },
-              ].map((link, index) => (
+                { label: "CONTACT", href: "https://x.com/jettoptx" },
+              ].map((link, index) => {
+                const isExternal = link.href.startsWith("https://x.com");
+                return (
                 <li key={link.label}>
                   <Link
                     href={link.href}
+                    {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     className={`group relative font-mono text-xs tracking-wider px-4 py-2 rounded-xl transition-all duration-300 ${
                       darkMode ? "text-white/40 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-gray-900 hover:bg-black/5"
                     }`}
@@ -284,7 +287,8 @@ export default function VaultPage() {
                     <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </Link>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </div>
 
