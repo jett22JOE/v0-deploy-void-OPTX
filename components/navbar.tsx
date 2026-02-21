@@ -95,35 +95,24 @@ export function Navbar() {
         className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4"
       >
         <nav className="relative flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
-          {/* Left: DAPP Branding + ASTRO.KNOTS */}
-          <div className="flex items-center gap-3">
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault()
-                window.scrollTo({ top: 0, behavior: "smooth" })
-              }}
-              className="group flex items-center gap-2"
-            >
-              <div className="relative w-8 h-8 md:w-6 md:h-6 flex items-center justify-center">
-                <span className="relative flex h-full w-full">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-                  <Image
-                    src="/images/astroknots-logo.png"
-                    alt="DAPP Logo"
-                    width={32}
-                    height={32}
-                    className="relative inline-flex rounded-full object-contain"
-                  />
-                </span>
-              </div>
-              <span className="font-mono text-xs tracking-widest text-muted-foreground">DAPP</span>
-            </a>
-            <Link href="https://astroknots.space" className="hidden md:flex items-center gap-1.5 font-mono text-xs tracking-widest text-muted-foreground hover:text-foreground transition-colors duration-300">
-              <span className="text-accent">Δ</span>
-              <span>ASTRO.KNOTS</span>
-            </Link>
-          </div>
+          {/* Left: Δ ASTRO.KNOTS Branding */}
+          <Link href="https://astroknots.space" className="group flex items-center gap-2">
+            <div className="relative w-8 h-8 md:w-6 md:h-6 flex items-center justify-center">
+              <span className="relative flex h-full w-full">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+                <Image
+                  src="/images/astroknots-logo.png"
+                  alt="Astro Knots"
+                  width={32}
+                  height={32}
+                  className="relative inline-flex rounded-full object-contain"
+                />
+              </span>
+            </div>
+            <span className="font-mono text-xs tracking-widest text-muted-foreground hover:text-foreground transition-colors duration-300">
+              <span className="text-accent">Δ</span>{" "}ASTRO.KNOTS
+            </span>
+          </Link>
 
           {/* Center: Navigation Links with glass pill (Desktop only) */}
           <div

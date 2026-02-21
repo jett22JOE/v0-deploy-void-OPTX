@@ -1,12 +1,5 @@
-import { DOJOSidebar } from '@/components/DOJOSidebar';
+import { DOJOLayout } from '@/components/DOJOLayout';
 
-export default function ConnectionsLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex h-screen overflow-hidden bg-black">
-      <DOJOSidebar />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
-    </div>
-  );
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return <DOJOLayout>{children}</DOJOLayout>;
 }

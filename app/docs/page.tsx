@@ -256,7 +256,7 @@ function DocsContent() {
           {/* Navigation */}
           <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
             {!collapsed && (
-              <p className={`text-[9px] font-mono uppercase tracking-widest px-3 mb-2 mt-1 ${isDark ? "text-orange-400/40" : "text-orange-600/40"}`}>Documentation</p>
+              <p className={`text-[9px] font-mono uppercase tracking-widest px-3 mb-2 mt-1 ${isDark ? "text-orange-400/40" : "text-orange-700/50"}`}>Documentation</p>
             )}
             {TABS.map((tab) => {
               const Icon = tab.icon
@@ -275,10 +275,10 @@ function DocsContent() {
                         : "bg-orange-100/80 text-orange-700 border-l-2 border-orange-500"
                       : isDark
                         ? "text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/8"
-                        : "text-orange-600/40 hover:text-orange-700 hover:bg-orange-100/50"
+                        : "text-orange-700/50 hover:text-orange-700 hover:bg-orange-100/50"
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? (isDark ? "text-orange-400" : "text-orange-700") : (isDark ? "text-orange-400/50" : "text-orange-600/40")}`} />
+                  <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? (isDark ? "text-orange-400" : "text-orange-700") : (isDark ? "text-orange-400/50" : "text-orange-700/50")}`} />
                   {!collapsed && <span>{tab.label}</span>}
                 </button>
               )
@@ -288,17 +288,17 @@ function DocsContent() {
           {/* Footer links */}
           <div className={`p-2 border-t space-y-0.5 ${isDark ? "border-orange-500/15" : "border-orange-200/30"}`}>
             {!collapsed && (
-              <p className={`text-[9px] font-mono uppercase tracking-widest px-3 mb-1 ${isDark ? "text-orange-400/40" : "text-orange-600/40"}`}>Resources</p>
+              <p className={`text-[9px] font-mono uppercase tracking-widest px-3 mb-1 ${isDark ? "text-orange-400/40" : "text-orange-700/50"}`}>Resources</p>
             )}
             <a href="https://github.com/jett22JOE/JTX-CSTB.TRUST.DEPIN" target="_blank" rel="noopener noreferrer"
               title={collapsed ? "GitHub Repo" : undefined}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-mono transition-colors ${collapsed ? "justify-center" : ""} ${isDark ? "text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/8" : "text-orange-600/40 hover:text-orange-700 hover:bg-orange-100/50"}`}>
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-mono transition-colors ${collapsed ? "justify-center" : ""} ${isDark ? "text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/8" : "text-orange-700/50 hover:text-orange-700 hover:bg-orange-100/50"}`}>
               <Globe className="w-4 h-4 shrink-0" />
               {!collapsed && <><span>GitHub</span><ExternalLink className="w-3 h-3 ml-auto" /></>}
             </a>
             <a href="https://explorer.solana.com/address/91SqqYLMi5zNsfMab6rnvipwJhDpN4FEMSLgu8F3bbGq?cluster=devnet" target="_blank" rel="noopener noreferrer"
               title={collapsed ? "Solana Explorer" : undefined}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-mono transition-colors ${collapsed ? "justify-center" : ""} ${isDark ? "text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/8" : "text-orange-600/40 hover:text-orange-700 hover:bg-orange-100/50"}`}>
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-mono transition-colors ${collapsed ? "justify-center" : ""} ${isDark ? "text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/8" : "text-orange-700/50 hover:text-orange-700 hover:bg-orange-100/50"}`}>
               <Layers className="w-4 h-4 shrink-0" />
               {!collapsed && <><span>Explorer</span><ExternalLink className="w-3 h-3 ml-auto" /></>}
             </a>
@@ -841,7 +841,7 @@ pub mod cstb_depin {
         {/* On this page — right TOC sidebar (desktop only) */}
         <div className="hidden xl:block w-48 shrink-0 p-4 relative z-10">
           <div className="sticky top-[69px]">
-            <p className={`text-[9px] font-mono uppercase tracking-widest mb-3 flex items-center gap-1 ${isDark ? "text-orange-400/40" : "text-orange-600/40"}`}>
+            <p className={`text-[9px] font-mono uppercase tracking-widest mb-3 flex items-center gap-1 ${isDark ? "text-orange-400/40" : "text-orange-700/50"}`}>
               <ChevronRight className="w-3 h-3" />
               On this page
             </p>
@@ -857,7 +857,7 @@ pub mod cstb_depin {
                         : "border-orange-500 text-orange-700"
                       : isDark
                         ? "border-transparent text-orange-400/40 hover:text-orange-400/70 hover:border-orange-500/30"
-                        : "border-transparent text-orange-600/30 hover:text-orange-600/60 hover:border-orange-400/40"
+                        : "border-transparent text-orange-700/50 hover:text-orange-700/80 hover:border-orange-400/40"
                   }`}
                 >
                   {section}
