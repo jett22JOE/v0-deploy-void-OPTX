@@ -4,13 +4,96 @@ import { api } from "./_generated/api"
 
 const http = httpRouter()
 
+// Verify a Svix (Clerk) webhook signature using HMAC-SHA-256
+async function verifySvixSignature(
+  body: string,
+  svixId: string,
+  svixTimestamp: string,
+  svixSignature: string,
+  secret: string
+): Promise<boolean> {
+  // Svix secrets are prefixed with "whsec_" and base64-encoded
+  const rawSecret = secret.startsWith("whsec_")
+    ? secret.slice("whsec_".length)
+    : secret
+
+  let keyBytes: Uint8Array
+  try {
+    keyBytes = Uint8Array.from(atob(rawSecret), (c) => c.charCodeAt(0))
+  } catch {
+    console.error("Clerk webhook: invalid secret format (bad base64)")
+    return false
+  }
+
+  const message = `${svixId}.${svixTimestamp}.${body}`
+  const encoder = new TextEncoder()
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyBytes.buffer.slice(keyBytes.byteOffset, keyBytes.byteOffset + keyBytes.byteLength),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  )
+  const sigBytes = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(message)
+  )
+  const computed = btoa(String.fromCharCode(...new Uint8Array(sigBytes)))
+
+  // svix-signature header may contain multiple space-separated "v1,<b64>" entries
+  const signatures = svixSignature.split(" ")
+  for (const entry of signatures) {
+    const [version, provided] = entry.split(",")
+    if (version === "v1" && provided) {
+      if (provided.length === computed.length) {
+        let mismatch = 0
+        for (let i = 0; i < provided.length; i++) {
+          mismatch |= provided.charCodeAt(i) ^ computed.charCodeAt(i)
+        }
+        if (mismatch === 0) return true
+      }
+    }
+  }
+  return false
+}
+
 // --- Clerk Webhook ---
 http.route({
   path: "/clerkWebhook",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
+    const svixId = request.headers.get("svix-id")
+    const svixTimestamp = request.headers.get("svix-timestamp")
+    const svixSignature = request.headers.get("svix-signature")
+
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      console.error("Clerk webhook: missing svix headers")
+      return new Response("Missing svix headers", { status: 400 })
+    }
+
+    const body = await request.text()
+
+    const clerkWebhookSecret = process.env.CLERK_WEBHOOK_SECRET
+    if (!clerkWebhookSecret) {
+      console.error("CLERK_WEBHOOK_SECRET is not set")
+      return new Response("Webhook secret not configured", { status: 500 })
+    }
+
+    const valid = await verifySvixSignature(
+      body,
+      svixId,
+      svixTimestamp,
+      svixSignature,
+      clerkWebhookSecret
+    )
+    if (!valid) {
+      console.error("Clerk webhook: signature verification failed")
+      return new Response("Invalid signature", { status: 400 })
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const payload = (await request.json()) as any
+    const payload = JSON.parse(body) as any
     console.log("Clerk webhook:", payload.type)
 
     if (payload.type === "user.created") {
@@ -83,7 +166,13 @@ async function verifyStripeSignature(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("")
 
-  return expected === sig
+  // Use constant-time comparison to prevent timing attacks
+  if (expected.length !== sig.length) return false
+  let mismatch = 0
+  for (let i = 0; i < expected.length; i++) {
+    mismatch |= expected.charCodeAt(i) ^ sig.charCodeAt(i)
+  }
+  return mismatch === 0
 }
 
 http.route({

@@ -40,3 +40,4 @@ patch_joe_cli.sh
 
 # Sensitive docs (keys removed, never recommit)
 CLERK_SETUP.md
+package-lock.json

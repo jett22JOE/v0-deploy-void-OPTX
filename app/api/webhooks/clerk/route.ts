@@ -32,7 +32,14 @@ export async function POST(req: Request) {
   const body = JSON.stringify(payload)
 
   // Create a new Svix instance with your webhook secret
-  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || "")
+  const clerkWebhookSecret = process.env.CLERK_WEBHOOK_SECRET
+  if (!clerkWebhookSecret) {
+    console.error("CLERK_WEBHOOK_SECRET is not set")
+    return new Response("Error: Missing webhook secret configuration", {
+      status: 500,
+    })
+  }
+  const wh = new Webhook(clerkWebhookSecret)
 
   let evt: WebhookEvent
 
