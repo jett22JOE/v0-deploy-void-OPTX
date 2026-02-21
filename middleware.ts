@@ -34,9 +34,15 @@ export default clerkMiddleware(async (auth, request) => {
 
   // Primary vault domain: astroknots.space → /vault
   if (hostname === "astroknots.space" || hostname === "www.astroknots.space") {
-    if (!url.pathname.startsWith("/vault")) {
-      url.pathname = `/vault${url.pathname === "/" ? "" : url.pathname}`
-      return NextResponse.rewrite(url)
+    // Only serve the vault page on astroknots.space — redirect everything else to jettoptics.ai
+    if (url.pathname === "/" || url.pathname.startsWith("/vault")) {
+      if (!url.pathname.startsWith("/vault")) {
+        url.pathname = "/vault"
+        return NextResponse.rewrite(url)
+      }
+    } else {
+      // Non-vault paths (e.g. /loading, /docs) → redirect to jettoptics.ai
+      return NextResponse.redirect(`https://jettoptics.ai${url.pathname}`, 302)
     }
   }
 

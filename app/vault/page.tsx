@@ -268,9 +268,9 @@ export default function VaultPage() {
           <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
             <ul className="flex items-center gap-2 px-2 py-1">
               {[
-                { label: "SPATIAL UX", href: "/#spatial-encryption" },
-                { label: "JOE AI", href: "/#joe-agent" },
-                { label: "CONTACT", href: "/#contact" },
+                { label: "SPATIAL UX", href: "https://jettoptics.ai/#spatial-encryption" },
+                { label: "JOE AI", href: "https://jettoptics.ai/#joe-agent" },
+                { label: "CONTACT", href: "https://jettoptics.ai/#contact" },
               ].map((link, index) => (
                 <li key={link.label}>
                   <Link
@@ -288,18 +288,11 @@ export default function VaultPage() {
             </ul>
           </div>
 
-          {/* Right: Vault + UX Docs + Theme Toggle + Wallet + Logo */}
+          {/* Right: UX Docs + Theme Toggle + Wallet + Logo */}
           <div className="flex items-center gap-3">
-            {/* Vault link (desktop) */}
-            <div className="hidden md:block">
-              <span className={`font-mono text-xs tracking-wider px-3 py-2 ${darkMode ? "text-orange-500" : "text-orange-600"}`}>
-                Vault
-              </span>
-            </div>
-
             {/* UX Docs link (desktop) */}
             <div className="hidden md:block">
-              <Link href="/docs" className={`group relative font-mono text-xs tracking-wider px-3 py-2 rounded-xl transition-all duration-300 ${
+              <Link href="https://jettoptics.ai/docs" className={`group relative font-mono text-xs tracking-wider px-3 py-2 rounded-xl transition-all duration-300 ${
                 darkMode ? "text-white/40 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-gray-900 hover:bg-black/5"
               }`}>
                 <span className="text-orange-500 mr-1">UX</span>Docs
@@ -336,8 +329,8 @@ export default function VaultPage() {
               </button>
             )}
 
-            {/* JettOptics logo button (desktop) */}
-            <Link href="/loading" className="hidden md:flex items-center">
+            {/* JettOptics logo button (desktop) → loading page / Jett Hub */}
+            <Link href="https://jettoptics.ai/loading" className="hidden md:flex items-center">
               <div className={`relative w-11 h-11 overflow-hidden rounded-xl flex items-center justify-center transition-all duration-500 border ${
                 darkMode ? "border-orange-500/40 bg-[#111118]" : "border-orange-300 bg-white"
               } hover:shadow-[0_0_20px_rgba(181,82,0,0.4)]`}>

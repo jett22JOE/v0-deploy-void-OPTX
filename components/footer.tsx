@@ -40,7 +40,7 @@ export function Footer() {
   }, [])
 
   return (
-    <footer className="relative">
+    <footer id="contact" className="relative">
       <WaitlistButton />
 
       {/* Footer Info */}
