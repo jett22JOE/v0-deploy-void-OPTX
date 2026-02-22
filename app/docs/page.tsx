@@ -14,7 +14,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 
-type DocTab = "overview" | "api" | "wallet" | "gaze" | "bridge" | "cstb"
+type DocTab = "overview" | "api" | "wallet" | "gaze" | "bridge" | "cstb" | "hedgehog" | "aaron"
 
 const TABS: { key: DocTab; label: string; icon: typeof Code2; color: string; sections: string[] }[] = [
   { key: "overview", label: "Overview", icon: BookOpen, color: "orange", sections: ["Welcome to the OPTX Developer Suite", "Quick Start", "System Architecture", "On-Chain Addresses"] },
@@ -23,6 +23,8 @@ const TABS: { key: DocTab; label: string; icon: typeof Code2; color: string; sec
   { key: "wallet", label: "ERC-8004 Wallet", icon: Wallet, color: "blue", sections: ["ERC-8004 Agent Wallet", "Wallet Integration", "Agent Metadata"] },
   { key: "bridge", label: "LayerZero Bridge", icon: Network, color: "purple", sections: ["LayerZero Bridge", "Bridge Architecture", "Bridge Example"] },
   { key: "cstb", label: "CSTB / DePIN", icon: Shield, color: "red", sections: ["CSTB Trust DePIN Protocol", "Reward Distribution", "Attestation Flow", "Anchor Program"] },
+  { key: "hedgehog", label: "HEDGEHOG MCP", icon: BrainCircuit, color: "cyan", sections: ["HEDGEHOG MCP Overview", "MCP Tools", "Gateway Pattern", "Usage Examples"] },
+  { key: "aaron", label: "AARON Protocol", icon: Fingerprint, color: "emerald", sections: ["AARON Protocol Overview", "Biometric Proof Registry", "Rust Reducers", "Client Integration"] },
 ]
 
 const ON_CHAIN = {
@@ -831,6 +833,359 @@ pub mod cstb_depin {
 
         Ok(())
     }
+}`} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ===================== HEDGEHOG MCP ===================== */}
+          {activeTab === "hedgehog" && (
+            <div className="space-y-6">
+              <div data-section="HEDGEHOG MCP Overview" className="scroll-mt-4">
+                <h2 className={`font-mono text-lg flex items-center gap-2 ${isDark ? "text-orange-400" : "text-orange-700"}`}>
+                  <BrainCircuit className="w-5 h-5" /> HEDGEHOG MCP
+                </h2>
+                <p className={`font-mono text-xs leading-relaxed max-w-2xl mt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                  HEDGEHOG is the Model Context Protocol server that bridges AI reasoning with the spatial authentication stack.
+                  It routes queries through Grok 4.1 Fast Reasoning with automatic project context injection,
+                  stores gaze tensor data via SpacetimeDB, and provides a unified API gateway for multi-model AI orchestration.
+                </p>
+              </div>
+
+              <Card className={`${isDark ? "border-orange-500/20 bg-black/30" : "border-orange-200/30 bg-white/50"}`}>
+                <CardHeader className={`p-4 border-b ${isDark ? "border-orange-500/15" : "border-orange-200/20"}`}>
+                  <CardTitle data-section="MCP Tools" className={`text-sm flex items-center gap-2 scroll-mt-4 ${isDark ? "text-orange-300" : "text-orange-700"}`}>
+                    <Terminal className="w-4 h-4" /> MCP Tools
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
+                  {[
+                    { tool: "hedgehog_grok_query", desc: "Query Grok 4.1 Fast with automatic spatial context" },
+                    { tool: "hedgehog_get_context", desc: "Retrieve current workspace state and project metadata" },
+                    { tool: "hedgehog_store_gaze_data", desc: "Store COG/ENV/EMO tensor data with confidence scores" },
+                    { tool: "hedgehog_retrieve_gaze_data", desc: "Fetch gaze tracking history for a user" },
+                    { tool: "hedgehog_analyze_gaze_pattern", desc: "AI-powered cognitive, emotional, or environmental analysis" },
+                    { tool: "hedgehog_chat_completion", desc: "Multi-model chat with Grok primary, Claude fallback" },
+                    { tool: "hedgehog_gateway", desc: "Direct XAI API proxy with embedded credentials" },
+                    { tool: "hedgehog_xai_api_history", desc: "Audit trail of all API calls" },
+                    { tool: "hedgehog_xai_api_stats", desc: "Token usage, costs, and success rate metrics" },
+                  ].map((t) => (
+                    <div key={t.tool} className={`flex items-center gap-3 p-2 rounded border ${isDark ? "bg-black/20 border-orange-500/10" : "bg-white/60 border-orange-200/20"}`}>
+                      <code className={`font-mono text-[10px] shrink-0 ${isDark ? "text-cyan-400" : "text-cyan-700"}`}>{t.tool}</code>
+                      <span className={`font-mono text-[9px] ml-auto text-right ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>{t.desc}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className={`${isDark ? "border-orange-500/20 bg-black/30" : "border-orange-200/30 bg-white/50"}`}>
+                <CardHeader className={`p-4 border-b ${isDark ? "border-orange-500/15" : "border-orange-200/20"}`}>
+                  <CardTitle data-section="Gateway Pattern" className={`text-sm flex items-center gap-2 scroll-mt-4 ${isDark ? "text-orange-300" : "text-orange-700"}`}>
+                    <Lock className="w-4 h-4" /> Gateway Pattern
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  <p className={`font-mono text-[10px] ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                    The gateway embeds the XAI API key server-side so clients never handle credentials.
+                    All requests are proxied through the MCP stdio protocol on the edge node.
+                  </p>
+                  <CodeBlock theme={theme} language="python" code={`# hedgehog_spacetime.py — Gateway pattern (Python)
+import aiohttp
+from mcp.server import Server
+
+XAI_GATEWAY_KEY = "xai-..."  # Embedded, never exposed
+
+async def hedgehog_gateway(prompt: str, max_tokens: int = 2000):
+    """Direct proxy to Grok 4.1 Fast Reasoning"""
+    async with aiohttp.ClientSession() as session:
+        resp = await session.post(
+            "https://api.x.ai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {XAI_GATEWAY_KEY}"},
+            json={
+                "model": "grok-4-1-fast-reasoning",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": max_tokens,
+            }
+        )
+        data = await resp.json()
+        return data["choices"][0]["message"]["content"]`} />
+                </CardContent>
+              </Card>
+
+              <Card className={`${isDark ? "border-orange-500/20 bg-black/30" : "border-orange-200/30 bg-white/50"}`}>
+                <CardHeader className={`p-4 border-b ${isDark ? "border-orange-500/15" : "border-orange-200/20"}`}>
+                  <CardTitle data-section="Usage Examples" className={`text-sm flex items-center gap-2 scroll-mt-4 ${isDark ? "text-orange-300" : "text-orange-700"}`}>
+                    <Code2 className="w-4 h-4" /> Usage Examples
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  <CodeBlock theme={theme} language="typescript" code={`// Store gaze data from browser MediaPipe pipeline
+const storeGaze = async (userId: number, gazeX: number, gazeY: number) => {
+  const response = await fetch("/api/hedgehog/analyze", {
+    method: "POST",
+    body: JSON.stringify({
+      action: "store_gaze",
+      user_id: userId,
+      gaze_x: gazeX,    // -1 to 1 normalized
+      gaze_y: gazeY,    // -1 to 1 normalized
+      cog_value: 0.8,   // AGT tensor weights
+      emo_value: 0.1,
+      env_value: 0.1,
+      confidence: 0.92,
+    }),
+  });
+  return response.json();
+};`} />
+                  <CodeBlock theme={theme} language="rust" code={`// SpacetimeDB reducer — store gaze event (Rust)
+use spacetimedb::spacetimedb;
+
+#[spacetimedb(table)]
+pub struct GazeEvent {
+    #[primarykey]
+    #[autoinc]
+    pub id: u64,
+    pub user_id: u64,
+    pub gaze_x: f64,
+    pub gaze_y: f64,
+    pub cog: f64,
+    pub emo: f64,
+    pub env: f64,
+    pub confidence: f64,
+    pub timestamp: u64,
+}
+
+#[spacetimedb(reducer)]
+pub fn store_gaze(
+    ctx: &ReducerContext,
+    user_id: u64,
+    gaze_x: f64, gaze_y: f64,
+    cog: f64, emo: f64, env: f64,
+    confidence: f64,
+) -> Result<(), String> {
+    GazeEvent::insert(GazeEvent {
+        id: 0,
+        user_id, gaze_x, gaze_y,
+        cog, emo, env, confidence,
+        timestamp: ctx.timestamp.to_micros_since_epoch(),
+    });
+    Ok(())
+}`} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ===================== AARON PROTOCOL ===================== */}
+          {activeTab === "aaron" && (
+            <div className="space-y-6">
+              <div data-section="AARON Protocol Overview" className="scroll-mt-4">
+                <h2 className={`font-mono text-lg flex items-center gap-2 ${isDark ? "text-orange-400" : "text-orange-700"}`}>
+                  <Fingerprint className="w-5 h-5" /> AARON Protocol
+                </h2>
+                <p className={`font-mono text-xs leading-relaxed max-w-2xl mt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                  AARON (Adaptive Authentication and Recognition Over Networks) is the biometric proof protocol
+                  that underpins the Astro Knots registry. It generates quantum-resistant gaze proofs by encoding
+                  AGT tensor sequences into polynomial knot invariants, then anchoring them on Solana via CSTB attestations.
+                </p>
+              </div>
+
+              <Card className={`${isDark ? "border-orange-500/20 bg-black/30" : "border-orange-200/30 bg-white/50"}`}>
+                <CardHeader className={`p-4 border-b ${isDark ? "border-orange-500/15" : "border-orange-200/20"}`}>
+                  <CardTitle data-section="Biometric Proof Registry" className={`text-sm flex items-center gap-2 scroll-mt-4 ${isDark ? "text-orange-300" : "text-orange-700"}`}>
+                    <Shield className="w-4 h-4" /> Biometric Proof Registry
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  <p className={`font-mono text-[10px] ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                    Each gaze verification session produces a JOULE template — a polynomial encoding of the user&apos;s
+                    AGT tensor sequence. The AARON protocol hashes this into a knot invariant and stores it on-chain.
+                  </p>
+                  <CodeBlock theme={theme} language="typescript" code={`// JOULE Template — polynomial gaze encoding
+interface JOULETemplate {
+  timestamp: number;
+  sessionNonce: string;
+  expirationWindow: number;          // 30s default
+  gazeSequence: GazeTensor[];        // ["COG", "EMO", "ENV", "COG"]
+  holdDurations: number[];           // ms per position
+  transitionVectors: number[][];     // gaze path between positions
+  polynomialEncoding: string;        // "1-2-3-1" (COG=1, EMO=2, ENV=3)
+  knotPolynomial: string;            // "AGT-1231-1708123456789"
+  verificationHash: string;          // SHA-256 of nonce+sequence+durations
+}
+
+// Generate verification hash
+async function generateVerificationHash(
+  nonce: string,
+  sequence: GazeTensor[],
+  durations: number[],
+  timestamp: number
+): Promise<string> {
+  const data = nonce + sequence.join(",") + durations.join(",") + timestamp;
+  const buffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(data)
+  );
+  return Array.from(new Uint8Array(buffer))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}`} />
+                </CardContent>
+              </Card>
+
+              <Card className={`${isDark ? "border-orange-500/20 bg-black/30" : "border-orange-200/30 bg-white/50"}`}>
+                <CardHeader className={`p-4 border-b ${isDark ? "border-orange-500/15" : "border-orange-200/20"}`}>
+                  <CardTitle data-section="Rust Reducers" className={`text-sm flex items-center gap-2 scroll-mt-4 ${isDark ? "text-orange-300" : "text-orange-700"}`}>
+                    <Cpu className="w-4 h-4" /> Rust Reducers (SpacetimeDB)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  <p className={`font-mono text-[10px] ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                    The AARON registry runs as SpacetimeDB reducers on the edge node.
+                    Biometric proofs are validated server-side before on-chain attestation.
+                  </p>
+                  <CodeBlock theme={theme} language="rust" code={`// AARON biometric proof — SpacetimeDB module (Rust)
+use spacetimedb::spacetimedb;
+use sha2::{Sha256, Digest};
+
+#[spacetimedb(table)]
+pub struct BiometricProof {
+    #[primarykey]
+    #[autoinc]
+    pub id: u64,
+    pub user_id: u64,
+    pub polynomial_encoding: String,   // "1-2-3-1"
+    pub knot_polynomial: String,       // "AGT-1231-..."
+    pub verification_hash: String,     // SHA-256
+    pub hold_durations_ms: Vec<u64>,
+    pub confidence_mean: f64,
+    pub verified: bool,
+    pub created_at: u64,
+}
+
+#[spacetimedb(reducer)]
+pub fn submit_biometric_proof(
+    ctx: &ReducerContext,
+    user_id: u64,
+    polynomial: String,
+    knot: String,
+    hash: String,
+    durations: Vec<u64>,
+    confidence: f64,
+) -> Result<(), String> {
+    // Validate minimum confidence threshold
+    if confidence < 0.7 {
+        return Err("Confidence below 0.7 threshold".into());
+    }
+
+    // Validate polynomial format (digits separated by dashes)
+    if !polynomial.chars().all(|c| c.is_ascii_digit() || c == '-') {
+        return Err("Invalid polynomial encoding".into());
+    }
+
+    BiometricProof::insert(BiometricProof {
+        id: 0,
+        user_id,
+        polynomial_encoding: polynomial,
+        knot_polynomial: knot,
+        verification_hash: hash,
+        hold_durations_ms: durations,
+        confidence_mean: confidence,
+        verified: false,
+        created_at: ctx.timestamp.to_micros_since_epoch(),
+    });
+
+    log::info!("Biometric proof submitted for user {}", user_id);
+    Ok(())
+}
+
+#[spacetimedb(reducer)]
+pub fn verify_proof(
+    ctx: &ReducerContext,
+    proof_id: u64,
+    nonce: String,
+    sequence: Vec<u8>,        // COG=1, EMO=2, ENV=3
+    durations: Vec<u64>,
+    timestamp: u64,
+) -> Result<(), String> {
+    let proof = BiometricProof::filter_by_id(&proof_id)
+        .ok_or("Proof not found")?;
+
+    // Recompute hash server-side
+    let seq_str: String = sequence.iter()
+        .map(|t| match t { 1 => "COG", 2 => "EMO", 3 => "ENV", _ => "?" })
+        .collect::<Vec<_>>().join(",");
+    let dur_str: String = durations.iter()
+        .map(|d| d.to_string())
+        .collect::<Vec<_>>().join(",");
+
+    let data = format!("{}{}{}{}", nonce, seq_str, dur_str, timestamp);
+    let mut hasher = Sha256::new();
+    hasher.update(data.as_bytes());
+    let computed = format!("{:x}", hasher.finalize());
+
+    if computed != proof.verification_hash {
+        return Err("Hash mismatch — proof invalid".into());
+    }
+
+    // Mark as verified
+    BiometricProof::update_by_id(&proof_id, |p| {
+        p.verified = true;
+    });
+
+    log::info!("Proof {} verified for user {}", proof_id, proof.user_id);
+    Ok(())
+}`} />
+                </CardContent>
+              </Card>
+
+              <Card className={`${isDark ? "border-orange-500/20 bg-black/30" : "border-orange-200/30 bg-white/50"}`}>
+                <CardHeader className={`p-4 border-b ${isDark ? "border-orange-500/15" : "border-orange-200/20"}`}>
+                  <CardTitle data-section="Client Integration" className={`text-sm flex items-center gap-2 scroll-mt-4 ${isDark ? "text-orange-300" : "text-orange-700"}`}>
+                    <Code2 className="w-4 h-4" /> Client Integration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  <p className={`font-mono text-[10px] ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                    After the browser CV pipeline produces a JOULE template, submit it to the AARON registry for on-chain attestation.
+                  </p>
+                  <CodeBlock theme={theme} language="typescript" code={`// Submit JOULE template to AARON registry
+import type { JOULETemplate } from "@/lib/joule/types";
+
+async function submitToAARON(template: JOULETemplate, userId: number) {
+  // 1. Submit biometric proof to SpacetimeDB
+  const proof = await fetch("/api/aaron/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: userId,
+      polynomial: template.polynomialEncoding,
+      knot: template.knotPolynomial,
+      hash: template.verificationHash,
+      durations: template.holdDurations,
+      confidence: 0.85,
+    }),
+  });
+
+  // 2. Verify proof server-side
+  const { proof_id } = await proof.json();
+  const verify = await fetch("/api/aaron/verify", {
+    method: "POST",
+    body: JSON.stringify({
+      proof_id,
+      nonce: template.sessionNonce,
+      sequence: template.gazeSequence.map(
+        t => t === "COG" ? 1 : t === "EMO" ? 2 : 3
+      ),
+      durations: template.holdDurations,
+      timestamp: template.timestamp,
+    }),
+  });
+
+  // 3. On-chain CSTB attestation (if verified)
+  if (verify.ok) {
+    console.log("AARON proof verified — ready for on-chain attestation");
+  }
 }`} />
                 </CardContent>
               </Card>
