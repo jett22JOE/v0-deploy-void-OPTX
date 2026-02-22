@@ -17,6 +17,7 @@
     "@expo/dom-webview": "latest",
     "@expo/metro-runtime": "latest",
     "@hookform/resolvers": "^3.10.0",
+    "@mediapipe/tasks-vision": "^0.10.14",
     "@nuxt/kit": "latest",
     "@paper-design/shaders": "^0.0.68",
     "@radix-ui/react-accordion": "1.2.2",

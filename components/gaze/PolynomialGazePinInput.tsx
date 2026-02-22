@@ -11,6 +11,13 @@ import {
   generateVerificationHash,
 } from "@/lib/joule/types"
 
+interface TrainingSample {
+  tensor: GazeTensor
+  gazeX: number
+  gazeY: number
+  timestamp: number
+}
+
 interface PolynomialGazePinInputProps {
   /** Number of positions in the polynomial (default 5) */
   positions?: number
@@ -24,6 +31,8 @@ interface PolynomialGazePinInputProps {
   onPositionChange?: (index: number, tensor: GazeTensor | null) => void
   /** Called on error */
   onError?: (error: string) => void
+  /** Called when a labeled training sample is captured (1/2/3 key hold-complete with gaze data) */
+  onTrainingSample?: (sample: TrainingSample) => void
   /** Whether verification is in progress */
   isVerifying?: boolean
   /** Current gaze position from eye tracker (normalized -1 to 1) */
@@ -49,6 +58,7 @@ export function PolynomialGazePinInput({
   onComplete,
   onPositionChange,
   onError,
+  onTrainingSample,
   isVerifying = false,
   gazePosition,
   className,
@@ -200,6 +210,16 @@ export function PolynomialGazePinInput({
       holdTimerRef.current = setTimeout(() => {
         confirmPosition(tensor)
         setActiveKey(null)
+
+        // Capture labeled training sample if gaze data is available
+        if (gazePosition && onTrainingSample) {
+          onTrainingSample({
+            tensor,
+            gazeX: gazePosition.x,
+            gazeY: gazePosition.y,
+            timestamp: Date.now(),
+          })
+        }
       }, holdThreshold)
     }
 
@@ -439,4 +459,4 @@ export function PolynomialGazePinInput({
   )
 }
 
-export { type PolynomialGazePinInputProps }
+export { type PolynomialGazePinInputProps, type TrainingSample }

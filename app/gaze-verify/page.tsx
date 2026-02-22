@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useSafeAuth, useSafeUser } from "@/lib/hooks/use-safe-auth"
 import Link from "next/link"
@@ -16,6 +16,8 @@ import {
   GazeVerificationResponse,
 } from "@/lib/joule/types"
 import { useWallet } from "@solana/wallet-adapter-react"
+import { useMediaPipeGaze } from "@/hooks/useMediaPipeGaze"
+import type { GazeEvent } from "@/lib/gaze/computeGaze"
 
 // Force dynamic rendering to avoid SSR issues with wallet
 export const dynamic = 'force-dynamic'
@@ -47,9 +49,28 @@ export default function GazeVerifyPage() {
   const [error, setError] = useState<string | null>(null)
   const [verificationResult, setVerificationResult] = useState<GazeVerificationResponse | null>(null)
 
-  // Gaze simulation state
+  // Gaze state (real webcam via MediaPipe)
   const [currentGaze, setCurrentGaze] = useState<GazeTensor | null>(null)
+  const [gazePosition, setGazePosition] = useState<{ x: number; y: number } | null>(null)
   const [isTracking, setIsTracking] = useState(false)
+
+  // MediaPipe gaze hook
+  const { videoRef, canvasRef, start: startGaze, stop: stopGaze, isLive } = useMediaPipeGaze({
+    onGaze: (event: GazeEvent) => {
+      setGazePosition(event.gazePoint)
+      setCurrentGaze(event.section)
+      setIsTracking(true)
+    },
+    drawOverlays: true,
+  })
+
+  // Start/stop gaze tracking based on verification state
+  useEffect(() => {
+    if (state === "setup" || state === "verify") {
+      startGaze().catch(err => console.warn("Webcam not available:", err))
+    }
+    return () => { stopGaze() }
+  }, [state]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Solana wallet hook
   const { publicKey, connected } = useWallet()
@@ -205,6 +226,22 @@ export default function GazeVerifyPage() {
           </p>
         </div>
 
+        {/* Webcam preview (picture-in-picture) */}
+        {(state === "setup" || state === "verify") && (
+          <div className="relative w-48 h-36 rounded-xl overflow-hidden border border-orange-500/30 bg-black/60 shadow-lg">
+            <video ref={videoRef} className="w-full h-full object-cover mirror" style={{ transform: 'scaleX(-1)' }} playsInline muted />
+            <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ transform: 'scaleX(-1)' }} />
+            {isLive && (
+              <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-green-500/80 text-[9px] font-mono text-white">LIVE</div>
+            )}
+            {!isLive && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="font-mono text-[10px] text-zinc-500">Starting camera...</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* AGT Circle visualization */}
         <div className="rounded-2xl border border-orange-500/20 bg-black/80 p-6 shadow-xl shadow-black/30">
           <AGTCircle
@@ -230,12 +267,15 @@ export default function GazeVerifyPage() {
               onPositionChange={(index, tensor) => {
                 console.log(`Position ${index + 1}: ${tensor}`)
               }}
+              onTrainingSample={(sample) => {
+                console.log(`Training sample: ${sample.tensor} at (${sample.gazeX.toFixed(3)}, ${sample.gazeY.toFixed(3)})`)
+              }}
               onError={(err) => {
                 setError(err)
                 setState("error")
               }}
               isVerifying={state === "connecting" || state === "minting"}
-              gazePosition={null}
+              gazePosition={gazePosition}
             />
           </div>
         )}

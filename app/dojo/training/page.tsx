@@ -9,6 +9,8 @@ import { Send, Video, ArrowLeft, Eye, Shield, Pencil, User } from "lucide-react"
 import Link from "next/link"
 import { AGTLineCharts } from "@/components/AGTLineCharts"
 import { JETTUX } from "@/components/JETTUX"
+import { useMediaPipeGaze } from "@/hooks/useMediaPipeGaze"
+import type { GazeEvent } from "@/lib/gaze/computeGaze"
 
 interface GazeTensor {
   tensor: "COG" | "ENV" | "EMO"
@@ -31,8 +33,6 @@ const TENSOR_COLORS: Record<string, string> = {
 
 export default function TrainingPage() {
   const { user, isLoaded } = useUser()
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   const [cameraActive, setCameraActive] = useState(false)
@@ -56,6 +56,30 @@ export default function TrainingPage() {
   const [cursorPosition, setCursorPosition] = useState({ x: 50, y: 50 })
   const [isSpacePressed, setIsSpacePressed] = useState(false)
   const [currentSector, setCurrentSector] = useState<"COG" | "EMO" | "ENV" | "CENTER">("CENTER")
+
+  // MediaPipe gaze hook (replaces Math.random mock)
+  const { videoRef, canvasRef, start: startMediaPipe, stop: stopMediaPipe, isLive: mediaPipeLive, fps: mediaPipeFps } = useMediaPipeGaze({
+    onGaze: (event: GazeEvent) => {
+      if (!isTraining) return
+
+      const tensor = event.section as "COG" | "EMO" | "ENV"
+      const result: GazeTensor = {
+        tensor,
+        confidence: event.confidence,
+        weight: 1,
+        symbol: TENSOR_EMOTICONS[tensor],
+      }
+
+      setClassification(result)
+      setAgtWeights((prev) => ({
+        ...prev,
+        [tensor]: prev[tensor] + 1,
+      }))
+      setFrameCount((prev) => prev + 1)
+      setFps(mediaPipeFps)
+    },
+    drawOverlays: true,
+  })
 
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   useEffect(() => {
@@ -123,13 +147,8 @@ export default function TrainingPage() {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
-      })
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        setCameraActive(true)
-      }
+      await startMediaPipe()
+      setCameraActive(true)
     } catch (err) {
       const error = err as Error
       alert("Camera access denied: " + error.message)
@@ -137,12 +156,9 @@ export default function TrainingPage() {
   }
 
   const stopCamera = () => {
-    if (videoRef.current?.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
-      tracks.forEach((t) => t.stop())
-      setCameraActive(false)
-      setIsTraining(false)
-    }
+    stopMediaPipe()
+    setCameraActive(false)
+    setIsTraining(false)
   }
 
   // Initialize start time
@@ -174,70 +190,7 @@ export default function TrainingPage() {
     return () => clearInterval(interval)
   }, [isTraining, startTime, agtWeights])
 
-  // Gaze tracking loop - uses local classification for now
-  useEffect(() => {
-    if (!cameraActive || !isTraining) return
-    let lastTime = Date.now()
-    let framesSinceLastFps = 0
-
-    const interval = setInterval(async () => {
-      const now = Date.now()
-      framesSinceLastFps++
-      if (now - lastTime > 1000) {
-        setFps(framesSinceLastFps)
-        framesSinceLastFps = 0
-        lastTime = now
-      }
-
-      // Simulated gaze classification (replace with MediaPipe when CV model is wired)
-      const gazeX = Math.random() * 2 - 1
-      const gazeY = Math.random() * 2 - 1
-
-      let tensor: "COG" | "ENV" | "EMO" = "COG"
-      if (gazeY > 0.3) tensor = "COG"
-      else if (gazeX < -0.3 && gazeY < -0.3) tensor = "EMO"
-      else if (gazeX > 0.3 && gazeY < -0.3) tensor = "ENV"
-
-      const result: GazeTensor = {
-        tensor,
-        confidence: 0.7 + Math.random() * 0.3,
-        weight: 1,
-        symbol: TENSOR_EMOTICONS[tensor],
-      }
-
-      setClassification(result)
-      setAgtWeights((prev) => ({
-        ...prev,
-        [result.tensor]: prev[result.tensor] + 1,
-      }))
-      setFrameCount((prev) => prev + 1)
-
-      // Draw gaze overlay
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext("2d")
-        if (ctx) {
-          const width = canvasRef.current.width
-          const height = canvasRef.current.height
-          ctx.clearRect(0, 0, width, height)
-          const screenX = ((gazeX + 1) / 2) * width
-          const screenY = ((gazeY + 1) / 2) * height
-          const color = TENSOR_COLORS[result.tensor]
-          ctx.strokeStyle = color
-          ctx.lineWidth = 3
-          ctx.beginPath()
-          ctx.arc(screenX, screenY, 30, 0, Math.PI * 2)
-          ctx.stroke()
-          ctx.fillStyle = color
-          ctx.globalAlpha = 0.3
-          ctx.beginPath()
-          ctx.arc(screenX, screenY, 15, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.globalAlpha = 1.0
-        }
-      }
-    }, 16)
-    return () => clearInterval(interval)
-  }, [cameraActive, isTraining])
+  // Old mock gaze loop removed — MediaPipe hook's onGaze callback handles all classification + canvas overlays
 
   // Space bar for gaze capture
   useEffect(() => {
@@ -418,8 +371,8 @@ export default function TrainingPage() {
                 </CardHeader>
                 <CardContent className="p-2 pt-1">
                   <div className={`relative w-full aspect-[4/3] rounded-lg overflow-hidden border ${isDark ? 'border-orange-500/40 bg-black' : 'border-orange-200/40 bg-zinc-100'} shadow-inner`}>
-                    <video ref={videoRef} width="640" height="480" autoPlay className="absolute inset-0 w-full h-full object-contain" />
-                    <canvas ref={canvasRef} width="640" height="480" className="absolute inset-0 w-full h-full pointer-events-none" />
+                    <video ref={videoRef} width="640" height="480" autoPlay playsInline muted className="absolute inset-0 w-full h-full object-contain" style={{ transform: 'scaleX(-1)' }} />
+                    <canvas ref={canvasRef} width="640" height="480" className="absolute inset-0 w-full h-full pointer-events-none" style={{ transform: 'scaleX(-1)' }} />
                     <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                       <line x1="50" y1="50" x2="50" y2="100" stroke="rgba(249, 115, 22, 0.5)" strokeWidth="0.3" strokeDasharray="2,2" />
                       <line x1="50" y1="50" x2="0" y2="21.13" stroke="rgba(249, 115, 22, 0.5)" strokeWidth="0.3" strokeDasharray="2,2" />
