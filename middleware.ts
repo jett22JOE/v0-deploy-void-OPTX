@@ -17,6 +17,7 @@ const isPublicRoute = createRouteMatcher([
   "/optx-login(.*)",
   "/gaze-verify(.*)",
   "/aaron-docs(.*)",
+  "/aaron-status(.*)",
   "/privacy(.*)",
   "/terms(.*)",
   "/vault(.*)",
@@ -40,6 +41,11 @@ export default clerkMiddleware(async (auth, request) => {
     // /docs on astroknots.space → public AARON docs
     if (url.pathname === "/docs" || url.pathname.startsWith("/docs/")) {
       url.pathname = url.pathname.replace(/^\/docs/, "/aaron-docs")
+      return NextResponse.rewrite(url)
+    }
+    // /status on astroknots.space → public status page
+    if (url.pathname === "/status" || url.pathname.startsWith("/status/")) {
+      url.pathname = url.pathname.replace(/^\/status/, "/aaron-status")
       return NextResponse.rewrite(url)
     }
     // Vault routes

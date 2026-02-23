@@ -118,7 +118,7 @@ export default function AaronDocsPage() {
               {[
                 { label: "Docs", href: "#", active: true },
                 { label: "Aaron API", href: "#quick-start" },
-                { label: "JOE AI", href: "https://jettoptics.ai/#joe-agent" },
+                { label: "Status", href: "/status" },
                 { label: "Contact", href: "https://x.com/jettoptx", external: true },
               ].map((link) => (
                 <li key={link.label}>
