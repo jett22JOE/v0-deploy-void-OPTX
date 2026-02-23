@@ -16,7 +16,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/optx-login(.*)",
   "/gaze-verify(.*)",
-  "/docs(.*)",
+  "/aaron-docs(.*)",
   "/privacy(.*)",
   "/terms(.*)",
   "/vault(.*)",
@@ -35,16 +35,21 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.redirect(`https://astroknots.space${url.pathname === "/vault" ? "" : url.pathname.replace(/^\/vault/, "")}`, 301)
   }
 
-  // Primary vault domain: astroknots.space → /vault
+  // Primary vault domain: astroknots.space → /vault (and /docs → /aaron-docs)
   if (hostname === "astroknots.space" || hostname === "www.astroknots.space") {
-    // Only serve the vault page on astroknots.space — redirect everything else to jettoptics.ai
+    // /docs on astroknots.space → public AARON docs
+    if (url.pathname === "/docs" || url.pathname.startsWith("/docs/")) {
+      url.pathname = url.pathname.replace(/^\/docs/, "/aaron-docs")
+      return NextResponse.rewrite(url)
+    }
+    // Vault routes
     if (url.pathname === "/" || url.pathname.startsWith("/vault")) {
       if (!url.pathname.startsWith("/vault")) {
         url.pathname = "/vault"
         return NextResponse.rewrite(url)
       }
     } else {
-      // Non-vault paths (e.g. /loading, /docs) → redirect to jettoptics.ai
+      // Everything else → redirect to jettoptics.ai
       return NextResponse.redirect(`https://jettoptics.ai${url.pathname}`, 302)
     }
   }

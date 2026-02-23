@@ -268,7 +268,7 @@ export default function VaultPage() {
           <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
             <ul className="flex items-center gap-2 px-2 py-1">
               {[
-                { label: "AARON API", href: "https://jettoptics.ai/docs" },
+                { label: "Docs", href: "/docs" },
                 { label: "SPATIAL UX", href: "https://jettoptics.ai/#spatial-encryption" },
                 { label: "JOE AI", href: "https://jettoptics.ai/#joe-agent" },
                 { label: "CONTACT", href: "https://x.com/jettoptx" },
@@ -295,12 +295,12 @@ export default function VaultPage() {
 
           {/* Right: UX Docs + Theme Toggle + Wallet + Logo */}
           <div className="flex items-center gap-3">
-            {/* UX Docs link (desktop) */}
+            {/* Aaron API link (desktop) */}
             <div className="hidden md:block">
-              <Link href="https://jettoptics.ai/docs" className={`group relative font-mono text-xs tracking-wider px-3 py-2 rounded-xl transition-all duration-300 ${
+              <Link href="/docs" className={`group relative font-mono text-xs tracking-wider px-3 py-2 rounded-xl transition-all duration-300 ${
                 darkMode ? "text-white/40 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-gray-900 hover:bg-black/5"
               }`}>
-                <span className="text-orange-500 mr-1">UX</span>Docs
+                <span className="text-orange-500 mr-1">API</span>Docs
                 <span className="absolute bottom-1 left-3 right-3 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Link>
             </div>
