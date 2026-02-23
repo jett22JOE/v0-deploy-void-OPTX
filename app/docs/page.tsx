@@ -23,7 +23,7 @@ const TABS: { key: DocTab; label: string; icon: typeof Code2; color: string; sec
   { key: "wallet", label: "ERC-8004 Wallet", icon: Wallet, color: "blue", sections: ["ERC-8004 Agent Wallet", "Wallet Integration", "Agent Metadata"] },
   { key: "bridge", label: "LayerZero Bridge", icon: Network, color: "purple", sections: ["LayerZero Bridge", "Bridge Architecture", "Bridge Example"] },
   { key: "cstb", label: "CSTB / DePIN", icon: Shield, color: "red", sections: ["CSTB Trust DePIN Protocol", "Reward Distribution", "Attestation Flow", "Anchor Program"] },
-  { key: "hedgehog", label: "HEDGEHOG MCP", icon: BrainCircuit, color: "cyan", sections: ["HEDGEHOG MCP Overview", "MCP Tools", "Gateway Pattern", "Usage Examples"] },
+  { key: "hedgehog", label: "Edge MCP", icon: BrainCircuit, color: "cyan", sections: ["Edge MCP Overview", "MCP Tools", "Gateway Pattern", "Usage Examples"] },
   { key: "aaron", label: "AARON Protocol", icon: Fingerprint, color: "emerald", sections: ["AARON Protocol Overview", "Biometric Proof Registry", "Rust Reducers", "Client Integration"] },
 ]
 
@@ -839,17 +839,17 @@ pub mod cstb_depin {
             </div>
           )}
 
-          {/* ===================== HEDGEHOG MCP ===================== */}
+          {/* ===================== EDGE MCP ===================== */}
           {activeTab === "hedgehog" && (
             <div className="space-y-6">
-              <div data-section="HEDGEHOG MCP Overview" className="scroll-mt-4">
+              <div data-section="Edge MCP Overview" className="scroll-mt-4">
                 <h2 className={`font-mono text-lg flex items-center gap-2 ${isDark ? "text-orange-400" : "text-orange-700"}`}>
-                  <BrainCircuit className="w-5 h-5" /> HEDGEHOG MCP
+                  <BrainCircuit className="w-5 h-5" /> Edge MCP
                 </h2>
                 <p className={`font-mono text-xs leading-relaxed max-w-2xl mt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
-                  HEDGEHOG is the Model Context Protocol server that bridges AI reasoning with the spatial authentication stack.
-                  It routes queries through Grok 4.1 Fast Reasoning with automatic project context injection,
-                  stores gaze tensor data via SpacetimeDB, and provides a unified API gateway for multi-model AI orchestration.
+                  The Edge MCP is the Model Context Protocol server that bridges AI reasoning with the spatial authentication stack.
+                  It routes queries through fast reasoning models with automatic context injection,
+                  stores gaze tensor data via encrypted edge storage, and provides a unified API gateway for multi-model AI orchestration.
                 </p>
               </div>
 
@@ -861,15 +861,15 @@ pub mod cstb_depin {
                 </CardHeader>
                 <CardContent className="p-4 space-y-3">
                   {[
-                    { tool: "hedgehog_grok_query", desc: "Query Grok 4.1 Fast with automatic spatial context" },
-                    { tool: "hedgehog_get_context", desc: "Retrieve current workspace state and project metadata" },
-                    { tool: "hedgehog_store_gaze_data", desc: "Store COG/ENV/EMO tensor data with confidence scores" },
-                    { tool: "hedgehog_retrieve_gaze_data", desc: "Fetch gaze tracking history for a user" },
-                    { tool: "hedgehog_analyze_gaze_pattern", desc: "AI-powered cognitive, emotional, or environmental analysis" },
-                    { tool: "hedgehog_chat_completion", desc: "Multi-model chat with Grok primary, Claude fallback" },
-                    { tool: "hedgehog_gateway", desc: "Direct XAI API proxy with embedded credentials" },
-                    { tool: "hedgehog_xai_api_history", desc: "Audit trail of all API calls" },
-                    { tool: "hedgehog_xai_api_stats", desc: "Token usage, costs, and success rate metrics" },
+                    { tool: "grok_query", desc: "Query AI reasoning engine with automatic spatial context" },
+                    { tool: "get_context", desc: "Retrieve current workspace state and project metadata" },
+                    { tool: "store_gaze", desc: "Store COG/ENV/EMO tensor data with confidence scores" },
+                    { tool: "retrieve_gaze", desc: "Fetch gaze tracking history for a user" },
+                    { tool: "analyze_pattern", desc: "AI-powered cognitive, emotional, or environmental analysis" },
+                    { tool: "chat", desc: "Multi-model AI chat with automatic routing" },
+                    { tool: "gateway", desc: "Secure API proxy with edge-embedded credentials" },
+                    { tool: "api_history", desc: "Audit trail of all API calls" },
+                    { tool: "api_stats", desc: "Token usage, costs, and success rate metrics" },
                   ].map((t) => (
                     <div key={t.tool} className={`flex items-center gap-3 p-2 rounded border ${isDark ? "bg-black/20 border-orange-500/10" : "bg-white/60 border-orange-200/20"}`}>
                       <code className={`font-mono text-[10px] shrink-0 ${isDark ? "text-cyan-400" : "text-cyan-700"}`}>{t.tool}</code>
@@ -887,23 +887,21 @@ pub mod cstb_depin {
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <p className={`font-mono text-[10px] ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
-                    The gateway embeds the XAI API key server-side so clients never handle credentials.
-                    All requests are proxied through the MCP stdio protocol on the edge node.
+                    The gateway embeds API credentials server-side so clients never handle keys.
+                    All requests are proxied through the MCP protocol on the edge node.
                   </p>
-                  <CodeBlock theme={theme} language="python" code={`# hedgehog_spacetime.py — Gateway pattern (Python)
+                  <CodeBlock theme={theme} language="python" code={`# Edge MCP Gateway pattern (Python)
 import aiohttp
 from mcp.server import Server
 
-XAI_GATEWAY_KEY = "xai-..."  # Embedded, never exposed
-
-async def hedgehog_gateway(prompt: str, max_tokens: int = 2000):
-    """Direct proxy to Grok 4.1 Fast Reasoning"""
+async def gateway_query(prompt: str, max_tokens: int = 2000):
+    """Proxy to AI reasoning engine — key embedded server-side"""
     async with aiohttp.ClientSession() as session:
         resp = await session.post(
-            "https://api.x.ai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {XAI_GATEWAY_KEY}"},
+            EDGE_AI_ENDPOINT,
+            headers={"Authorization": f"Bearer {EDGE_API_KEY}"},
             json={
-                "model": "grok-4-1-fast-reasoning",
+                "model": "reasoning-fast",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": max_tokens,
             }
@@ -922,7 +920,7 @@ async def hedgehog_gateway(prompt: str, max_tokens: int = 2000):
                 <CardContent className="p-4 space-y-4">
                   <CodeBlock theme={theme} language="typescript" code={`// Store gaze data from browser MediaPipe pipeline
 const storeGaze = async (userId: number, gazeX: number, gazeY: number) => {
-  const response = await fetch("/api/hedgehog/analyze", {
+  const response = await fetch("/api/gaze/store", {
     method: "POST",
     body: JSON.stringify({
       action: "store_gaze",

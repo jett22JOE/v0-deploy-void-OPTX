@@ -15,7 +15,7 @@ const TENSOR_COLORS: Record<string, string> = {
   EMO: "oklch(0.65 0.25 25)",
 }
 
-// Demo data for analytics (later: pull from SpacetimeDB subscriptions)
+// Demo data for analytics (later: pull from edge database subscriptions)
 const DEMO_WEIGHTS = { COG: 142, EMO: 98, ENV: 115 }
 
 const DEMO_SESSIONS = [
