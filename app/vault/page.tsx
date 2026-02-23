@@ -268,6 +268,7 @@ export default function VaultPage() {
           <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
             <ul className="flex items-center gap-2 px-2 py-1">
               {[
+                { label: "AARON API", href: "https://jettoptics.ai/docs" },
                 { label: "SPATIAL UX", href: "https://jettoptics.ai/#spatial-encryption" },
                 { label: "JOE AI", href: "https://jettoptics.ai/#joe-agent" },
                 { label: "CONTACT", href: "https://x.com/jettoptx" },

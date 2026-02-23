@@ -40,3 +40,7 @@ patch_joe_cli.sh
 
 # Sensitive docs (keys removed, never recommit)
 CLERK_SETUP.md
+
+# Temp/build artifacts
+nul
+C*Usersjoshu*
