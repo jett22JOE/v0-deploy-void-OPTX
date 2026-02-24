@@ -15,10 +15,28 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
 
+    // Convert camelCase (frontend) → snake_case (Aaron Router / FastAPI)
+    // Also map zone numbers (1=COG, 2=EMO, 3=ENV) to strings if needed
+    const ZONE_MAP: Record<number, string> = { 1: "COG", 2: "EMO", 3: "ENV" }
+    const rawSequence = body.gazeSequence || body.gaze_sequence || []
+    const gazeSequence = rawSequence.map((z: number | string) =>
+      typeof z === "number" ? ZONE_MAP[z] || String(z) : z
+    )
+
+    const snakeBody = {
+      session_id: body.sessionId || body.session_id,
+      challenge: body.challenge,
+      gaze_sequence: gazeSequence,
+      hold_durations: body.holdDurations || body.hold_durations,
+      polynomial_encoding: body.polynomialEncoding || body.polynomial_encoding,
+      verification_hash: body.verificationHash || body.verification_hash,
+      wallet_address: body.walletAddress || body.wallet_address || null,
+    }
+
     const res = await fetch(`${AARON_URL}/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(snakeBody),
       signal: AbortSignal.timeout(15_000),
     })
 
