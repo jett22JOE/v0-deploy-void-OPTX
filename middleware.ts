@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks(.*)",
   "/api/waitlist(.*)",
   "/api/hedgehog(.*)",
+  "/api/aaron(.*)",
   "/api/create-checkout(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
@@ -46,6 +47,13 @@ export default clerkMiddleware(async (auth, request) => {
     // /status on astroknots.space → public status page
     if (url.pathname === "/status" || url.pathname.startsWith("/status/")) {
       url.pathname = url.pathname.replace(/^\/status/, "/aaron-status")
+      return NextResponse.rewrite(url)
+    }
+    // /optx on astroknots.space → Aaron Router API (OPTX blockchain network)
+    // e.g. astroknots.space/optx/session → /api/aaron/session
+    if (url.pathname.startsWith("/optx/") || url.pathname === "/optx") {
+      const subpath = url.pathname.replace(/^\/optx\/?/, "")
+      url.pathname = subpath ? `/api/aaron/${subpath}` : "/api/aaron/session"
       return NextResponse.rewrite(url)
     }
     // Vault routes

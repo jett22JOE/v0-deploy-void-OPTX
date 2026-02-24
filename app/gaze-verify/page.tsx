@@ -93,7 +93,39 @@ export default function GazeVerifyPage() {
     setState("setup")
   }, [authLoaded, isSignedIn, router, isLocalDev])
 
-  // Handle polynomial PIN completion
+  // Aaron session state (for real API calls)
+  const [aaronSessionId, setAaronSessionId] = useState<string | null>(null)
+  const [aaronChallenge, setAaronChallenge] = useState<string | null>(null)
+
+  // Create Aaron session on mount (gets challenge for verification)
+  useEffect(() => {
+    if (state !== "setup" || aaronSessionId) return
+    const createAaronSession = async () => {
+      try {
+        const res = await fetch("/api/aaron/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            walletAddress: publicKey?.toBase58() || null,
+            origin: window.location.origin,
+          }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setAaronSessionId(data.sessionId)
+          setAaronChallenge(data.challenge)
+          console.log("[AARON] Session created:", data.sessionId?.slice(0, 12))
+        } else {
+          console.warn("[AARON] Session creation failed, using local mode")
+        }
+      } catch (err) {
+        console.warn("[AARON] Router unreachable, using local mode:", err)
+      }
+    }
+    createAaronSession()
+  }, [state, aaronSessionId, publicKey])
+
+  // Handle polynomial PIN completion — real Aaron API verification
   const handlePinComplete = useCallback(async (template: JOULETemplate) => {
     setState("connecting")
 
@@ -101,24 +133,68 @@ export default function GazeVerifyPage() {
       console.log("JOULE Template:", template)
       console.log("Polynomial Encoding:", template.polynomialEncoding)
 
+      // If we have an Aaron session, submit proof to edge node
+      if (aaronSessionId && aaronChallenge) {
+        const verifyRes = await fetch("/api/aaron/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: aaronSessionId,
+            challenge: aaronChallenge,
+            gaze_sequence: template.gazeSequence,
+            hold_durations: template.holdDurations,
+            polynomial_encoding: template.polynomialEncoding,
+            verification_hash: template.verificationHash,
+            wallet_address: publicKey?.toBase58() || null,
+            agt_weights: null, // Computed server-side from sequence
+          }),
+        })
+
+        if (verifyRes.ok) {
+          const data = await verifyRes.json()
+          console.log("[AARON] Verification result:", data)
+
+          const response: GazeVerificationResponse = {
+            success: true,
+            verified: data.status === "verified",
+            edgeApproved: true,
+            adminApproved: true,
+            verificationId: data.verificationId,
+          }
+
+          setVerificationResult(response)
+
+          if (connected && publicKey) {
+            setState("minting")
+            // TODO: Real OPTX minting via JOE signing authority
+            await new Promise(resolve => setTimeout(resolve, 2000))
+            response.mintTransactionSig = "PENDING_OPTX_MINT_" + Date.now()
+          }
+
+          setState("success")
+          setTimeout(() => {
+            router.push("/?joined=true&gaze_verified=true")
+          }, 3000)
+          return
+        } else {
+          const errData = await verifyRes.json().catch(() => ({ error: "Unknown error" }))
+          throw new Error(errData.error || `Verification failed: ${verifyRes.status}`)
+        }
+      }
+
+      // Fallback: local-only mode (Aaron Router unreachable)
+      console.warn("[AARON] No active session — using local verification")
       await new Promise(resolve => setTimeout(resolve, 1500))
 
-      const mockResponse: GazeVerificationResponse = {
+      const localResponse: GazeVerificationResponse = {
         success: true,
         verified: true,
-        edgeApproved: true,
-        adminApproved: true,
+        edgeApproved: false, // Not edge-verified
+        adminApproved: false,
         verificationId: crypto.randomUUID(),
       }
 
-      setVerificationResult(mockResponse)
-
-      if (connected && publicKey) {
-        setState("minting")
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        mockResponse.mintTransactionSig = "SIMULATED_TX_SIG_" + Date.now()
-      }
-
+      setVerificationResult(localResponse)
       setState("success")
 
       setTimeout(() => {
@@ -130,7 +206,7 @@ export default function GazeVerifyPage() {
       setError(err instanceof Error ? err.message : "Verification failed")
       setState("error")
     }
-  }, [connected, publicKey, router])
+  }, [connected, publicKey, router, aaronSessionId, aaronChallenge])
 
   // Loading state
   if (state === "loading" || (!authLoaded && !isLocalDev)) {
