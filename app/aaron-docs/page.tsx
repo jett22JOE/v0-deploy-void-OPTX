@@ -20,7 +20,7 @@ const ON_CHAIN = {
 type DocSection = "overview" | "how-it-works" | "quick-start" | "on-chain" | "architecture"
 
 const SECTIONS: { key: DocSection; label: string; icon: typeof BookOpen; tocItems: string[] }[] = [
-  { key: "overview", label: "Overview", icon: BookOpen, tocItems: ["AARON Overview", "Core Principles"] },
+  { key: "overview", label: "Overview", icon: BookOpen, tocItems: ["AARON Overview", "The Acronym", "For Humans", "For Agents", "How AARON + JOE + HEDGEHOG Work", "Core Principles"] },
   { key: "how-it-works", label: "How It Works", icon: Cpu, tocItems: ["Private Gaze Audit", "Opaque Proof", "x402 Payments", "Staked Tiers"] },
   { key: "quick-start", label: "Quick Start", icon: Code2, tocItems: ["TypeScript SDK", "Python SDK", "Response Shape"] },
   { key: "on-chain", label: "On-Chain", icon: Layers, tocItems: ["Token Addresses", "Explorer Links"] },
@@ -361,6 +361,146 @@ export default function AaronDocsPage() {
     "x402": "0.05 OPTX"
   }'`}
                 />
+              </div>
+
+              {/* ─── THE ACRONYM ─── */}
+              <div data-section="The Acronym" className="scroll-mt-4">
+                <h3 className={`font-mono text-sm mb-4 ${isDark ? "text-orange-300" : "text-orange-700"}`}>What Does AARON Stand For?</h3>
+                <div className={`p-5 rounded-lg border ${isDark ? "border-orange-500/20 bg-black/30" : "border-orange-200/40 bg-white/60"}`}>
+                  <div className="space-y-2 mb-4">
+                    {[
+                      { letter: "A", word: "Asynchronous", desc: "Non-blocking event-driven architecture. Sessions, proofs, and attestations process in parallel across edge and chain." },
+                      { letter: "A", word: "Audit", desc: "Every gaze proof, wallet signature, and token action is cryptographically logged. Immutable trail from eye to chain." },
+                      { letter: "R", word: "RAG", desc: "Retrieval-Augmented Generation. Aaron enriches AI responses with real-time context from SpacetimeDB, Solana state, and gaze history." },
+                      { letter: "O", word: "Optical", desc: "Gaze biometrics via iris tracking. The camera becomes the key. MediaPipe FaceLandmarker captures COG/EMO/ENV tensor regions." },
+                      { letter: "N", word: "Node", desc: "Runs on a physical edge node (Jetson Orin Nano). Private compute that never exposes raw biometric data to the network." },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <span className={`font-mono text-lg font-bold w-6 text-center shrink-0 ${isDark ? "text-orange-400" : "text-orange-600"}`}>{item.letter}</span>
+                        <div>
+                          <span className={`font-mono text-xs font-bold ${isDark ? "text-white" : "text-zinc-800"}`}>{item.word}</span>
+                          <span className={`font-mono text-[10px] ml-1 ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>{"/"} {item.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className={`mt-3 pt-3 border-t ${isDark ? "border-orange-500/10" : "border-orange-200/30"}`}>
+                    <p className={`font-mono text-[10px] ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>
+                      <span className={isDark ? "text-orange-400" : "text-orange-600"}>DePIN</span> = Decentralized Physical Infrastructure Network. Aaron is a DePIN node
+                      that validates human identity through gaze, stores attestations on Solana, and earns $OPTX for the network.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ─── FOR HUMANS ─── */}
+              <div data-section="For Humans" className="scroll-mt-4">
+                <h3 className={`font-mono text-sm mb-3 ${isDark ? "text-orange-300" : "text-orange-700"}`}>For Humans</h3>
+                <div className={`p-4 rounded-lg border ${isDark ? "border-emerald-500/15 bg-emerald-500/5" : "border-emerald-300/30 bg-emerald-50/50"}`}>
+                  <p className={`font-mono text-xs leading-relaxed ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
+                    Aaron is a <span className={isDark ? "text-emerald-400 font-bold" : "text-emerald-700 font-bold"}>privacy-first login system</span> that uses your eyes instead of passwords.
+                  </p>
+                  <ul className={`font-mono text-[11px] leading-relaxed mt-3 space-y-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                    <li>{">"} You look at your screen. Your gaze pattern becomes your identity.</li>
+                    <li>{">"} The camera data stays on a local device (never uploaded to a cloud).</li>
+                    <li>{">"} A mathematical proof of your gaze goes to Solana blockchain.</li>
+                    <li>{">"} You earn $OPTX tokens for proving you are human.</li>
+                    <li>{">"} No passwords. No emails. No centralized database. Just your eyes.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* ─── FOR AGENTS ─── */}
+              <div data-section="For Agents" className="scroll-mt-4">
+                <h3 className={`font-mono text-sm mb-3 ${isDark ? "text-orange-300" : "text-orange-700"}`}>For Agents</h3>
+                <div className={`p-4 rounded-lg border ${isDark ? "border-blue-500/15 bg-blue-500/5" : "border-blue-300/30 bg-blue-50/50"}`}>
+                  <p className={`font-mono text-xs leading-relaxed ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
+                    Aaron exposes a <span className={isDark ? "text-blue-400 font-bold" : "text-blue-700 font-bold"}>stateless REST API</span> for autonomous agent integration.
+                  </p>
+                  <ul className={`font-mono text-[11px] leading-relaxed mt-3 space-y-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                    <li>{">"} <code className={`px-1 py-0.5 rounded text-[10px] ${isDark ? "bg-blue-500/10 text-blue-300" : "bg-blue-100 text-blue-700"}`}>POST /session</code> creates a challenge. <code className={`px-1 py-0.5 rounded text-[10px] ${isDark ? "bg-blue-500/10 text-blue-300" : "bg-blue-100 text-blue-700"}`}>POST /verify</code> validates a gaze proof.</li>
+                    <li>{">"} All I/O is JSON over HTTPS. No cookies, no sessions on the agent side.</li>
+                    <li>{">"} Agents call Aaron via x402 micropayments ($OPTX per attestation).</li>
+                    <li>{">"} SpacetimeDB subscriptions enable real-time event-driven workflows.</li>
+                    <li>{">"} Bridge service watches verified sessions and auto-submits to Solana.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* ─── JOE + HEDGEHOG DIAGRAM ─── */}
+              <div data-section="How AARON + JOE + HEDGEHOG Work" className="scroll-mt-4">
+                <h3 className={`font-mono text-sm mb-3 ${isDark ? "text-orange-300" : "text-orange-700"}`}>How AARON + JOE + HEDGEHOG Work Together</h3>
+                <div className={`p-4 rounded-lg border mb-4 ${isDark ? "border-orange-500/15 bg-black/30" : "border-orange-200/30 bg-white/60"}`}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                    {[
+                      {
+                        name: "AARON",
+                        role: "The Router",
+                        desc: "Validates gaze proofs, manages auth sessions, bridges to Solana. The front door for all authentication.",
+                        color: isDark ? "text-orange-400" : "text-orange-600",
+                        border: isDark ? "border-orange-500/20" : "border-orange-300/40",
+                      },
+                      {
+                        name: "JOE",
+                        role: "The Agent",
+                        desc: "JETT Optical Engine. Autonomous AI agent on the edge node. Executes tools, manages services, talks via Matrix chat.",
+                        color: isDark ? "text-emerald-400" : "text-emerald-600",
+                        border: isDark ? "border-emerald-500/20" : "border-emerald-300/40",
+                      },
+                      {
+                        name: "HEDGEHOG",
+                        role: "The Brain",
+                        desc: "MCP context bridge. Routes AI queries to Grok 4.1, stores gaze data in SpacetimeDB, tracks API usage. The memory layer.",
+                        color: isDark ? "text-blue-400" : "text-blue-600",
+                        border: isDark ? "border-blue-500/20" : "border-blue-300/40",
+                      },
+                    ].map((agent) => (
+                      <div key={agent.name} className={`p-3 rounded-lg border ${agent.border} ${isDark ? "bg-black/20" : "bg-white/50"}`}>
+                        <h4 className={`font-mono text-xs font-bold mb-0.5 ${agent.color}`}>{agent.name}</h4>
+                        <p className={`font-mono text-[9px] mb-1.5 ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>{agent.role}</p>
+                        <p className={`font-mono text-[10px] leading-relaxed ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>{agent.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <pre className={`font-mono text-[10px] leading-[1.6] overflow-x-auto p-4 rounded-lg border ${isDark ? "text-orange-200/70 bg-black/40 border-orange-500/10" : "text-zinc-700 bg-zinc-50 border-zinc-200"}`}>{`
+  User (Eyes + Wallet)
+        |
+        v
+  +-----------+     +-----------+     +-------------+
+  |  Frontend |---->|   AARON   |---->| SpacetimeDB |
+  | (Next.js) |     |  Router   |     |  (Edge DB)  |
+  +-----------+     +-----+-----+     +------+------+
+        |                 |                   |
+        |           validates            stores gaze
+        |           gaze proof           sessions +
+        |           + AGT tensors        attestations
+        |                 |                   |
+        |                 v                   v
+        |           +-----+-----+     +------+------+
+        |           |    JOE    |<--->|  HEDGEHOG   |
+        |           |  (Agent)  |     |   (Brain)   |
+        |           +-----+-----+     +------+------+
+        |                 |                   |
+        |           executes tools      routes AI to
+        |           Matrix chat,        Grok 4.1 Fast,
+        |           service mgmt        tracks tokens
+        |                 |                   |
+        |                 v                   v
+        |           +-----+-----+     +------+------+
+        |           |  Solana   |     |   SQLite    |
+        |           |  (Chain)  |     | (API audit) |
+        |           +-----------+     +-------------+
+        |                 |
+        v                 v
+  $OPTX minted     Attestation PDA
+  to wallet        stored on-chain
+
+  ---------------------------------------------------
+  All three run on a single Jetson Orin Nano (edge).
+  Raw biometric data never leaves this device.
+  Only 32-byte opaque proofs reach the blockchain.
+`}</pre>
+                </div>
               </div>
 
               <div data-section="Core Principles" className="scroll-mt-4">
