@@ -15,7 +15,7 @@ import {
   Zap,
   Shield,
   Crown,
-  Globe,
+  BrainCircuit,
 } from "lucide-react"
 
 const tiers = [
@@ -27,13 +27,15 @@ const tiers = [
     priceId: STRIPE_PRICES.MOJO,
     description: "Mobile Jett Optics",
     trial: "7-day free trial",
+    stakeAlt: "or stake 12 JTX",
     features: [
-      "MOJO mobile gaze capture",
+      "12 OPTX mints per month",
+      "Jett Native keyboard",
+      "Jett Augment customizations",
+      "Jett Hub gaze keyboard + emoji packs",
       "JOE Agent SDK (mobile)",
-      "Basic spatial encryption keys",
       "Analytics dashboard",
-      "Community Discord support",
-      "Devnet $OPTX staking rewards",
+      "Unlimited DOJO training sessions",
     ],
     color: "blue",
     icon: Zap,
@@ -46,13 +48,16 @@ const tiers = [
     priceId: STRIPE_PRICES.DOJO,
     description: "Developer Jett Optics",
     badge: "POPULAR",
+    stakeAlt: "or stake 444 JTX for 2x OPTX",
     features: [
-      "DOJO web gaze training",
+      "222 OPTX mints per month (444 via JTX stake)",
+      "Jett Augment customizations",
+      "Custom emoji creation via gaze gestures",
+      "Augment Net Graph — AR-navigable AGT knowledge graph",
       "Advanced JOE Agent (custom prompts)",
-      "Unlimited encryption keys",
-      "Detailed analytics + exports",
-      "Priority support (24h SLA)",
+      "Priority Aaron Router access (24h SLA)",
       "DePIN node access + relay",
+      "Unlimited DOJO training sessions",
     ],
     color: "orange",
     icon: Shield,
@@ -64,13 +69,17 @@ const tiers = [
     interval: "/mo",
     priceId: STRIPE_PRICES.UNLIMITED,
     description: "Full platform access",
+    stakeAlt: "or stake 1,111 JTX for lifetime",
     features: [
-      "MOJO + DOJO full platform access",
+      "Unlimited OPTX mints — no cap",
+      "Full Jett Augment suite",
+      "Full Augment Net Graph + AR navigation",
       "White-label JOE Agent",
-      "Custom spatial encryption models",
-      "Enterprise dashboards + audit logs",
-      "Dedicated support (2h SLA)",
+      "Complete AGT tensor pipeline",
+      "Founder-tier Aaron access (2h SLA)",
+      "Governance voting rights",
       "Full DePIN node hosting + rewards",
+      "Unlimited DOJO training sessions",
     ],
     color: "purple",
     icon: Crown,
@@ -88,7 +97,7 @@ const colorMap: Record<
     text: "text-blue-400",
   },
   orange: {
-    border: "border-orange-500/30 hover:border-orange-500/60",
+    border: "border-orange-500/40 hover:border-orange-500/70",
     badge: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
     button: "bg-orange-600 hover:bg-orange-500",
     text: "text-orange-400",
@@ -100,6 +109,23 @@ const colorMap: Record<
     text: "text-purple-400",
   },
 }
+
+// Deterministic star positions (avoid SSR mismatch)
+const STAR_POSITIONS = Array.from({ length: 40 }, (_, i) => ({
+  x: ((i * 37 + 13) % 100),
+  y: ((i * 53 + 7) % 100),
+  delay: ((i * 17) % 30) / 10,
+  duration: 2 + ((i * 23) % 30) / 10,
+}))
+
+const SHOOTING_STARS = Array.from({ length: 6 }, (_, i) => ({
+  startX: ((i * 29 + 5) % 80) + 10,
+  startY: ((i * 41 + 3) % 40),
+  angle: 25 + ((i * 13) % 20),
+  delay: ((i * 31) % 50) / 10,
+  duration: 2.5 + ((i * 19) % 20) / 10,
+  length: 40 + ((i * 23) % 40),
+}))
 
 export default function PricingPage() {
   const router = useRouter()
@@ -157,16 +183,69 @@ export default function PricingPage() {
 
   if (!isLoaded) {
     return (
-      <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+      <div className="fixed inset-0 z-[100] bg-[#0a0a0f] flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col overflow-auto">
+    <div className="fixed inset-0 z-[100] bg-[#0a0a0f] flex flex-col overflow-auto">
+
+      {/* ─── Starfield Background ─── */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Pulsing stars */}
+        {STAR_POSITIONS.map((star, i) => (
+          <div
+            key={`star-${i}`}
+            className="absolute w-0.5 h-0.5 bg-orange-400/30 rounded-full animate-pulse"
+            style={{
+              left: `${star.x}%`,
+              top: `${star.y}%`,
+              animationDelay: `${star.delay}s`,
+              animationDuration: `${star.duration}s`,
+            }}
+          />
+        ))}
+        {/* Shooting stars */}
+        {SHOOTING_STARS.map((s, i) => (
+          <div key={`shoot-${i}`} className="absolute" style={{ left: `${s.startX}%`, top: `${s.startY}%` }}>
+            <div
+              className="pricing-shooting-star"
+              style={{
+                animationDelay: `${s.delay}s`,
+                animationDuration: `${s.duration}s`,
+                width: `${s.length}px`,
+                transform: `rotate(${s.angle}deg)`,
+              }}
+            />
+          </div>
+        ))}
+        <style>{`
+          .pricing-shooting-star {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(251,146,60,0), rgba(251,146,60,0.6), rgba(251,146,60,0));
+            animation: pricing-shoot linear infinite;
+            opacity: 0;
+          }
+          @keyframes pricing-shoot {
+            0% { opacity: 0; transform: translateX(-100px); }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(200px); }
+          }
+          @keyframes dojo-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(251,146,60,0.1), 0 0 40px rgba(251,146,60,0.05); }
+            50% { box-shadow: 0 0 30px rgba(251,146,60,0.25), 0 0 60px rgba(251,146,60,0.1); }
+          }
+          .dojo-card-glow {
+            animation: dojo-glow 3s ease-in-out infinite;
+          }
+        `}</style>
+      </div>
+
       {/* Header */}
-      <div className="flex justify-between items-center p-6">
+      <div className="relative z-10 flex justify-between items-center p-6">
         <Link href="/" className="group flex items-center gap-2">
           <Image
             src="/images/astroknots-logo.png"
@@ -216,9 +295,9 @@ export default function PricingPage() {
       </div>
 
       {/* Hero */}
-      <div className="text-center pt-8 pb-12 px-4">
+      <div className="relative z-10 text-center pt-8 pb-12 px-4">
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Globe className="w-7 h-7 text-orange-500" />
+          <BrainCircuit className="w-7 h-7 text-orange-500" />
           <h1
             className="font-mono text-3xl md:text-4xl tracking-widest text-white uppercase"
             style={{ fontFamily: "var(--font-orbitron), sans-serif" }}
@@ -236,17 +315,18 @@ export default function PricingPage() {
       </div>
 
       {/* Pricing Cards */}
-      <div className="flex-1 px-4 pb-16">
+      <div className="relative z-10 flex-1 px-4 pb-16">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
           {tiers.map((tier) => {
             const colors = colorMap[tier.color]
+            const isDojo = tier.id === "dojo"
 
             return (
               <div
                 key={tier.id}
-                className={`rounded-xl border bg-zinc-900/80 p-6 flex flex-col transition-all duration-200 hover:shadow-lg hover:shadow-zinc-900/50 ${colors.border} ${
-                  tier.badge ? "md:-mt-4 ring-1 ring-orange-500/20" : ""
-                }`}
+                className={`rounded-xl border bg-zinc-900/80 backdrop-blur-sm p-6 flex flex-col transition-all duration-300 ${colors.border} ${
+                  isDojo ? "md:-mt-4 ring-1 ring-orange-500/30 dojo-card-glow" : ""
+                } ${tier.id === "unlimited" ? "hover:shadow-[0_0_30px_rgba(168,85,247,0.1)]" : ""}`}
               >
                 {/* Badges */}
                 <div className="flex justify-center gap-2 mb-4 min-h-[24px]">
@@ -267,15 +347,17 @@ export default function PricingPage() {
                 {/* Tier Header */}
                 <div className="text-center mb-6">
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
-                      tier.badge
+                    className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 transition-all duration-300 ${
+                      isDojo
                         ? "bg-orange-500/20 border border-orange-500/40"
-                        : "bg-zinc-800 border border-zinc-700"
+                        : tier.id === "unlimited"
+                          ? "bg-purple-500/15 border border-purple-500/30"
+                          : "bg-zinc-800 border border-zinc-700"
                     }`}
                   >
                     <tier.icon
                       className={`w-6 h-6 ${
-                        tier.badge ? "text-orange-500" : "text-zinc-400"
+                        isDojo ? "text-orange-500" : tier.id === "unlimited" ? "text-purple-400" : "text-zinc-400"
                       }`}
                     />
                   </div>
@@ -291,7 +373,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* Price */}
-                <div className="text-center mb-6">
+                <div className="text-center mb-2">
                   <span
                     className={`font-mono text-4xl font-bold ${colors.text}`}
                   >
@@ -301,6 +383,15 @@ export default function PricingPage() {
                     {tier.interval}
                   </span>
                 </div>
+
+                {/* Stake alternative */}
+                {tier.stakeAlt && (
+                  <div className="text-center mb-6">
+                    <Link href="/stake" className="font-mono text-[10px] text-orange-400/60 hover:text-orange-400 transition-colors">
+                      {tier.stakeAlt} →
+                    </Link>
+                  </div>
+                )}
 
                 {/* Features */}
                 <div className="flex-1 space-y-2.5 mb-8">
@@ -337,17 +428,22 @@ export default function PricingPage() {
 
         {/* Bottom Info */}
         <div className="max-w-5xl mx-auto mt-12 text-center">
-          <div className="inline-block bg-zinc-900/80 border border-orange-500/20 px-8 py-4 rounded-xl">
+          <div className="inline-block bg-zinc-900/80 border border-orange-500/20 px-8 py-4 rounded-xl backdrop-blur-sm">
             <p className="font-mono text-xs text-zinc-400">
               All plans include{" "}
-              <span className="text-orange-400">Devnet $OPTX staking</span> and{" "}
-              <span className="text-orange-400">
-                Solana wallet integration
-              </span>
-              . Cancel anytime.
+              <span className="text-orange-400">Devnet $OPTX staking</span>,{" "}
+              <span className="text-orange-400">Solana wallet integration</span>, and{" "}
+              <span className="text-orange-400">unlimited DOJO training sessions</span>.
+              Cancel anytime.
             </p>
           </div>
-          <p className="font-mono text-[10px] text-zinc-600 mt-4">
+          <p className="font-mono text-[10px] text-zinc-600 mt-3">
+            Prefer staking?{" "}
+            <Link href="/stake" className="text-orange-400/60 hover:text-orange-400 transition-colors">
+              Stake $JTX instead →
+            </Link>
+          </p>
+          <p className="font-mono text-[10px] text-zinc-600 mt-1">
             Powered by Stripe. Secured by spatial encryption.
           </p>
         </div>
