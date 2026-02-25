@@ -847,7 +847,7 @@ pub mod cstb_depin {
                   <BrainCircuit className="w-5 h-5" /> Edge MCP <span className={`text-sm ${isDark ? "text-cyan-400/60" : "text-cyan-600/60"}`}>(HEDGEHOG)</span>
                 </h2>
                 <p className={`font-mono text-xs leading-relaxed max-w-2xl mt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
-                  The Edge MCP — codenamed <strong className={isDark ? "text-cyan-400" : "text-cyan-700"}>HEDGEHOG</strong> (Heuristic Edge-Deployed Gaze &amp; Entropy Handler Over Gateway) — is the Model Context Protocol server that bridges AI reasoning with the spatial authentication stack.
+                  The Edge MCP — codenamed <strong className={isDark ? "text-cyan-400" : "text-cyan-700"}>HEDGEHOG</strong> (Handshake Encryption Delegated Gesture Envelope Handler Optical Gateway) — is the Model Context Protocol server that bridges AI reasoning with the spatial authentication stack.
                   It routes queries through fast reasoning models with automatic context injection,
                   stores gaze tensor data via encrypted edge storage, and provides a unified API gateway for multi-model AI orchestration.
                 </p>
@@ -982,7 +982,7 @@ pub fn store_gaze(
                   <Fingerprint className="w-5 h-5" /> AARON Protocol
                 </h2>
                 <p className={`font-mono text-xs leading-relaxed max-w-2xl mt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
-                  AARON (Adaptive Authentication and Recognition Over Networks) is the biometric proof protocol
+                  AARON (Asynchronous Audit RAG Optical Node) is the biometric proof protocol
                   that underpins the Astro Knots registry. It generates quantum-resistant gaze proofs by encoding
                   AGT tensor sequences into knot invariants, then anchoring them on Solana via CSTB attestations.
                 </p>
