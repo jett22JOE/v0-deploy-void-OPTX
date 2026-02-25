@@ -7,6 +7,7 @@ import { ConvexClientProvider } from "@/components/convex-provider"
 import { SolanaProvider } from "@/components/solana-provider"
 import { Toaster } from "sonner"
 import { ResizeObserverFix } from "@/components/resize-observer-fix"
+import "@solana/wallet-adapter-react-ui/styles.css"
 import "./globals.css"
 
 const orbitron = Orbitron({
