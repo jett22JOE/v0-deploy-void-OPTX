@@ -844,10 +844,10 @@ pub mod cstb_depin {
             <div className="space-y-6">
               <div data-section="Edge MCP Overview" className="scroll-mt-4">
                 <h2 className={`font-mono text-lg flex items-center gap-2 ${isDark ? "text-orange-400" : "text-orange-700"}`}>
-                  <BrainCircuit className="w-5 h-5" /> Edge MCP
+                  <BrainCircuit className="w-5 h-5" /> Edge MCP <span className={`text-sm ${isDark ? "text-cyan-400/60" : "text-cyan-600/60"}`}>(HEDGEHOG)</span>
                 </h2>
                 <p className={`font-mono text-xs leading-relaxed max-w-2xl mt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
-                  The Edge MCP is the Model Context Protocol server that bridges AI reasoning with the spatial authentication stack.
+                  The Edge MCP — codenamed <strong className={isDark ? "text-cyan-400" : "text-cyan-700"}>HEDGEHOG</strong> (Heuristic Edge-Deployed Gaze &amp; Entropy Handler Over Gateway) — is the Model Context Protocol server that bridges AI reasoning with the spatial authentication stack.
                   It routes queries through fast reasoning models with automatic context injection,
                   stores gaze tensor data via encrypted edge storage, and provides a unified API gateway for multi-model AI orchestration.
                 </p>
