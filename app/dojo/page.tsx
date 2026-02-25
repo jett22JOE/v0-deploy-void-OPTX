@@ -9,6 +9,7 @@ import {
   BookOpen, Link2, Wallet, LucideIcon
 } from "lucide-react"
 import Image from "next/image"
+import { StarfieldBackground } from "@/components/ui/starfield-background"
 
 interface NavigationConnection {
   id: string
@@ -198,9 +199,11 @@ export default function JETTHubPage() {
         .pulse-line { animation: dashPulse 1.5s ease-in-out infinite; }
       `}</style>
 
+      <StarfieldBackground alwaysDark />
+
       {/* Background radial glow */}
       <div
-        className="absolute inset-0 opacity-10 transition-all duration-1000"
+        className="absolute inset-0 opacity-10 transition-all duration-1000 z-[1]"
         style={{ backgroundImage: `radial-gradient(circle at 50% 50%, ${currentColor}40 0%, transparent 50%)` }}
       />
 

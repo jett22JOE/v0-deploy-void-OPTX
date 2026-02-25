@@ -17,6 +17,7 @@ import {
   Crown,
   BrainCircuit,
 } from "lucide-react"
+import { StarfieldBackground } from "@/components/ui/starfield-background"
 
 const tiers = [
   {
@@ -110,22 +111,7 @@ const colorMap: Record<
   },
 }
 
-// Deterministic star positions (avoid SSR mismatch)
-const STAR_POSITIONS = Array.from({ length: 40 }, (_, i) => ({
-  x: ((i * 37 + 13) % 100),
-  y: ((i * 53 + 7) % 100),
-  delay: ((i * 17) % 30) / 10,
-  duration: 2 + ((i * 23) % 30) / 10,
-}))
-
-const SHOOTING_STARS = Array.from({ length: 6 }, (_, i) => ({
-  startX: ((i * 29 + 5) % 80) + 10,
-  startY: ((i * 41 + 3) % 40),
-  angle: 25 + ((i * 13) % 20),
-  delay: ((i * 31) % 50) / 10,
-  duration: 2.5 + ((i * 19) % 20) / 10,
-  length: 40 + ((i * 23) % 40),
-}))
+// Star/shooting star background now uses shared StarfieldBackground component
 
 export default function PricingPage() {
   const router = useRouter()
@@ -192,57 +178,17 @@ export default function PricingPage() {
   return (
     <div className="fixed inset-0 z-[100] bg-[#0a0a0f] flex flex-col overflow-auto">
 
-      {/* ─── Starfield Background ─── */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        {/* Pulsing stars */}
-        {STAR_POSITIONS.map((star, i) => (
-          <div
-            key={`star-${i}`}
-            className="absolute w-0.5 h-0.5 bg-orange-400/30 rounded-full animate-pulse"
-            style={{
-              left: `${star.x}%`,
-              top: `${star.y}%`,
-              animationDelay: `${star.delay}s`,
-              animationDuration: `${star.duration}s`,
-            }}
-          />
-        ))}
-        {/* Shooting stars */}
-        {SHOOTING_STARS.map((s, i) => (
-          <div key={`shoot-${i}`} className="absolute" style={{ left: `${s.startX}%`, top: `${s.startY}%` }}>
-            <div
-              className="pricing-shooting-star"
-              style={{
-                animationDelay: `${s.delay}s`,
-                animationDuration: `${s.duration}s`,
-                width: `${s.length}px`,
-                transform: `rotate(${s.angle}deg)`,
-              }}
-            />
-          </div>
-        ))}
-        <style>{`
-          .pricing-shooting-star {
-            height: 1px;
-            background: linear-gradient(90deg, rgba(251,146,60,0), rgba(251,146,60,0.6), rgba(251,146,60,0));
-            animation: pricing-shoot linear infinite;
-            opacity: 0;
-          }
-          @keyframes pricing-shoot {
-            0% { opacity: 0; transform: translateX(-100px); }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { opacity: 0; transform: translateX(200px); }
-          }
-          @keyframes dojo-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(251,146,60,0.1), 0 0 40px rgba(251,146,60,0.05); }
-            50% { box-shadow: 0 0 30px rgba(251,146,60,0.25), 0 0 60px rgba(251,146,60,0.1); }
-          }
-          .dojo-card-glow {
-            animation: dojo-glow 3s ease-in-out infinite;
-          }
-        `}</style>
-      </div>
+      {/* ─── Starfield Background (matches vault) ─── */}
+      <StarfieldBackground alwaysDark />
+      <style>{`
+        @keyframes dojo-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(251,146,60,0.1), 0 0 40px rgba(251,146,60,0.05); }
+          50% { box-shadow: 0 0 30px rgba(251,146,60,0.25), 0 0 60px rgba(251,146,60,0.1); }
+        }
+        .dojo-card-glow {
+          animation: dojo-glow 3s ease-in-out infinite;
+        }
+      `}</style>
 
       {/* Header */}
       <div className="relative z-10 flex justify-between items-center p-6">

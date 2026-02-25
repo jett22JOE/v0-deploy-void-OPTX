@@ -6,7 +6,7 @@ import { useSafeAuth, useSafeUser } from "@/lib/hooks/use-safe-auth"
 import Link from "next/link"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
+import { StarfieldBackground } from "@/components/ui/starfield-background"
 // AnimatedMetalBorder removed for hydration performance
 import { PolynomialGazePinInput } from "@/components/gaze/PolynomialGazePinInput"
 import { AGTCircle } from "@/components/gaze/AGTCircle"
@@ -261,17 +261,7 @@ export default function GazeVerifyPage() {
   if (state === "loading" || (!authLoaded && !isLocalDev)) {
     return (
       <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
-        <DottedGlowBackground
-          className="pointer-events-none z-[1]"
-          opacity={0.6}
-          gap={14}
-          radius={1.5}
-          color="rgba(181, 82, 0, 0.4)"
-          glowColor="rgba(181, 82, 0, 0.9)"
-          darkColor="rgba(181, 82, 0, 0.4)"
-          darkGlowColor="rgba(181, 82, 0, 0.9)"
-          backgroundOpacity={0}
-        />
+        <StarfieldBackground alwaysDark />
         <div className="text-center z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent mx-auto mb-4" />
           <p className="font-mono text-sm text-white/60">Initializing gaze verification...</p>

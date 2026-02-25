@@ -28,6 +28,7 @@ import {
   ChevronRight,
   Clock,
 } from "lucide-react"
+import { StarfieldBackground } from "@/components/ui/starfield-background"
 
 export default function SecurityPage() {
   const router = useRouter()
@@ -88,7 +89,8 @@ export default function SecurityPage() {
   if (!isLoaded || !isSignedIn) {
     return (
       <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        <StarfieldBackground alwaysDark />
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500 z-10" />
       </div>
     )
   }
@@ -116,6 +118,7 @@ export default function SecurityPage() {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col overflow-auto">
+      <StarfieldBackground alwaysDark />
       {/* Header */}
       <div className="flex justify-between items-center p-6">
         <Link href="/" className="group flex items-center gap-2">

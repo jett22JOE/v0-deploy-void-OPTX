@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { BrainCircuit, Eye, ScanLine, Zap, Network, Copy, Check, ChevronRight } from "lucide-react"
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
+import { StarfieldBackground } from "@/components/ui/starfield-background"
 
 const augments = [
   {
@@ -256,21 +256,8 @@ export default function AugmentsPage() {
 
   return (
     <div className="flex h-screen relative">
-      {/* Subtle dotted background */}
-      <DottedGlowBackground
-        className="pointer-events-none z-0 !fixed"
-        opacity={isDark ? 0.7 : 0.4}
-        gap={14}
-        radius={1.5}
-        color={isDark ? "rgba(181, 82, 0, 0.35)" : "rgba(181, 82, 0, 0.2)"}
-        glowColor={isDark ? "rgba(181, 82, 0, 0.8)" : "rgba(181, 82, 0, 0.5)"}
-        darkColor="rgba(181, 82, 0, 0.35)"
-        darkGlowColor="rgba(181, 82, 0, 0.8)"
-        backgroundOpacity={0}
-        speedMin={0.2}
-        speedMax={0.6}
-        speedScale={0.7}
-      />
+      {/* Starfield background (matches vault) */}
+      <StarfieldBackground darkMode={isDark} />
 
       {/* Augment Nav — secondary sidebar */}
       <div className={`w-52 border-r ${isDark ? 'border-orange-500/15 bg-zinc-950/80' : 'border-orange-200/30 bg-white/60'} backdrop-blur-sm p-3 space-y-1 shrink-0 relative z-10`}>
