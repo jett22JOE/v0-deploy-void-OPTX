@@ -77,6 +77,34 @@ export default function GazeVerifyPage() {
   const [jtxBalance, setJtxBalance] = useState<number | null>(null)
   const [hasJtx, setHasJtx] = useState(false)
 
+  // Fetch JTX balance when wallet connects
+  useEffect(() => {
+    if (!connected || !publicKey) {
+      setJtxBalance(null)
+      setHasJtx(false)
+      return
+    }
+    const fetchJtxBalance = async () => {
+      try {
+        const { Connection, PublicKey } = await import("@solana/web3.js")
+        const { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } = await import("@solana/spl-token")
+        const JTX_MINT = new PublicKey("9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj")
+        const rpc = process.env.NEXT_PUBLIC_HELIUS_RPC_URL || "https://api.devnet.solana.com"
+        const conn = new Connection(rpc)
+        const ata = getAssociatedTokenAddressSync(JTX_MINT, publicKey, false, TOKEN_2022_PROGRAM_ID)
+        const info = await conn.getTokenAccountBalance(ata)
+        const bal = Number(info.value.uiAmount ?? 0)
+        setJtxBalance(bal)
+        setHasJtx(bal > 0)
+      } catch {
+        // ATA doesn't exist or RPC error — no balance
+        setJtxBalance(0)
+        setHasJtx(false)
+      }
+    }
+    fetchJtxBalance()
+  }, [connected, publicKey])
+
   // Initialize verification session
   const isLocalDev = typeof window !== "undefined" && window.location.hostname === "localhost"
   useEffect(() => {
