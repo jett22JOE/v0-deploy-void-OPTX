@@ -624,7 +624,7 @@ export default function VaultPage() {
         <section data-section="vault-stats" className={`rounded-2xl border p-6 ${cardBg}`}>
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500/30">
-              <Image src="/images/jettoptics-logo.png" alt="JTX" width={40} height={40} className="w-full h-full object-contain" />
+              <Image src="/icons/JOE_founder_icon.png" alt="JTX" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div>
               <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>$JTX FOUNDER TOKEN</h2>
