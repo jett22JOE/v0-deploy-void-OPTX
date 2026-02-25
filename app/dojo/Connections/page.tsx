@@ -17,7 +17,6 @@ import {
   Layers, CreditCard, ArrowRightLeft, Loader2
 } from "lucide-react"
 import Link from "next/link"
-import { StarfieldBackground } from "@/components/ui/starfield-background"
 
 // On-chain addresses
 const DEPIN_PROGRAM = "91SqqYLMi5zNsfMab6rnvipwJhDpN4FEMSLgu8F3bbGq"
@@ -292,7 +291,6 @@ export default function ConnectionsPage() {
 
   return (
     <div className={`h-screen flex flex-col overflow-hidden bg-gradient-to-br ${isDark ? 'from-gray-900 via-slate-900 to-black' : 'from-orange-50/50 via-white to-zinc-50'}`}>
-      <StarfieldBackground darkMode={isDark} />
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-2.5 border-b ${isDark ? 'border-orange-500/20 bg-black/40' : 'border-orange-200/30 bg-white/60'} backdrop-blur`}>
         <div className="flex items-center gap-3">

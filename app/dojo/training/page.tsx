@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Send, Video, ArrowLeft, Eye, Shield, Pencil, User } from "lucide-react"
 import Link from "next/link"
-import { StarfieldBackground } from "@/components/ui/starfield-background"
 import { AGTLineCharts } from "@/components/AGTLineCharts"
 import { JETTUX } from "@/components/JETTUX"
 import { useMediaPipeGaze } from "@/hooks/useMediaPipeGaze"
@@ -312,7 +311,6 @@ export default function TrainingPage() {
 
   return (
     <div className={`h-screen flex flex-col overflow-hidden bg-gradient-to-br ${isDark ? 'from-gray-900 via-slate-900 to-black' : 'from-orange-50/50 via-white to-zinc-50'}`}>
-      <StarfieldBackground darkMode={isDark} />
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-2 border-b ${isDark ? 'border-orange-500/20' : 'border-orange-200/30'}`}>
         <div className="flex items-center gap-3">
