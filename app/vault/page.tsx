@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useWalletModal } from "@solana/wallet-adapter-react-ui"
-import { Connection, PublicKey } from "@solana/web3.js"
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js"
+import { getAssociatedTokenAddressSync, createTransferInstruction, TOKEN_2022_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAccount } from "@solana/spl-token"
 import Link from "next/link"
 import Image from "next/image"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
@@ -22,6 +23,8 @@ const SOLANA_RPC = process.env.NEXT_PUBLIC_HELIUS_RPC_URL || "https://api.devnet
 const SOL_GOAL = 5874
 const SOL_PRICE_EST = 133
 const DOLLAR_GOAL = SOL_GOAL * SOL_PRICE_EST // ~$781,242
+const FOUNDER_WALLET = "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H" // vault receives JTX here
+const JTX_DECIMALS = 9
 const GECKO_EMBED = "https://www.geckoterminal.com/solana/pools/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj?embed=1&info=0&swaps=0&grayscale=0&light_chart=0"
 const PHASE_1_END = new Date("2026-03-31T23:59:59Z")
 const ADMIN_WALLETS = [
@@ -47,21 +50,21 @@ const SHOOTING_STARS = Array.from({ length: 8 }, (_, i) => ({
   length: 40 + ((i * 23) % 40),
 }))
 
-// ─── DEX & Tracker Links with correct URLs ──────────────────────────────────
+// ─── DEX & Tracker Links — all point to JTX mint ────────────────────────────
 const DEX_LINKS = [
-  { name: "Jupiter", url: "https://jup.ag", color: "from-green-400 to-emerald-500", letter: "J" },
-  { name: "Raydium", url: "https://raydium.io", color: "from-purple-400 to-indigo-500", letter: "R" },
-  { name: "Orca", url: "https://orca.so", color: "from-teal-300 to-cyan-500", letter: "O" },
-  { name: "Meteora", url: "https://meteora.ag", color: "from-blue-400 to-sky-500", letter: "M" },
+  { name: "Jupiter", url: `https://jup.ag/swap/SOL-${JTX_MINT}`, icon: "/icons/jupiter.ico" },
+  { name: "Raydium", url: `https://raydium.io/swap/?inputMint=sol&outputMint=${JTX_MINT}`, icon: "/icons/raydium.ico" },
+  { name: "Orca", url: `https://www.orca.so/swap?tokenIn=So11111111111111111111111111111111&tokenOut=${JTX_MINT}`, icon: "/icons/orca.ico" },
+  { name: "Meteora", url: `https://app.meteora.ag/pools?token=${JTX_MINT}`, icon: "/icons/meteora.ico" },
 ]
 
 const TRACKER_LINKS = [
-  { name: "DexScreener", url: "https://dexscreener.com/solana/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj", color: "from-lime-400 to-green-500", letter: "DS", hasLogo: true },
-  { name: "Birdeye", url: "https://birdeye.so/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj?chain=solana", color: "from-orange-400 to-red-500", letter: "BE" },
-  { name: "DexTools", url: "https://dextools.io/app/en/solana/pair-explorer/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj", color: "from-cyan-400 to-blue-500", letter: "DT" },
-  { name: "CoinGecko", url: "https://coingecko.com", color: "from-green-400 to-lime-500", letter: "CG" },
-  { name: "CoinMarketCap", url: "https://coinmarketcap.com", color: "from-blue-400 to-indigo-500", letter: "CMC" },
-  { name: "Solscan", url: "https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj", color: "from-purple-400 to-violet-500", letter: "SS" },
+  { name: "DexScreener", url: `https://dexscreener.com/solana/${JTX_MINT}`, icon: "/icons/dexscreener.png" },
+  { name: "Birdeye", url: `https://birdeye.so/token/${JTX_MINT}?chain=solana`, icon: "/icons/birdeye.ico" },
+  { name: "DexTools", url: `https://www.dextools.io/app/en/solana/pair-explorer/${JTX_MINT}`, icon: "/icons/dextools.ico" },
+  { name: "CoinGecko", url: `https://www.coingecko.com/en/coins/jett-optics`, icon: "/icons/coingecko.ico" },
+  { name: "CoinMarketCap", url: `https://coinmarketcap.com/currencies/jett-optics/`, icon: "/icons/coinmarketcap.ico" },
+  { name: "Solscan", url: `https://solscan.io/token/${JTX_MINT}`, icon: "/icons/solscan.ico" },
 ]
 
 // ─── Social Links ────────────────────────────────────────────────────────────
@@ -138,6 +141,10 @@ export default function VaultPage() {
   const [walletMenuOpen, setWalletMenuOpen] = useState(false)
   const [donated, setDonated] = useState(false)
   const [showDevnetModal, setShowDevnetModal] = useState(true)
+  const [contributeType, setContributeType] = useState<"SOL" | "JTX">("SOL")
+  const [txPending, setTxPending] = useState(false)
+  const [txSig, setTxSig] = useState<string | null>(null)
+  const [txError, setTxError] = useState<string | null>(null)
 
   const pctRaised = solRaised > 0 ? (solRaised / SOL_GOAL) * 100 : 0
   const dollarRaised = solRaised * SOL_PRICE_EST
@@ -169,6 +176,82 @@ export default function VaultPage() {
     navigator.clipboard.writeText(JTX_MINT)
     setCopiedMint(true)
     setTimeout(() => setCopiedMint(false), 2000)
+  }
+
+  // ─── Donate handler — SOL or JTX ─────────────────────────────────────────
+  const handleDonate = async () => {
+    if (!connected || !publicKey || !wallet?.adapter) return
+    const amount = parseFloat(donateAmount)
+    if (isNaN(amount) || amount <= 0) return
+
+    setTxPending(true)
+    setTxError(null)
+    setTxSig(null)
+
+    try {
+      const conn = new Connection(SOLANA_RPC, "confirmed")
+      const tx = new Transaction()
+      const vaultPubkey = new PublicKey(FOUNDER_WALLET)
+
+      if (contributeType === "SOL") {
+        // SOL transfer
+        tx.add(
+          SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: vaultPubkey,
+            lamports: Math.round(amount * LAMPORTS_PER_SOL),
+          })
+        )
+      } else {
+        // JTX SPL Token-2022 transfer
+        const mintPubkey = new PublicKey(JTX_MINT)
+        const senderAta = getAssociatedTokenAddressSync(mintPubkey, publicKey, false, TOKEN_2022_PROGRAM_ID)
+        const receiverAta = getAssociatedTokenAddressSync(mintPubkey, vaultPubkey, false, TOKEN_2022_PROGRAM_ID)
+
+        // Check if receiver ATA exists, create if not
+        try {
+          await getAccount(conn, receiverAta, "confirmed", TOKEN_2022_PROGRAM_ID)
+        } catch {
+          tx.add(
+            createAssociatedTokenAccountInstruction(
+              publicKey,       // payer
+              receiverAta,     // ATA to create
+              vaultPubkey,     // owner
+              mintPubkey,      // mint
+              TOKEN_2022_PROGRAM_ID,
+            )
+          )
+        }
+
+        tx.add(
+          createTransferInstruction(
+            senderAta,
+            receiverAta,
+            publicKey,
+            BigInt(Math.round(amount * 10 ** JTX_DECIMALS)),
+            [],
+            TOKEN_2022_PROGRAM_ID,
+          )
+        )
+      }
+
+      tx.feePayer = publicKey
+      const { blockhash } = await conn.getLatestBlockhash()
+      tx.recentBlockhash = blockhash
+
+      const signed = await wallet.adapter.sendTransaction(tx, conn)
+      setTxSig(signed)
+      setDonated(true)
+
+      // Refresh data after a short delay
+      setTimeout(() => fetchData(), 3000)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Transaction failed"
+      setTxError(msg)
+      console.error("Donate error:", err)
+    } finally {
+      setTxPending(false)
+    }
   }
 
   // Theme classes
@@ -541,11 +624,11 @@ export default function VaultPage() {
         <section data-section="vault-stats" className={`rounded-2xl border p-6 ${cardBg}`}>
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500/30">
-              <img src="/icons/lightLOGOjettoptics.jpeg" alt="JTX" className="w-full h-full object-cover" />
+              <Image src="/images/jettoptics-logo.png" alt="JTX" width={40} height={40} className="w-full h-full object-contain" />
             </div>
             <div>
-              <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>JTX TOKEN INFO</h2>
-              <p className={`text-xs ${textSecondary}`}>Jett Optx</p>
+              <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>$JTX FOUNDER TOKEN</h2>
+              <p className={`text-xs ${textSecondary}`}>Jett Optics — Spatial Encryption</p>
             </div>
           </div>
 
@@ -599,9 +682,7 @@ export default function VaultPage() {
               {DEX_LINKS.map(dex => (
                 <a key={dex.name} href={dex.url} target="_blank" rel="noopener noreferrer"
                   className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-all ${cardBgAlt} hover:border-orange-500/40 hover:scale-[1.02]`}>
-                  <span className={`w-5 h-5 rounded-full bg-gradient-to-br ${dex.color} flex-shrink-0 flex items-center justify-center text-[8px] font-black text-white`}>
-                    {dex.letter}
-                  </span>
+                  <Image src={dex.icon} alt={dex.name} width={20} height={20} className="w-5 h-5 rounded-full flex-shrink-0 object-contain" />
                   {dex.name}
                 </a>
               ))}
@@ -615,13 +696,7 @@ export default function VaultPage() {
               {TRACKER_LINKS.map(t => (
                 <a key={t.name} href={t.url} target="_blank" rel="noopener noreferrer"
                   className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-all ${cardBgAlt} hover:border-orange-500/40 hover:scale-[1.02]`}>
-                  {t.hasLogo ? (
-                    <Image src="/icons/dexscreener.png" alt={t.name} width={20} height={20} className="w-5 h-5 rounded-full flex-shrink-0" />
-                  ) : (
-                    <span className={`w-5 h-5 rounded-full bg-gradient-to-br ${t.color} flex-shrink-0 flex items-center justify-center text-[7px] font-black text-white leading-none`}>
-                      {t.letter}
-                    </span>
-                  )}
+                  <Image src={t.icon} alt={t.name} width={20} height={20} className="w-5 h-5 rounded-full flex-shrink-0 object-contain" />
                   {t.name}
                 </a>
               ))}
@@ -698,13 +773,36 @@ export default function VaultPage() {
           </div>
         </section>
 
-        {/* ═══ Contribute SOL ═══ */}
+        {/* ═══ Contribute SOL / JTX ═══ */}
         <section data-section="donate" className={`rounded-2xl border p-6 ${cardBg}`}>
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className={`w-5 h-5 ${accentOrange}`} />
-            <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>CONTRIBUTE SOL</h2>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Zap className={`w-5 h-5 ${accentOrange}`} />
+              <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>CONTRIBUTE</h2>
+            </div>
+            {/* SOL / JTX Toggle */}
+            <div className={`flex rounded-lg border overflow-hidden ${darkMode ? "border-white/10" : "border-gray-300"}`}>
+              {(["SOL", "JTX"] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => { setContributeType(t); setDonateAmount("") }}
+                  className={`px-4 py-1.5 text-xs font-bold tracking-wider transition-all ${
+                    contributeType === t
+                      ? "bg-orange-500 text-white"
+                      : darkMode ? "bg-white/5 text-white/40 hover:text-white/70" : "bg-gray-100 text-gray-400 hover:text-gray-700"
+                  }`}
+                  style={{ fontFamily: "var(--font-orbitron)" }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
-          <p className={`text-sm ${textSecondary} mb-5`}>Support the JTX mission by contributing to the pool launch</p>
+          <p className={`text-sm ${textSecondary} mb-5`}>
+            {contributeType === "SOL"
+              ? "Support the JTX mission by contributing SOL to the pool launch"
+              : "Stake your $JTX tokens into the community vault"}
+          </p>
 
           {/* Amount input */}
           <div className={`flex items-center rounded-xl border p-3 mb-2 ${inputBg}`}>
@@ -714,18 +812,20 @@ export default function VaultPage() {
               value={donateAmount}
               onChange={e => {
                 const val = e.target.value
-                if (val === "" || (/^\d*\.?\d{0,9}$/.test(val) && parseFloat(val) <= 10000)) {
+                if (val === "" || (/^\d*\.?\d{0,9}$/.test(val) && parseFloat(val) <= 10000000)) {
                   setDonateAmount(val)
                 }
               }}
               className="flex-1 bg-transparent outline-none text-lg font-mono"
-              min="0.06"
-              max="10000"
-              step="0.01"
+              min={contributeType === "SOL" ? "0.06" : "1"}
+              max="10000000"
+              step={contributeType === "SOL" ? "0.01" : "1"}
             />
-            <span className={`font-bold text-sm ${accentOrange}`}>SOL</span>
+            <span className={`font-bold text-sm ${accentOrange}`}>{contributeType}</span>
           </div>
-          <p className={`text-xs ${textMuted} mb-4`}>Minimum: 0.06 SOL (~$8)</p>
+          <p className={`text-xs ${textMuted} mb-4`}>
+            {contributeType === "SOL" ? "Minimum: 0.06 SOL (~$8)" : "Minimum: 1 JTX"}
+          </p>
 
           {/* Callsign */}
           <p className={`text-xs uppercase tracking-wider ${textMuted} mb-1`} style={{ fontFamily: "var(--font-orbitron)" }}>Callsign (optional)</p>
@@ -741,7 +841,7 @@ export default function VaultPage() {
 
           {/* Preset amounts */}
           <div className="grid grid-cols-4 gap-2 mb-5">
-            {["0.5", "1", "5", "10"].map(a => (
+            {(contributeType === "SOL" ? ["0.5", "1", "5", "10"] : ["10", "100", "500", "1000"]).map(a => (
               <button
                 key={a}
                 onClick={() => setDonateAmount(a)}
@@ -751,32 +851,47 @@ export default function VaultPage() {
                     : `${cardBgAlt} hover:border-orange-500/40`
                 }`}
               >
-                {a} SOL
+                {a} {contributeType}
               </button>
             ))}
           </div>
 
-          {/* Donate button — disabled on devnet unless admin */}
-          {connected && publicKey && ADMIN_WALLETS.includes(publicKey.toBase58()) ? (
+          {/* Transaction status */}
+          {txError && (
+            <div className="mb-3 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-xs font-mono">
+              {txError}
+            </div>
+          )}
+          {txSig && (
+            <div className="mb-3 p-3 rounded-lg border border-green-500/30 bg-green-500/10 text-green-400 text-xs font-mono">
+              <span>TX: </span>
+              <a href={`https://solscan.io/tx/${txSig}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="underline hover:text-green-300">
+                {txSig.slice(0, 20)}...
+              </a>
+            </div>
+          )}
+
+          {/* Donate button */}
+          {connected ? (
             <button
-              onClick={() => setDonated(true)}
-              className={`w-full py-4 rounded-xl font-bold text-sm tracking-widest transition-all ${btnOrange}`}
-              style={{ fontFamily: "var(--font-orbitron)" }}
-            >
-              DONATE (ADMIN)
-            </button>
-          ) : (
-            <button
-              onClick={() => !connected ? setVisible(true) : null}
+              onClick={handleDonate}
+              disabled={txPending || !donateAmount || parseFloat(donateAmount) <= 0}
               className={`w-full py-4 rounded-xl font-bold text-sm tracking-widest transition-all ${
-                connected
+                txPending || !donateAmount || parseFloat(donateAmount) <= 0
                   ? `opacity-60 cursor-not-allowed ${darkMode ? "bg-white/10 text-white/40" : "bg-gray-200 text-gray-400"}`
                   : btnOrange
               }`}
               style={{ fontFamily: "var(--font-orbitron)" }}
-              disabled={connected}
             >
-              {connected ? "DONATIONS OPEN ON MAINNET" : "CONNECT WALLET TO DONATE"}
+              {txPending ? "SIGNING..." : `CONTRIBUTE ${donateAmount || "0"} ${contributeType}`}
+            </button>
+          ) : (
+            <button
+              onClick={() => setVisible(true)}
+              className={`w-full py-4 rounded-xl font-bold text-sm tracking-widest transition-all ${btnOrange}`}
+              style={{ fontFamily: "var(--font-orbitron)" }}
+            >
+              CONNECT WALLET TO CONTRIBUTE
             </button>
           )}
 
