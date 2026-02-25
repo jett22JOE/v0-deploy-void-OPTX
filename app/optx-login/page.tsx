@@ -655,12 +655,31 @@ export default function OptxLoginPage() {
     return () => clearTimeout(timer)
   }, [isLoaded])
 
-  // Redirect to DOJO if already signed in
+  // Admin wallets — redirect to vault/dojo on wallet-only connect
+  const ADMIN_WALLETS = [
+    "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H", // founder wallet
+    "EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk", // jettoptx.skr / JOE agent wallet
+  ]
+
+  // Redirect to DOJO if already signed in (Clerk)
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       router.push("/dojo")
     }
   }, [isLoaded, isSignedIn, router])
+
+  // Redirect admin wallets to vault after Phantom connects (no Clerk needed)
+  useEffect(() => {
+    if (connected && publicKey) {
+      const walletAddr = publicKey.toBase58()
+      if (ADMIN_WALLETS.includes(walletAddr)) {
+        router.push("/vault")
+      } else if (isSignedIn) {
+        // Non-admin wallet + Clerk signed in → gaze verify flow
+        router.push("/gaze-verify")
+      }
+    }
+  }, [connected, publicKey, isSignedIn, router])
 
   // Show loading state while Clerk initializes (with timeout escape)
   if ((!isLoaded && !forceShow) || isSignedIn) {

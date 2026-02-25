@@ -20,7 +20,7 @@ const ON_CHAIN = {
 type DocSection = "overview" | "how-it-works" | "quick-start" | "on-chain" | "architecture"
 
 const SECTIONS: { key: DocSection; label: string; icon: typeof BookOpen; tocItems: string[] }[] = [
-  { key: "overview", label: "Overview", icon: BookOpen, tocItems: ["AARON Overview", "The Acronym", "For Humans", "For Agents", "How AARON + JOE + HEDGEHOG Work", "Core Principles"] },
+  { key: "overview", label: "Overview", icon: BookOpen, tocItems: ["AARON Overview", "Naming Hierarchy", "The Acronym", "For Humans", "For Agents", "How AARON + JOE + HEDGEHOG Work", "Core Principles"] },
   { key: "how-it-works", label: "How It Works", icon: Cpu, tocItems: ["Private Gaze Audit", "Opaque Proof", "x402 Payments", "Staked Tiers"] },
   { key: "quick-start", label: "Quick Start", icon: Code2, tocItems: ["TypeScript SDK", "Python SDK", "Response Shape"] },
   { key: "on-chain", label: "On-Chain", icon: Layers, tocItems: ["Token Addresses", "Explorer Links"] },
@@ -189,7 +189,7 @@ export default function AaronDocsPage() {
             <div className={`h-5 w-px ${isDark ? "bg-orange-500/20" : "bg-orange-200/40"}`} />
             <div>
               <h1 className={`font-mono text-sm tracking-widest ${isDark ? "text-orange-400" : "text-orange-700"}`}>AARON DOCS</h1>
-              <p className={`font-mono text-[9px] ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>Edge-First Agentic Router for Web4</p>
+              <p className={`font-mono text-[9px] ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>Asynchronous Audit RAG Optical Node</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -344,11 +344,11 @@ export default function AaronDocsPage() {
                   </span>
                 </div>
                 <h2 className={`font-mono text-xl font-bold leading-tight mb-3 ${isDark ? "text-white" : "text-zinc-900"}`}>
-                  Aaron: Edge-First Agentic Router<br />
-                  <span className={isDark ? "text-orange-400" : "text-orange-600"}>for Web4</span>
+                  Aaron — The Astro Knots Router<br />
+                  <span className={isDark ? "text-orange-400" : "text-orange-600"}>Edge-to-Chain for Web4</span>
                 </h2>
                 <p className={`font-mono text-xs leading-relaxed max-w-2xl mb-6 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
-                  Secure biometric auth + x402 payments. Private compute on edge hardware, public attestations on Solana.
+                  AARON connects <span className={isDark ? "text-emerald-400" : "text-emerald-600"}>JETT Auth</span> (your biometric gaze signature) through <span className={isDark ? "text-blue-400" : "text-blue-600"}>OPT&#x1D54F;</span> (the secure bridge) to the public <span className={isDark ? "text-yellow-400" : "text-yellow-600"}>OPTX</span> blockchain on Solana. Private compute on edge hardware, public attestations on-chain.
                 </p>
                 <CodeBlock
                   theme={theme}
@@ -361,6 +361,53 @@ export default function AaronDocsPage() {
     "x402": "0.05 OPTX"
   }'`}
                 />
+              </div>
+
+              {/* ─── NAMING HIERARCHY ─── */}
+              <div data-section="Naming Hierarchy" className="scroll-mt-4">
+                <h3 className={`font-mono text-sm mb-4 ${isDark ? "text-orange-300" : "text-orange-700"}`}>Naming Hierarchy</h3>
+                <div className={`p-5 rounded-lg border space-y-3 ${isDark ? "border-orange-500/20 bg-black/30" : "border-orange-200/40 bg-white/60"}`}>
+                  {[
+                    {
+                      name: "JETT Auth",
+                      full: "Joule Encryption Temporal Template Auth",
+                      desc: "Biometric gaze signature + SSO system on Jetson. The identity layer.",
+                      color: isDark ? "text-emerald-400" : "text-emerald-600",
+                    },
+                    {
+                      name: "OPT\ud835\udd4f",
+                      full: "Optical Program Technologic \ud835\udd4ftension",
+                      desc: "The secure bridge that turns JETT Auth into verifiable on-chain proofs.",
+                      color: isDark ? "text-blue-400" : "text-blue-600",
+                    },
+                    {
+                      name: "AARON",
+                      full: "Asynchronous Audit RAG Optical Node",
+                      desc: "The on-chain protocol + private edge router. DePIN node that validates and routes.",
+                      color: isDark ? "text-orange-400" : "text-orange-600",
+                    },
+                    {
+                      name: "OPTX",
+                      full: "The Public Blockchain & Token Network",
+                      desc: "The public-facing Solana mainnet token and protocol. What the world sees.",
+                      color: isDark ? "text-yellow-400" : "text-yellow-600",
+                    },
+                    {
+                      name: "AGT",
+                      full: "Agentive Gaze Tensor",
+                      desc: "The biometric tensor system (COG/EMO/ENV) that powers JETT Auth. Performs the Web4 actions for authentication.",
+                      color: isDark ? "text-purple-400" : "text-purple-600",
+                    },
+                  ].map((item) => (
+                    <div key={item.name} className={`flex items-start gap-3 p-3 rounded-lg border ${isDark ? "border-white/5 bg-white/[0.02]" : "border-zinc-200/50 bg-zinc-50/50"}`}>
+                      <span className={`font-mono text-sm font-bold shrink-0 w-20 ${item.color}`}>{item.name}</span>
+                      <div>
+                        <span className={`font-mono text-[11px] font-bold ${isDark ? "text-white" : "text-zinc-800"}`}>{item.full}</span>
+                        <p className={`font-mono text-[10px] mt-0.5 ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* ─── THE ACRONYM ─── */}
@@ -386,8 +433,8 @@ export default function AaronDocsPage() {
                   </div>
                   <div className={`mt-3 pt-3 border-t ${isDark ? "border-orange-500/10" : "border-orange-200/30"}`}>
                     <p className={`font-mono text-[10px] ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>
-                      <span className={isDark ? "text-orange-400" : "text-orange-600"}>DePIN</span> = Decentralized Physical Infrastructure Network. Aaron is a DePIN node
-                      that validates human identity through gaze, stores attestations on Solana, and earns $OPTX for the network.
+                      <span className={isDark ? "text-orange-400" : "text-orange-600"}>DePIN</span> = Decentralized Physical Infrastructure Network. AARON is a DePIN node
+                      that validates human identity through gaze via <span className={isDark ? "text-emerald-400" : "text-emerald-600"}>JETT Auth</span>, bridges proofs through <span className={isDark ? "text-blue-400" : "text-blue-600"}>OPT&#x1D54F;</span>, and earns $OPTX on the public network.
                     </p>
                   </div>
                 </div>
@@ -508,7 +555,7 @@ export default function AaronDocsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
                     { icon: Eye, title: "Privacy First", desc: "Raw biometric data never leaves the edge node. Only opaque 32-byte proofs go on-chain.", color: "emerald" },
-                    { icon: Shield, title: "Quantum Resistant", desc: "AGT tensor sequences encoded as polynomial knot invariants — resistant to quantum attacks.", color: "blue" },
+                    { icon: Shield, title: "Quantum Resistant", desc: "Agentive Gaze Tensor (AGT) sequences encoded as polynomial knot invariants — resistant to quantum attacks.", color: "blue" },
                     { icon: Zap, title: "x402 Native", desc: "Micropayment attestation built-in. Pay-per-action with $OPTX staking tiers.", color: "yellow" },
                   ].map((card) => {
                     const Icon = card.icon
@@ -542,7 +589,7 @@ export default function AaronDocsPage() {
                   key: "Private Gaze Audit",
                   icon: Eye,
                   title: "1. Private Gaze Audit",
-                  desc: "AARON captures biometric tensors on-device using MediaPipe face landmarks. Raw iris data never leaves the edge node. The Adaptive Gaze Tensor (AGT) system classifies eye movement into three tensors: Cognitive (COG), Emotional (EMO), and Environmental (ENV).",
+                  desc: "AARON captures biometric tensors on-device using MediaPipe face landmarks. Raw iris data never leaves the edge node. The Agentive Gaze Tensor (AGT) system classifies eye movement into three tensors: Cognitive (COG), Emotional (EMO), and Environmental (ENV). AGT performs the Web4 actions that power JETT Auth.",
                   color: "emerald",
                 },
                 {
@@ -717,22 +764,26 @@ print(proof.tx_signature)  # Solana transaction hash`}
 │  ├── Wallet Connection (Phantom / OKX)                  │
 │  └── x402 Payment Attestation                           │
 ├─────────────────────────────────────────────────────────┤
-│  AARON EDGE ROUTER                                      │
-│  ├── Biometric capture + gaze tensor classification     │
-│  ├── JOULE template generation (polynomial encoding)    │
-│  ├── Verification hash computation (SHA-256)            │
-│  └── x402 micropayment settlement                       │
+│  JETT AUTH (Joule Encryption Temporal Template)          │
+│  ├── Agentive Gaze Tensor (AGT: COG/EMO/ENV)         │
+│  ├── Biometric identity capture on-device               │
+│  └── Generates JOULE template (polynomial encoding)     │
 ├─────────────────────────────────────────────────────────┤
-│  EDGE COMPUTE (Private)                                 │
-│  ├── Real-time tensor storage                           │
-│  ├── JOE Agent (AI orchestration)                       │
-│  └── Encrypted mesh networking                          │
+│  AARON EDGE ROUTER (Astro Knots Router)                 │
+│  ├── Gaze verification + audit logging                  │
+│  ├── x402 micropayment settlement                       │
+│  └── IP protocol filter + rate limiting                 │
 ├─────────────────────────────────────────────────────────┤
-│  ON-CHAIN (Solana — Public)                             │
+│  OPTx (Optical Program Technologic Xtension)            │
+│  ├── Verification hash → 32-byte opaque proof           │
+│  ├── Bridge: SpacetimeDB → Solana transaction           │
+│  └── Turns JETT Auth into on-chain attestations         │
+├─────────────────────────────────────────────────────────┤
+│  OPTX NETWORK (Solana — Public)                         │
 │  ├── CSTB Trust DePIN Program (Anchor)                  │
 │  ├── $OPTX Token (Token-2022 SPL)                       │
 │  ├── $JTX Governance Token                              │
-│  └── 32-byte attestation proof (opaque)                 │
+│  └── Attestation PDA stored on-chain                    │
 └─────────────────────────────────────────────────────────┘`} />
               </div>
 

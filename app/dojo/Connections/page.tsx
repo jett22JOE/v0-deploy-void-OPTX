@@ -28,7 +28,10 @@ const JOE_WS_URL = process.env.NEXT_PUBLIC_JOE_WS_URL || "wss://joe-ws.jettoptic
 
 // Founder-only gating — Clerk user ID + Solana wallet
 const FOUNDER_USER_IDS = ["user_37RFcXc9CeZJYdDIPEWdiuiZXpb"]
-const FOUNDER_WALLETS = ["FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"]
+const FOUNDER_WALLETS = [
+  "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H", // founder wallet
+  "EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk", // jettoptx.skr / JOE agent wallet
+]
 
 type Tab = "jettchat" | "sessions" | "wallets"
 

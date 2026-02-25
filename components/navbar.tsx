@@ -287,9 +287,8 @@ export function Navbar() {
                 transition={{ delay: 0.3 }}
                 className="group relative text-4xl font-sans tracking-tight text-foreground"
               >
-                <Link href="https://astroknots.space" onClick={() => setIsMenuOpen(false)}>
-                  <span className="text-accent mr-2">Δ</span>
-                  ASTRO.KNOTS
+                <Link href="/docs" onClick={() => setIsMenuOpen(false)}>
+                  Docs
                 </Link>
               </motion.button>
 
@@ -300,9 +299,9 @@ export function Navbar() {
                 transition={{ delay: 0.4 }}
                 className="group relative text-4xl font-sans tracking-tight text-foreground"
               >
-                <Link href="/docs" onClick={() => setIsMenuOpen(false)}>
-                  <span className="text-accent font-mono text-sm mr-2">UX</span>
-                  Docs
+                <Link href="https://astroknots.space" onClick={() => setIsMenuOpen(false)}>
+                  <span className="text-accent mr-2">Δ</span>
+                  ASTRO.KNOTS
                 </Link>
               </motion.button>
 

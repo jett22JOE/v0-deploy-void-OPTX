@@ -485,7 +485,7 @@ function DocsContent() {
                   <Eye className="w-5 h-5" /> Gaze Verification Guide
                 </h2>
                 <p className={`font-mono text-xs leading-relaxed max-w-2xl mt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
-                  The Adaptive Gaze Tensor (AGT) system classifies eye movement into three biometric tensors:
+                  The Agentive Gaze Tensor (AGT) system classifies eye movement into three biometric tensors:
                   Cognitive (COG), Emotional (EMO), and Environmental (ENV). These form a unique gaze signature for authentication.
                 </p>
               </div>

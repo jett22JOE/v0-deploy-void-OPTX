@@ -53,7 +53,7 @@ const projects = [
     image: "/abstract-neural-network-visualization-dark-theme.jpg",
     scope: "MOJO",
     description:
-      "Mobile Jett Optics—native gaze authentication powered by Adaptive Gaze Tensors. AGTs classify your eye movements into cognitive, emotional, and environmental vectors on a 2-simplex, creating a biometric signature that evolves with you. Hands-free, spoof-proof, quantum-resistant via our Joule Encryption Temporal Template.",
+      "Mobile Jett Optics—native gaze authentication powered by Agentive Gaze Tensors. AGTs classify your eye movements into cognitive, emotional, and environmental vectors on a 2-simplex, creating a biometric signature that evolves with you. Hands-free, spoof-proof, quantum-resistant via our Joule Encryption Temporal Template.",
   },
   {
     title: "Jett-Chat",

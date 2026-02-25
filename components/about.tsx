@@ -90,7 +90,7 @@ export function About() {
             <motion.p
               key={index}
               className={`text-4xl md:text-6xl lg:text-7xl font-sans font-light tracking-tight ${
-                statement === "Adaptive Gaze Tensors" ? "text-accent" : "text-white/90"
+                statement === "Agentive Gaze Tensors" ? "text-accent" : "text-white/90"
               }`}
               style={{
                 WebkitTextStroke: index % 2 === 0 ? "none" : "1px rgba(255,255,255,0.3)",

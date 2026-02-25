@@ -115,7 +115,7 @@ export default function OpticalSpatialEncryptionPage() {
               optical spatial encryption analyzes the <em>dynamic trajectories</em> of eye movements as they navigate visual stimuli.
             </p>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
-              This approach creates what we call <strong className="text-accent">Adaptive Gaze Tensors (AGTs)</strong>—mathematical
+              This approach creates what we call <strong className="text-accent">Agentive Gaze Tensors (AGTs)</strong>—mathematical
               representations of your unique visual attention patterns that evolve with you over time, making them virtually
               impossible to steal or replicate.
             </p>
@@ -128,7 +128,7 @@ export default function OpticalSpatialEncryptionPage() {
           {/* AGT Tensors */}
           <section className="mb-12">
             <h2 className="font-sans text-2xl md:text-3xl font-light mb-6 text-white">
-              Adaptive Gaze Tensors: The Core Technology
+              Agentive Gaze Tensors: The Core Technology
             </h2>
             <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
               AGTs classify eye movements into three orthogonal vector spaces on a 2-simplex:

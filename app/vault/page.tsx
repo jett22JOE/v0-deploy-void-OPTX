@@ -10,7 +10,7 @@ import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import {
   Copy, Check, ExternalLink, ChevronDown,
   Sun, Moon, Wallet, Trophy, Clock, HelpCircle,
-  Smartphone, Shield, Zap, Globe,
+  Smartphone, Shield, Zap, Globe, LogOut, Eye,
   ArrowRight, DollarSign, Box, GitBranch, RotateCcw,
 } from "lucide-react"
 import { InstagramIcon, XIcon, ZoraIcon, FarcasterIcon, CosmosIcon } from "@/components/icons/social-icons"
@@ -18,7 +18,7 @@ import { InstagramIcon, XIcon, ZoraIcon, FarcasterIcon, CosmosIcon } from "@/com
 // ─── Constants ───────────────────────────────────────────────────────────────
 const JTX_MINT = "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
 const JOE_PUBLIC_KEY = "EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk"
-const SOLANA_RPC = "https://api.mainnet-beta.solana.com"
+const SOLANA_RPC = process.env.NEXT_PUBLIC_HELIUS_RPC_URL || "https://api.devnet.solana.com"
 const SOL_GOAL = 5874
 const SOL_PRICE_EST = 133
 const DOLLAR_GOAL = SOL_GOAL * SOL_PRICE_EST // ~$781,242
@@ -26,7 +26,7 @@ const GECKO_EMBED = "https://www.geckoterminal.com/solana/pools/9XpJiKEYzq5yDo5p
 const PHASE_1_END = new Date("2026-03-31T23:59:59Z")
 const ADMIN_WALLETS = [
   "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H", // founder wallet
-  // jettoptx.skr wallet — add public key when resolved
+  "EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk", // jettoptx.skr / JOE agent wallet
 ]
 
 // ─── Star Positions (deterministic to avoid SSR hydration mismatch) ───────────
@@ -118,7 +118,7 @@ function useUTCClock() {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function VaultPage() {
-  const { publicKey, connected } = useWallet()
+  const { publicKey, connected, disconnect, wallet } = useWallet()
   const { setVisible } = useWalletModal()
   const countdown = useCountdown(PHASE_1_END)
   const utcTime = useUTCClock()
@@ -135,6 +135,7 @@ export default function VaultPage() {
   const [callsign, setCallsign] = useState("")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [adminOpen, setAdminOpen] = useState(false)
+  const [walletMenuOpen, setWalletMenuOpen] = useState(false)
   const [donated, setDonated] = useState(false)
   const [showDevnetModal, setShowDevnetModal] = useState(true)
 
@@ -268,7 +269,6 @@ export default function VaultPage() {
           <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
             <ul className="flex items-center gap-2 px-2 py-1">
               {[
-                { label: "Docs", href: "/docs" },
                 { label: "SPATIAL UX", href: "https://jettoptics.ai/#spatial-encryption" },
                 { label: "JOE AI", href: "https://jettoptics.ai/#joe-agent" },
                 { label: "CONTACT", href: "https://x.com/jettoptx" },
@@ -315,13 +315,136 @@ export default function VaultPage() {
               {darkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-orange-600" />}
             </button>
 
-            {/* Wallet connect */}
+            {/* Wallet connect / settings */}
             {connected && publicKey ? (
-              <div className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-mono border ${
-                darkMode ? "border-orange-500/30 bg-[#111118]" : "border-orange-300 bg-white"
-              }`}>
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+              <div className="relative">
+                <button
+                  onClick={() => setWalletMenuOpen(!walletMenuOpen)}
+                  className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-mono border cursor-pointer transition-all duration-200 ${
+                    darkMode
+                      ? "border-orange-500/30 bg-[#111118] hover:border-orange-500/60 hover:bg-orange-500/5"
+                      : "border-orange-300 bg-white hover:border-orange-400 hover:bg-orange-50"
+                  }`}
+                >
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${walletMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* Wallet Settings Dropdown */}
+                {walletMenuOpen && (
+                  <>
+                    {/* Backdrop to close */}
+                    <div className="fixed inset-0 z-40" onClick={() => setWalletMenuOpen(false)} />
+                    <div className={`absolute right-0 top-full mt-2 z-50 w-72 rounded-2xl border shadow-2xl overflow-hidden ${
+                      darkMode ? "bg-[#0d0d14] border-orange-500/20 shadow-orange-500/10" : "bg-white border-orange-200 shadow-orange-200/30"
+                    }`}>
+                      {/* Header */}
+                      <div className={`px-4 py-3 border-b ${darkMode ? "border-orange-500/10 bg-black/20" : "border-orange-100 bg-orange-50/50"}`}>
+                        <p className={`text-[10px] tracking-widest uppercase ${accentOrange}`} style={{ fontFamily: "var(--font-orbitron)" }}>Wallet Settings</p>
+                        <p className={`font-mono text-[11px] mt-1 ${textSecondary}`}>{publicKey.toBase58()}</p>
+                        {wallet?.adapter?.name && (
+                          <p className={`text-[10px] mt-0.5 ${textMuted}`}>via {wallet.adapter.name}</p>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="p-2 space-y-1">
+                        {/* View Vault Details */}
+                        <button
+                          onClick={() => {
+                            setWalletMenuOpen(false)
+                            const vaultSection = document.querySelector("[data-section='vault-stats']")
+                            if (vaultSection) vaultSection.scrollIntoView({ behavior: "smooth", block: "center" })
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
+                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                          }`}
+                        >
+                          <Eye className="w-4 h-4 text-orange-400" />
+                          <div>
+                            <p className="font-medium">View Vault Details</p>
+                            <p className={`text-[10px] ${textMuted}`}>Token stats, fundraising, timeline</p>
+                          </div>
+                        </button>
+
+                        {/* Deposit $JTX */}
+                        <button
+                          onClick={() => {
+                            setWalletMenuOpen(false)
+                            const donateSection = document.querySelector("[data-section='donate']")
+                            if (donateSection) donateSection.scrollIntoView({ behavior: "smooth", block: "center" })
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
+                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                          }`}
+                        >
+                          <DollarSign className="w-4 h-4 text-orange-400" />
+                          <div>
+                            <p className="font-medium">Put $JTX in the Vault</p>
+                            <p className={`text-[10px] ${textMuted}`}>Contribute to community pool</p>
+                          </div>
+                        </button>
+
+                        {/* View on Explorer */}
+                        <a
+                          href={`https://solscan.io/account/${publicKey.toBase58()}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setWalletMenuOpen(false)}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
+                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                          }`}
+                        >
+                          <ExternalLink className="w-4 h-4 text-orange-400" />
+                          <div>
+                            <p className="font-medium">View on Solscan</p>
+                            <p className={`text-[10px] ${textMuted}`}>Open wallet in explorer</p>
+                          </div>
+                        </a>
+
+                        {/* Admin Terminal (only for admin wallets) */}
+                        {ADMIN_WALLETS.includes(publicKey.toBase58()) && (
+                          <button
+                            onClick={() => {
+                              setWalletMenuOpen(false)
+                              setAdminOpen(!adminOpen)
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
+                              darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                            }`}
+                          >
+                            <Shield className="w-4 h-4 text-orange-400" />
+                            <div>
+                              <p className="font-medium">Admin Terminal</p>
+                              <p className={`text-[10px] ${textMuted}`}>Vault program management</p>
+                            </div>
+                          </button>
+                        )}
+
+                        {/* Divider */}
+                        <div className={`mx-2 border-t ${darkMode ? "border-orange-500/10" : "border-orange-100"}`} />
+
+                        {/* Disconnect */}
+                        <button
+                          onClick={() => {
+                            setWalletMenuOpen(false)
+                            disconnect()
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
+                            darkMode ? "hover:bg-red-500/10 text-red-400/70 hover:text-red-400" : "hover:bg-red-50 text-red-400 hover:text-red-600"
+                          }`}
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <div>
+                            <p className="font-medium">Disconnect Wallet</p>
+                            <p className={`text-[10px] ${darkMode ? "text-red-500/40" : "text-red-300"}`}>End session</p>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <button
@@ -346,7 +469,7 @@ export default function VaultPage() {
         </nav>
       </header>
 
-      <main className="relative z-10 max-w-3xl mx-auto px-4 pt-20 pb-32 space-y-8">
+      <main className="relative z-10 max-w-3xl mx-auto px-4 pt-20 pb-32 space-y-8 font-[family-name:var(--font-geist-mono)]">
         {/* ═══ Title ═══ */}
         <div className="text-center">
           <h1 className="text-3xl md:text-4xl font-black tracking-tight" style={{ fontFamily: "var(--font-orbitron)" }}>
@@ -413,7 +536,7 @@ export default function VaultPage() {
         </section>
 
         {/* ═══ JTX Token Info ═══ */}
-        <section className={`rounded-2xl border p-6 ${cardBg}`}>
+        <section data-section="vault-stats" className={`rounded-2xl border p-6 ${cardBg}`}>
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500/30">
               <img src="/icons/lightLOGOjettoptics.jpeg" alt="JTX" className="w-full h-full object-cover" />
@@ -574,7 +697,7 @@ export default function VaultPage() {
         </section>
 
         {/* ═══ Contribute SOL ═══ */}
-        <section className={`rounded-2xl border p-6 ${cardBg}`}>
+        <section data-section="donate" className={`rounded-2xl border p-6 ${cardBg}`}>
           <div className="flex items-center gap-2 mb-2">
             <Zap className={`w-5 h-5 ${accentOrange}`} />
             <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>CONTRIBUTE SOL</h2>
@@ -1111,14 +1234,14 @@ export default function VaultPage() {
         </div>
       )}
 
-      {/* ═══ Sticky Footer — matches landing page footer ═══ */}
+      {/* ═══ Sticky Footer ═══ */}
       <footer className={`fixed bottom-0 left-0 right-0 z-40 border-t py-3 px-4 md:px-8 ${
         darkMode ? "bg-[#0a0a0f]/95 border-white/5 backdrop-blur-md" : "bg-white/95 border-orange-100 backdrop-blur-md"
       }`}>
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
-          {/* Left: Contact + UTC clock */}
-          <div className="flex flex-col items-center md:items-start gap-1">
-            <a href="mailto:founder@jettoptics.ai" className={`font-mono text-xs tracking-widest hover:opacity-80 transition-opacity`}>
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          {/* Left: Contact + UTC clock (desktop only) */}
+          <div className="hidden md:flex flex-col items-start gap-1">
+            <a href="mailto:founder@jettoptics.ai" className="font-mono text-xs tracking-widest hover:opacity-80 transition-opacity">
               <span className={accentOrange}>Contact: </span>
               <span className={darkMode ? "text-white" : "text-[#1a1a2e]"}>founder@jettoptics.ai</span>
             </a>
@@ -1128,25 +1251,36 @@ export default function VaultPage() {
             </p>
           </div>
 
-          {/* Center: Social icons (same as landing page footer) */}
-          <div className="flex gap-4">
-            {[
-              { name: "Instagram", href: "https://instagram.com/jettoptx", icon: InstagramIcon },
-              { name: "X", href: "https://x.com/jettoptx?s=21&t=FxRpqXgpbbk57hTB5gaUnw", icon: XIcon },
-              { name: "Zora", href: "https://zora.co/@jettoptx", icon: ZoraIcon },
-              { name: "Farcaster", href: "https://farcaster.xyz/jettoptx", icon: FarcasterIcon },
-              { name: "Cosmos", href: "https://www.cosmos.so/jettoptx", icon: CosmosIcon },
-            ].map((social) => (
-              <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer"
-                className={`${textMuted} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors duration-300`}
-                aria-label={social.name}>
-                <social.icon className="w-5 h-5" />
-              </a>
-            ))}
+          {/* Center on mobile / Center on desktop: Social icons with poof cloud */}
+          <div className="flex-1 flex justify-center">
+            <div className="relative group">
+              {/* Poof cloud glow behind icons */}
+              <div className={`absolute -inset-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${
+                darkMode ? "bg-orange-500/10" : "bg-orange-200/40"
+              }`} />
+              <div className={`absolute -inset-2 rounded-full opacity-0 group-hover:opacity-60 transition-opacity duration-300 blur-md ${
+                darkMode ? "bg-orange-500/15" : "bg-orange-300/30"
+              }`} />
+              <div className="relative flex gap-5 md:gap-4">
+                {[
+                  { name: "Instagram", href: "https://instagram.com/jettoptx", icon: InstagramIcon },
+                  { name: "X", href: "https://x.com/jettoptx?s=21&t=FxRpqXgpbbk57hTB5gaUnw", icon: XIcon },
+                  { name: "Zora", href: "https://zora.co/@jettoptx", icon: ZoraIcon },
+                  { name: "Farcaster", href: "https://farcaster.xyz/jettoptx", icon: FarcasterIcon },
+                  { name: "Cosmos", href: "https://www.cosmos.so/jettoptx", icon: CosmosIcon },
+                ].map((social) => (
+                  <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer"
+                    className={`relative ${textMuted} hover:text-orange-400 transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_6px_rgba(249,115,22,0.5)]`}
+                    aria-label={social.name}>
+                    <social.icon className="w-5 h-5" />
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Right: JettOptics logo + copyright + TechForce OPTX */}
-          <div className="flex items-center gap-3">
+          {/* Right: JettOptics logo + copyright + TechForce (desktop only) */}
+          <div className="hidden md:flex items-center gap-3">
             <Link href="/optical-spatial-encryption"
               className={`w-10 h-10 rounded-lg border flex items-center justify-center p-1.5 transition-all ${
                 darkMode ? "bg-white border-orange-500/30 hover:border-orange-400 hover:shadow-[0_0_15px_rgba(181,82,0,0.3)]" : "bg-white border-orange-200 hover:border-orange-400 hover:shadow-[0_0_15px_rgba(181,82,0,0.3)]"
