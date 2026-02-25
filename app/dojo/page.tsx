@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Users, Eye, CreditCard, Home, Lock, Unlock, Settings,
   Target, MessageCircle, Globe, Shield, BarChart3,
@@ -40,6 +40,30 @@ export default function JETTHubPage() {
   const [growthProgress, setGrowthProgress] = useState(0)
   const [selectedTensor, setSelectedTensor] = useState<"emo" | "cog" | "env" | null>(null)
   const [hoveredTensor, setHoveredTensor] = useState<"emo" | "cog" | "env" | null>(null)
+
+  // Aspect ratio correction for AGT dashed lines on mobile
+  // On tall screens (phones), the 100x100 SVG viewBox stretches vertically,
+  // distorting line angles. We compute corrected endpoints so the visual
+  // angles match the native iOS app (~120° spread, Mercedes-Benz pattern).
+  const [aspectRatio, setAspectRatio] = useState(1)
+  useEffect(() => {
+    const update = () => setAspectRatio(window.innerWidth / window.innerHeight)
+    update()
+    window.addEventListener("resize", update)
+    return () => window.removeEventListener("resize", update)
+  }, [])
+
+  // On a square screen (1:1), lines go to (0,0), (100,0), (50,100) — correct.
+  // On a phone (~0.46 ratio), we need to pull the x-endpoints inward so the
+  // visual angle stays ~30° from vertical instead of splaying to corners.
+  const agtLineEndpoints = (() => {
+    const spread = Math.min(50, 50 * aspectRatio / 0.75) // Normalized to ~4:3 reference
+    return {
+      down:     { x2: 50, y2: 100 },
+      topLeft:  { x2: 50 - spread, y2: 0 },
+      topRight: { x2: 50 + spread, y2: 0 },
+    }
+  })()
 
   const tensorColors = {
     hub: "#f97316",
@@ -223,12 +247,21 @@ export default function JETTHubPage() {
               </filter>
             </defs>
 
-            {/* Three AGT section dividers */}
+            {/* Three AGT section dividers — aspect-ratio corrected for mobile */}
             <g>
               {[
-                { x2: 50, y2: animationState === "growing" ? 50 + 50 * growthProgress : 100 },
-                { x2: animationState === "growing" ? 50 - 50 * growthProgress : 0, y2: animationState === "growing" ? 50 - 50 * growthProgress : 0 },
-                { x2: animationState === "growing" ? 50 + 50 * growthProgress : 100, y2: animationState === "growing" ? 50 - 50 * growthProgress : 0 },
+                {
+                  x2: animationState === "growing" ? 50 + (agtLineEndpoints.down.x2 - 50) * growthProgress : agtLineEndpoints.down.x2,
+                  y2: animationState === "growing" ? 50 + (agtLineEndpoints.down.y2 - 50) * growthProgress : agtLineEndpoints.down.y2,
+                },
+                {
+                  x2: animationState === "growing" ? 50 + (agtLineEndpoints.topLeft.x2 - 50) * growthProgress : agtLineEndpoints.topLeft.x2,
+                  y2: animationState === "growing" ? 50 + (agtLineEndpoints.topLeft.y2 - 50) * growthProgress : agtLineEndpoints.topLeft.y2,
+                },
+                {
+                  x2: animationState === "growing" ? 50 + (agtLineEndpoints.topRight.x2 - 50) * growthProgress : agtLineEndpoints.topRight.x2,
+                  y2: animationState === "growing" ? 50 + (agtLineEndpoints.topRight.y2 - 50) * growthProgress : agtLineEndpoints.topRight.y2,
+                },
               ].map((line, i) => (
                 <line
                   key={i}
