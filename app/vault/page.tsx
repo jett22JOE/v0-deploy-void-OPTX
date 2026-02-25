@@ -266,7 +266,9 @@ export default function VaultPage() {
           </Link>
 
           {/* Center: Navigation Pills (Desktop only) */}
-          <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
+          <div className={`hidden md:block absolute left-1/2 -translate-x-1/2 rounded-2xl border shadow-[0_8px_32px_rgba(0,0,0,0.3)] ${
+            darkMode ? "border-white/[0.08] bg-black/50 backdrop-blur-xl" : "border-black/[0.08] bg-white/80 backdrop-blur-xl"
+          }`}>
             <ul className="flex items-center gap-2 px-2 py-1">
               {[
                 { label: "SPATIAL UX", href: "https://jettoptics.ai/#spatial-encryption" },
@@ -280,7 +282,7 @@ export default function VaultPage() {
                     href={link.href}
                     {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     className={`group relative font-mono text-xs tracking-wider px-4 py-2 rounded-xl transition-all duration-300 ${
-                      darkMode ? "text-white/40 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-gray-900 hover:bg-black/5"
+                      darkMode ? "text-white/70 hover:text-white hover:bg-white/[0.08]" : "text-gray-600 hover:text-gray-900 hover:bg-black/5"
                     }`}
                   >
                     <span className="text-orange-500 mr-1">0{index + 1}</span>

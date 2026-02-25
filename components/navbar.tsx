@@ -116,35 +116,25 @@ export function Navbar() {
 
           {/* Center: Navigation Links with glass pill (Desktop only) */}
           <div
-            className={`hidden md:block relative rounded-2xl transition-all duration-500 ${
-              isScrolled
-                ? "backdrop-blur-xl border border-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
-                : "bg-transparent"
-            }`}
+            className="hidden md:block relative rounded-2xl backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500"
             style={{
-              WebkitBackdropFilter: isScrolled ? "blur(20px) saturate(120%)" : "none",
-              backgroundColor: isScrolled ? "rgba(0, 0, 0, 0.15)" : "transparent",
+              WebkitBackdropFilter: "blur(20px) saturate(120%)",
+              backgroundColor: "rgba(0, 0, 0, 0.45)",
             }}
           >
-            {/* Polyglassmorphism gradient overlay */}
-            {isScrolled && (
-              <>
-                {/* Top highlight edge - subtle */}
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-t-2xl" />
-                {/* Very subtle color tint */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.02] via-transparent to-white/[0.01] pointer-events-none" />
-              </>
-            )}
+            {/* Top highlight edge */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent rounded-t-2xl" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.03] via-transparent to-white/[0.02] pointer-events-none" />
             <ul className="relative flex items-center gap-2 px-2 py-1">
               {navLinks.map((link, index) => (
                 <li key={link.label}>
                   <button
                     onClick={() => scrollToSection(link.href)}
-                    className="group relative font-mono text-xs tracking-wider text-muted-foreground hover:text-foreground transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/[0.05]"
+                    className="group relative font-mono text-xs tracking-wider text-white/70 hover:text-white transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/[0.08]"
                   >
                     <span className="text-accent mr-1">0{index + 1}</span>
                     {link.label.toUpperCase()}
-                    <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-foreground to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </button>
                 </li>
               ))}
