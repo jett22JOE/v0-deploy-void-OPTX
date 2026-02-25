@@ -139,6 +139,20 @@ export default function StakePage() {
   const { setVisible } = useWalletModal()
 
   const [darkMode, setDarkMode] = useState(true)
+
+  // Sync theme with localStorage (shared across vault/stake/aaron-docs)
+  useEffect(() => {
+    const saved = localStorage.getItem("dojo-theme")
+    if (saved === "light") setDarkMode(false)
+    if (saved === "dark") setDarkMode(true)
+  }, [])
+
+  const toggleDarkMode = () => {
+    const next = !darkMode
+    setDarkMode(next)
+    localStorage.setItem("dojo-theme", next ? "dark" : "light")
+  }
+
   const [jtxBalance, setJtxBalance] = useState<number | null>(null)
   const [balanceLoading, setBalanceLoading] = useState(false)
   const [selectedTier, setSelectedTier] = useState<StakeTier | null>(null)
@@ -352,7 +366,7 @@ export default function StakePage() {
               {[
                 { label: "VAULT", href: "/vault" },
                 { label: "STAKE", href: "/stake", active: true },
-                { label: "DOCS", href: "/docs" },
+                { label: "AARON", href: "/aaron-docs" },
               ].map((link, index) => (
                 <li key={link.label}>
                   <Link
@@ -377,7 +391,7 @@ export default function StakePage() {
           {/* Right: Theme + Wallet */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={toggleDarkMode}
               className={`w-10 h-10 rounded-full flex items-center justify-center border transition-colors ${
                 darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10" : "border-orange-300 bg-white hover:bg-orange-50"
               }`}

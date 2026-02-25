@@ -65,23 +65,22 @@ export default function SecurityPage() {
       .catch(() => {})
   }, [isLoaded, isSignedIn])
 
-  // Redirect if not signed in
+  // Redirect if not signed in (but not during sign-out — that redirects to landing page)
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (isLoaded && !isSignedIn && !isSigningOut) {
       router.push("/optx-login")
     }
-  }, [isLoaded, isSignedIn, router])
+  }, [isLoaded, isSignedIn, isSigningOut, router])
 
-  // Handle sign out
+  // Handle sign out — redirect to landing page
   const handleSignOut = async () => {
     setIsSigningOut(true)
     try {
-      await signOut()
-      router.push("/")
+      await signOut({ redirectUrl: "/" })
     } catch (error) {
       console.error("Sign out error:", error)
-    } finally {
-      setIsSigningOut(false)
+      // Fallback: force navigate to landing page
+      window.location.href = "/"
     }
   }
 

@@ -55,13 +55,13 @@ const DEX_LINKS = [
   { name: "Jupiter", url: `https://jup.ag/swap/SOL-${JTX_MINT}`, icon: "/icons/jupiter.ico" },
   { name: "Raydium", url: `https://raydium.io/swap/?inputMint=sol&outputMint=${JTX_MINT}`, icon: "/icons/raydium.ico" },
   { name: "Orca", url: `https://www.orca.so/swap?tokenIn=So11111111111111111111111111111111&tokenOut=${JTX_MINT}`, icon: "/icons/orca.ico" },
-  { name: "Meteora", url: `https://app.meteora.ag/pools?token=${JTX_MINT}`, icon: "/icons/meteora.ico" },
+  { name: "Meteora", url: `https://app.meteora.ag/pools?token=${JTX_MINT}`, icon: "/icons/meteora-logo.png" },
 ]
 
 const TRACKER_LINKS = [
   { name: "DexScreener", url: `https://dexscreener.com/solana/${JTX_MINT}`, icon: "/icons/dexscreener.png" },
   { name: "Birdeye", url: `https://birdeye.so/token/${JTX_MINT}?chain=solana`, icon: "/icons/birdeye.ico" },
-  { name: "DexTools", url: `https://www.dextools.io/app/en/solana/pair-explorer/${JTX_MINT}`, icon: "/icons/dextools.ico" },
+  { name: "DexTools", url: `https://www.dextools.io/app/en/solana/pair-explorer/${JTX_MINT}`, icon: "/icons/dextools-logo.png" },
   { name: "CoinGecko", url: `https://www.coingecko.com/en/coins/jett-optics`, icon: "/icons/coingecko.ico" },
   { name: "CoinMarketCap", url: `https://coinmarketcap.com/currencies/jett-optics/`, icon: "/icons/coinmarketcap.ico" },
   { name: "Solscan", url: `https://solscan.io/token/${JTX_MINT}`, icon: "/icons/solscan.ico" },
@@ -127,6 +127,20 @@ export default function VaultPage() {
   const utcTime = useUTCClock()
 
   const [darkMode, setDarkMode] = useState(true)
+
+  // Sync theme with localStorage (shared across vault/stake/aaron-docs)
+  useEffect(() => {
+    const saved = localStorage.getItem("dojo-theme")
+    if (saved === "light") setDarkMode(false)
+    if (saved === "dark") setDarkMode(true)
+  }, [])
+
+  const toggleDarkMode = () => {
+    const next = !darkMode
+    setDarkMode(next)
+    localStorage.setItem("dojo-theme", next ? "dark" : "light")
+  }
+
   const [totalSupply, setTotalSupply] = useState<number | null>(null)
   const [livePrice, setLivePrice] = useState<number | null>(7.67)
   const [marketCap, setMarketCap] = useState<string>("33.7M")
@@ -354,45 +368,35 @@ export default function VaultPage() {
           }`}>
             <ul className="flex items-center gap-2 px-2 py-1">
               {[
-                { label: "SPATIAL UX", href: "https://jettoptics.ai/#spatial-encryption" },
-                { label: "JOE AI", href: "https://jettoptics.ai/#joe-agent" },
-                { label: "CONTACT", href: "https://x.com/jettoptx" },
-              ].map((link, index) => {
-                const isExternal = link.href.startsWith("https://x.com");
-                return (
+                { label: "VAULT", href: "/vault", active: true },
+                { label: "STAKE", href: "/stake" },
+                { label: "AARON", href: "/aaron-docs" },
+              ].map((link, index) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     className={`group relative font-mono text-xs tracking-wider px-4 py-2 rounded-xl transition-all duration-300 ${
-                      darkMode ? "text-white/70 hover:text-white hover:bg-white/[0.08]" : "text-gray-600 hover:text-gray-900 hover:bg-black/5"
+                      link.active
+                        ? darkMode ? "text-orange-400 bg-orange-500/10" : "text-orange-700 bg-orange-100"
+                        : darkMode ? "text-white/70 hover:text-white hover:bg-white/[0.08]" : "text-gray-600 hover:text-gray-900 hover:bg-black/5"
                     }`}
                   >
                     <span className="text-orange-500 mr-1">0{index + 1}</span>
                     {link.label}
-                    <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {!link.active && (
+                      <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    )}
                   </Link>
                 </li>
-                );
-              })}
+              ))}
             </ul>
           </div>
 
-          {/* Right: UX Docs + Theme Toggle + Wallet + Logo */}
+          {/* Right: Theme Toggle + Wallet */}
           <div className="flex items-center gap-3">
-            {/* Aaron API link (desktop) */}
-            <div className="hidden md:block">
-              <Link href="/docs" className={`group relative font-mono text-xs tracking-wider px-3 py-2 rounded-xl transition-all duration-300 ${
-                darkMode ? "text-white/40 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-gray-900 hover:bg-black/5"
-              }`}>
-                <span className="text-orange-500 mr-1">API</span>Docs
-                <span className="absolute bottom-1 left-3 right-3 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </Link>
-            </div>
-
             {/* Dark/light toggle */}
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={toggleDarkMode}
               className={`w-10 h-10 rounded-full flex items-center justify-center border transition-colors ${
                 darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10" : "border-orange-300 bg-white hover:bg-orange-50"
               }`}
