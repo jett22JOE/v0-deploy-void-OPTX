@@ -7,7 +7,7 @@ import { Connection, PublicKey, Transaction } from "@solana/web3.js"
 import { getAssociatedTokenAddressSync, createTransferInstruction, TOKEN_2022_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAccount } from "@solana/spl-token"
 import Link from "next/link"
 import Image from "next/image"
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
+import { StarfieldBackground } from "@/components/ui/starfield-background"
 import {
   Check, ExternalLink, ChevronDown,
   Sun, Moon, Zap, LogOut, Eye,
@@ -115,23 +115,6 @@ interface StakeRecord {
   timestamp: number
   expiresAt: number | null
 }
-
-// ─── Star Positions (deterministic) ─────────────────────────────────────────
-const STAR_POSITIONS = Array.from({ length: 40 }, (_, i) => ({
-  x: ((i * 37 + 13) % 100),
-  y: ((i * 53 + 7) % 100),
-  delay: ((i * 17) % 30) / 10,
-  duration: 2 + ((i * 23) % 30) / 10,
-}))
-
-const SHOOTING_STARS = Array.from({ length: 6 }, (_, i) => ({
-  startX: ((i * 29 + 5) % 80) + 10,
-  startY: ((i * 41 + 3) % 40),
-  angle: 25 + ((i * 13) % 20),
-  delay: ((i * 31) % 50) / 10,
-  duration: 2.5 + ((i * 19) % 20) / 10,
-  length: 40 + ((i * 23) % 40),
-}))
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function StakePage() {
@@ -293,56 +276,15 @@ export default function StakePage() {
   return (
     <div className={`min-h-screen ${darkMode ? "bg-[#0a0a0f]" : "bg-[#f5f0e8]"} ${textPrimary} transition-colors duration-300`}>
 
-      {/* ─── Dark Mode: Stars ─── */}
-      {darkMode && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          {STAR_POSITIONS.map((star, i) => (
-            <div
-              key={`star-${i}`}
-              className="absolute w-0.5 h-0.5 bg-orange-400/30 rounded-full animate-pulse"
-              style={{ left: `${star.x}%`, top: `${star.y}%`, animationDelay: `${star.delay}s`, animationDuration: `${star.duration}s` }}
-            />
-          ))}
-          {SHOOTING_STARS.map((s, i) => (
-            <div key={`shoot-${i}`} className="absolute" style={{ left: `${s.startX}%`, top: `${s.startY}%` }}>
-              <div
-                className="shooting-star"
-                style={{ animationDelay: `${s.delay}s`, animationDuration: `${s.duration}s`, width: `${s.length}px`, transform: `rotate(${s.angle}deg)` }}
-              />
-            </div>
-          ))}
-          <style>{`
-            .shooting-star {
-              height: 1px;
-              background: linear-gradient(90deg, rgba(251,146,60,0), rgba(251,146,60,0.6), rgba(251,146,60,0));
-              animation: shoot linear infinite;
-              opacity: 0;
-            }
-            @keyframes shoot {
-              0% { opacity: 0; transform: translateX(-100px) rotate(var(--angle, 25deg)); }
-              10% { opacity: 1; }
-              90% { opacity: 1; }
-              100% { opacity: 0; transform: translateX(200px) rotate(var(--angle, 25deg)); }
-            }
-            @keyframes pulse-glow {
-              0%, 100% { box-shadow: 0 0 30px rgba(217,149,10,0.15); }
-              50% { box-shadow: 0 0 60px rgba(217,149,10,0.3); }
-            }
-            .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
-          `}</style>
-        </div>
-      )}
-
-      {/* ─── Light Mode ─── */}
-      {!darkMode && (
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <DottedGlowBackground
-            opacity={0.4} gap={14} radius={1.5}
-            color="rgba(181, 82, 0, 0.2)" glowColor="rgba(181, 82, 0, 0.5)"
-            speedMin={0.2} speedMax={0.6} speedScale={0.7}
-          />
-        </div>
-      )}
+      {/* ─── Starfield Background (matches vault exactly) ─── */}
+      <StarfieldBackground darkMode={darkMode} />
+      <style>{`
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 30px rgba(217,149,10,0.15); }
+          50% { box-shadow: 0 0 60px rgba(217,149,10,0.3); }
+        }
+        .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+      `}</style>
 
       {/* ═══ Header ═══ */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4">
