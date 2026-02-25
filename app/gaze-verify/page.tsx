@@ -426,7 +426,7 @@ export default function GazeVerifyPage() {
         {/* Info text */}
         <div className="text-center max-w-sm">
           <p className="font-mono text-xs italic text-zinc-600 leading-relaxed">
-            &ldquo;Your gaze pattern creates a unique polynomial key (3⁴ = 81 combinations).
+            &ldquo;Your gaze pattern creates a unique knot-encoded key (3⁴ = 81 combinations).
             Combined with JOULE temporal binding, this prevents replay attacks.&rdquo;
             {connected && (
               <span className="block mt-1 text-orange-400/60 not-italic">

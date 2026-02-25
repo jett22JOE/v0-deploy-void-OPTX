@@ -116,12 +116,12 @@ JETT (Joule Encryption Temporal Template) is a quantum-resistant encryption prot
 ## How It Works
 1. **Gaze Capture** — User performs a calibrated gaze sequence across AGT zones
 2. **Temporal Sampling** — Microsecond-precision timestamps recorded for each fixation
-3. **Polynomial Encoding** — Gaze positions and timing encoded as polynomial coefficients
+3. **Knot Encoding** — Gaze positions and timing encoded as knot invariants
 4. **JOULE Generation** — Just-in-time Optical Universal Lock Encryption key derived
 5. **Hash & Attest** — JOULE hash stored on-chain via CSTB attestation
 
 ## Quantum Resistance
-Traditional RSA/ECC keys are vulnerable to quantum computing attacks (Shor's algorithm). JETT's polynomial-based keys derive their security from:
+Traditional RSA/ECC keys are vulnerable to quantum computing attacks (Shor's algorithm). JETT's knot-encoded keys derive their security from:
 - **Temporal entropy** — Microsecond timing variations are physically unreproducible
 - **Biometric uniqueness** — Gaze patterns are unique per individual
 - **Multi-dimensional encoding** — 3 AGT tensors + time = 4D key space
@@ -130,7 +130,7 @@ Traditional RSA/ECC keys are vulnerable to quantum computing attacks (Shor's alg
 ## The JETT PIN
 A 5-position gaze sequence that creates a reusable authentication key:
 - Each position held for 800ms minimum
-- Sequence order encodes the polynomial structure
+- Sequence order encodes the knot structure
 - Combined with session nonce for replay protection
 - Stored as CSTB attestation on Solana devnet
 

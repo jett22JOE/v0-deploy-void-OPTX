@@ -555,7 +555,7 @@ export default function AaronDocsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
                     { icon: Eye, title: "Privacy First", desc: "Raw biometric data never leaves the edge node. Only opaque 32-byte proofs go on-chain.", color: "emerald" },
-                    { icon: Shield, title: "Quantum Resistant", desc: "Agentive Gaze Tensor (AGT) sequences encoded as polynomial knot invariants — resistant to quantum attacks.", color: "blue" },
+                    { icon: Shield, title: "Quantum Resistant", desc: "Agentive Gaze Tensor (AGT) sequences encoded as knot invariants — resistant to quantum attacks.", color: "blue" },
                     { icon: Zap, title: "x402 Native", desc: "Micropayment attestation built-in. Pay-per-action with $OPTX staking tiers.", color: "yellow" },
                   ].map((card) => {
                     const Icon = card.icon
@@ -767,7 +767,7 @@ print(proof.tx_signature)  # Solana transaction hash`}
 │  JETT AUTH (Joule Encryption Temporal Template)          │
 │  ├── Agentive Gaze Tensor (AGT: COG/EMO/ENV)         │
 │  ├── Biometric identity capture on-device               │
-│  └── Generates JOULE template (polynomial encoding)     │
+│  └── Generates JOULE template (knot encoding)     │
 ├─────────────────────────────────────────────────────────┤
 │  AARON EDGE ROUTER (Astro Knots Router)                 │
 │  ├── Gaze verification + audit logging                  │

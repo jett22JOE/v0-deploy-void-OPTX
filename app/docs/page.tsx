@@ -984,7 +984,7 @@ pub fn store_gaze(
                 <p className={`font-mono text-xs leading-relaxed max-w-2xl mt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
                   AARON (Adaptive Authentication and Recognition Over Networks) is the biometric proof protocol
                   that underpins the Astro Knots registry. It generates quantum-resistant gaze proofs by encoding
-                  AGT tensor sequences into polynomial knot invariants, then anchoring them on Solana via CSTB attestations.
+                  AGT tensor sequences into knot invariants, then anchoring them on Solana via CSTB attestations.
                 </p>
               </div>
 
@@ -996,10 +996,10 @@ pub fn store_gaze(
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <p className={`font-mono text-[10px] ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
-                    Each gaze verification session produces a JOULE template — a polynomial encoding of the user&apos;s
+                    Each gaze verification session produces a JOULE template — a knot encoding of the user&apos;s
                     AGT tensor sequence. The AARON protocol hashes this into a knot invariant and stores it on-chain.
                   </p>
-                  <CodeBlock theme={theme} language="typescript" code={`// JOULE Template — polynomial gaze encoding
+                  <CodeBlock theme={theme} language="typescript" code={`// JOULE Template — knot-encoded gaze key
 interface JOULETemplate {
   timestamp: number;
   sessionNonce: string;
@@ -1076,9 +1076,9 @@ pub fn submit_biometric_proof(
         return Err("Confidence below 0.7 threshold".into());
     }
 
-    // Validate polynomial format (digits separated by dashes)
-    if !polynomial.chars().all(|c| c.is_ascii_digit() || c == '-') {
-        return Err("Invalid polynomial encoding".into());
+    // Validate knot encoding format (digits separated by dashes)
+    if !knot_encoding.chars().all(|c| c.is_ascii_digit() || c == '-') {
+        return Err("Invalid knot encoding".into());
     }
 
     BiometricProof::insert(BiometricProof {
