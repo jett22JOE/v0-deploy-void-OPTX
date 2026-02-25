@@ -627,7 +627,7 @@ export default function VaultPage() {
               <Image src="/icons/JOE_founder_icon.png" alt="JTX" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div>
-              <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>JTX TOKEN INFO</h2>
+              <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>$JTX TOKEN INFO</h2>
               <p className={`text-xs ${textSecondary}`}>Jett Optics</p>
             </div>
           </div>
