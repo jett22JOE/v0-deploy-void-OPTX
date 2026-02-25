@@ -751,7 +751,7 @@ export default function OptxLoginPage() {
         }`}>
           {publicKey ? `${publicKey.toBase58().slice(0, 6)}...${publicKey.toBase58().slice(-4)}` : "No Wallet"}
         </div>
-        <WalletMultiButton className="!bg-gradient-to-r !from-purple-600 !to-orange-500 !text-white !font-mono !text-xs !px-4 !py-2 !rounded-lg !border-0 !h-auto hover:!from-purple-700 hover:!to-orange-600" />
+        <WalletMultiButton className="!bg-[#b55200] hover:!bg-[#8a3f00] !text-white !font-mono !text-xs !px-4 !py-2 !rounded-lg !border !border-orange-500/30 !h-auto !transition-colors" />
       </div>
 
       <AnimatePresence mode="wait">
@@ -827,32 +827,32 @@ export default function OptxLoginPage() {
                   appearance={{
                     variables: {
                       colorPrimary: "#b55200",
-                      colorText: "#ffffff",
-                      colorTextSecondary: "#a1a1aa",
-                      colorBackground: "#2d2b55",
-                      colorInputBackground: "#18181b",
-                      colorInputText: "#ffffff",
+                      colorText: "#1a1a1a",
+                      colorTextSecondary: "#555555",
+                      colorBackground: "#ffffff",
+                      colorInputBackground: "#f4f4f5",
+                      colorInputText: "#1a1a1a",
                       borderRadius: "0.5rem",
                     },
                     elements: {
                       rootBox: "w-full",
-                      card: "bg-[#2d2b55]/95 shadow-none border-0 backdrop-blur-xl",
-                      headerTitle: "font-mono text-white",
-                      headerSubtitle: "font-mono text-sm text-zinc-400",
-                      formFieldLabel: "font-mono text-xs text-zinc-400",
-                      formFieldInput: "font-mono text-sm bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-500",
+                      card: "bg-white shadow-none border-0 backdrop-blur-xl",
+                      headerTitle: "font-mono text-zinc-900",
+                      headerSubtitle: "font-mono text-sm text-zinc-500",
+                      formFieldLabel: "font-mono text-xs text-zinc-600",
+                      formFieldInput: "font-mono text-sm bg-zinc-100 border-zinc-300 text-zinc-900 placeholder:text-zinc-400",
                       formButtonPrimary: "font-mono bg-accent hover:bg-accent/90 text-white",
                       footerActionLink: "text-accent hover:text-accent/80",
-                      socialButtonsBlockButton: "font-mono border-zinc-800 hover:bg-zinc-900/50 text-white",
-                      socialButtonsBlockButtonText: "font-mono text-sm",
-                      dividerLine: "bg-zinc-800",
+                      socialButtonsBlockButton: "font-mono border-zinc-300 hover:bg-zinc-100 text-zinc-900",
+                      socialButtonsBlockButtonText: "font-mono text-sm text-zinc-900",
+                      dividerLine: "bg-zinc-300",
                       dividerText: "font-mono text-xs text-zinc-500",
-                      identityPreviewText: "font-mono text-white",
+                      identityPreviewText: "font-mono text-zinc-900",
                       identityPreviewEditButton: "text-accent",
-                      formFieldSuccessText: "text-green-400",
-                      formFieldErrorText: "text-red-400",
+                      formFieldSuccessText: "text-green-600",
+                      formFieldErrorText: "text-red-500",
                       alertText: "font-mono text-sm",
-                      otpCodeFieldInput: "font-mono bg-zinc-900/50 border-zinc-800 text-white",
+                      otpCodeFieldInput: "font-mono bg-zinc-100 border-zinc-300 text-zinc-900",
                     }
                   }}
                 />
@@ -863,32 +863,32 @@ export default function OptxLoginPage() {
                   appearance={{
                     variables: {
                       colorPrimary: "#b55200",
-                      colorText: "#ffffff",
-                      colorTextSecondary: "#a1a1aa",
-                      colorBackground: "#2d2b55",
-                      colorInputBackground: "#18181b",
-                      colorInputText: "#ffffff",
+                      colorText: "#1a1a1a",
+                      colorTextSecondary: "#555555",
+                      colorBackground: "#ffffff",
+                      colorInputBackground: "#f4f4f5",
+                      colorInputText: "#1a1a1a",
                       borderRadius: "0.5rem",
                     },
                     elements: {
                       rootBox: "w-full",
-                      card: "bg-[#2d2b55]/95 shadow-none border-0 backdrop-blur-xl",
-                      headerTitle: "font-mono text-white",
-                      headerSubtitle: "font-mono text-sm text-zinc-400",
-                      formFieldLabel: "font-mono text-xs text-zinc-400",
-                      formFieldInput: "font-mono text-sm bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-500",
+                      card: "bg-white shadow-none border-0 backdrop-blur-xl",
+                      headerTitle: "font-mono text-zinc-900",
+                      headerSubtitle: "font-mono text-sm text-zinc-500",
+                      formFieldLabel: "font-mono text-xs text-zinc-600",
+                      formFieldInput: "font-mono text-sm bg-zinc-100 border-zinc-300 text-zinc-900 placeholder:text-zinc-400",
                       formButtonPrimary: "font-mono bg-accent hover:bg-accent/90 text-white",
                       footerActionLink: "text-accent hover:text-accent/80",
-                      socialButtonsBlockButton: "font-mono border-zinc-800 hover:bg-zinc-900/50 text-white",
-                      socialButtonsBlockButtonText: "font-mono text-sm",
-                      dividerLine: "bg-zinc-800",
+                      socialButtonsBlockButton: "font-mono border-zinc-300 hover:bg-zinc-100 text-zinc-900",
+                      socialButtonsBlockButtonText: "font-mono text-sm text-zinc-900",
+                      dividerLine: "bg-zinc-300",
                       dividerText: "font-mono text-xs text-zinc-500",
-                      identityPreviewText: "font-mono text-white",
+                      identityPreviewText: "font-mono text-zinc-900",
                       identityPreviewEditButton: "text-accent",
-                      formFieldSuccessText: "text-green-400",
-                      formFieldErrorText: "text-red-400",
+                      formFieldSuccessText: "text-green-600",
+                      formFieldErrorText: "text-red-500",
                       alertText: "font-mono text-sm",
-                      otpCodeFieldInput: "font-mono bg-zinc-900/50 border-zinc-800 text-white",
+                      otpCodeFieldInput: "font-mono bg-zinc-100 border-zinc-300 text-zinc-900",
                     }
                   }}
                 />
