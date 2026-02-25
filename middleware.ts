@@ -22,6 +22,7 @@ const isPublicRoute = createRouteMatcher([
   "/privacy(.*)",
   "/terms(.*)",
   "/vault(.*)",
+  "/stake(.*)",
   // OAuth callback routes - critical for social login flows
   "/sso-callback(.*)",
   "/oauth-callback(.*)",
@@ -55,6 +56,10 @@ export default clerkMiddleware(async (auth, request) => {
       const subpath = url.pathname.replace(/^\/optx\/?/, "")
       url.pathname = subpath ? `/api/aaron/${subpath}` : "/api/aaron/session"
       return NextResponse.rewrite(url)
+    }
+    // Stake page on astroknots.space → serves /stake directly
+    if (url.pathname === "/stake" || url.pathname.startsWith("/stake/")) {
+      return
     }
     // Vault routes
     if (url.pathname === "/" || url.pathname.startsWith("/vault")) {
