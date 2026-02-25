@@ -192,11 +192,32 @@ export default function GazeVerifyPage() {
 
           setVerificationResult(response)
 
-          if (connected && publicKey) {
+          if (connected && publicKey && data.verificationId) {
             setState("minting")
-            // TODO: Real OPTX minting via JOE signing authority
-            await new Promise(resolve => setTimeout(resolve, 2000))
-            response.mintTransactionSig = "PENDING_OPTX_MINT_" + Date.now()
+            try {
+              const mintRes = await fetch("/api/aaron/mint", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  verificationId: data.verificationId,
+                  walletAddress: publicKey.toBase58(),
+                  entropyScore: data.entropyScore || 750,
+                  agtWeights: data.agtWeights || {},
+                }),
+              })
+              if (mintRes.ok) {
+                const mintData = await mintRes.json()
+                console.log("[OPTX] Mint result:", mintData)
+                response.mintTransactionSig = mintData.mint_id || mintData.mintId
+                response.optxAmount = mintData.optx_amount || mintData.optxAmount
+              } else {
+                console.warn("[OPTX] Mint failed:", await mintRes.text())
+                response.mintTransactionSig = "MINT_PENDING"
+              }
+            } catch (mintErr) {
+              console.warn("[OPTX] Mint request failed:", mintErr)
+              response.mintTransactionSig = "MINT_PENDING"
+            }
           }
 
           setState("success")
