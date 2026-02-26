@@ -714,35 +714,47 @@ export default function OptxLoginPage() {
       {/* JETT Auth modal */}
       {showJettModal && <JettAuthModal onDismiss={() => setShowJettModal(false)} />}
 
-      {/* Logo and back link */}
-      <Link href="/" className="absolute top-6 left-6 z-20 group flex items-center gap-2">
-        <div className="relative w-8 h-8 flex items-center justify-center">
-          <span className="relative flex h-full w-full">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-            <Image
-              src="/images/astroknots-logo.png"
-              alt="OPTX Logo"
-              width={32}
-              height={32}
-              className="relative inline-flex rounded-full object-contain"
-            />
+      {/* Header bar — logo left, wallet right, responsive */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+        <Link href="/" className="group flex items-center gap-2 shrink-0">
+          <div className="relative w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center">
+            <span className="relative flex h-full w-full">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+              <Image
+                src="/images/astroknots-logo.png"
+                alt="OPTX Logo"
+                width={32}
+                height={32}
+                className="relative inline-flex rounded-full object-contain"
+              />
+            </span>
+          </div>
+          <span className="font-mono text-xs tracking-widest text-muted-foreground group-hover:text-foreground transition-colors hidden sm:inline">
+            OPTX
           </span>
-        </div>
-        <span className="font-mono text-xs tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">
-          OPTX
-        </span>
-      </Link>
+        </Link>
 
-      {/* Wallet connect + status — top right */}
-      <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
-        <div className={`px-3 py-1 rounded-full font-mono text-[10px] ${
-          connected
-            ? "bg-green-500/20 text-green-400 border border-green-500/30"
-            : "bg-zinc-800/80 text-zinc-500 border border-zinc-700"
-        }`}>
-          {publicKey ? `${publicKey.toBase58().slice(0, 6)}...${publicKey.toBase58().slice(-4)}` : "No Wallet"}
+        {/* Wallet connect + status */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className={`px-2 sm:px-3 py-1 rounded-full font-mono text-[9px] sm:text-[10px] ${
+            connected
+              ? "bg-green-500/20 text-green-400 border border-green-500/30"
+              : "bg-zinc-800/80 text-zinc-500 border border-zinc-700"
+          }`}>
+            {publicKey ? `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}` : "No Wallet"}
+          </div>
+          {/* Hide default wallet button on mobile — show Phantom deep-link instead */}
+          <div className="hidden sm:block">
+            <WalletMultiButton className="!bg-[#b55200] hover:!bg-[#8a3f00] !text-white !font-mono !text-xs !px-4 !py-2 !rounded-lg !border !border-orange-500/30 !h-auto !transition-colors" />
+          </div>
+          <a
+            href="https://phantom.app/ul/browse/https://jettoptics.ai/optx-login"
+            className="sm:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#b55200] hover:bg-[#8a3f00] text-white font-mono text-[10px] border border-orange-500/30 transition-colors"
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            Phantom
+          </a>
         </div>
-        <WalletMultiButton className="!bg-[#b55200] hover:!bg-[#8a3f00] !text-white !font-mono !text-xs !px-4 !py-2 !rounded-lg !border !border-orange-500/30 !h-auto !transition-colors" />
       </div>
 
       <AnimatePresence mode="wait">
@@ -752,7 +764,7 @@ export default function OptxLoginPage() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.3 }}
-          className="relative z-[200] flex flex-col items-center justify-center p-4 w-full max-w-md"
+          className="relative z-[200] flex flex-col items-center justify-center p-4 pt-14 sm:pt-4 w-full max-w-md"
         >
           {/* Tab switcher */}
           <div className="flex mb-4 bg-zinc-900/80 rounded-lg p-1 border border-zinc-800">
@@ -778,9 +790,9 @@ export default function OptxLoginPage() {
             </button>
           </div>
 
-          <div className="rounded-2xl w-full border border-zinc-800/60 bg-zinc-950/40 backdrop-blur-sm shadow-xl shadow-black/30">
+          <div className="rounded-2xl w-full border border-zinc-300/20 bg-white/5 backdrop-blur-sm shadow-xl shadow-black/30 overflow-hidden">
             <div className="clerk-auth-wrapper rounded-2xl w-full">
-              {/* CSS overrides for Clerk components */}
+              {/* CSS overrides for Clerk components — force white card */}
               <style jsx global>{`
                 .clerk-auth-wrapper .cl-rootBox,
                 .clerk-auth-wrapper .cl-card,
@@ -803,10 +815,27 @@ export default function OptxLoginPage() {
                 .clerk-auth-wrapper::-webkit-scrollbar { width: 6px; }
                 .clerk-auth-wrapper::-webkit-scrollbar-track { background: transparent; }
                 .clerk-auth-wrapper::-webkit-scrollbar-thumb { background: rgba(181, 82, 0, 0.5); border-radius: 3px; }
-                .clerk-auth-wrapper .cl-card { padding-top: 1.5rem !important; }
+                .clerk-auth-wrapper .cl-card {
+                  padding-top: 1.5rem !important;
+                  background-color: #ffffff !important;
+                  background: #ffffff !important;
+                }
+                .clerk-auth-wrapper .cl-cardBox {
+                  background-color: #ffffff !important;
+                  background: #ffffff !important;
+                }
+                .clerk-auth-wrapper .cl-rootBox {
+                  background-color: transparent !important;
+                }
+                .clerk-auth-wrapper .cl-card *:not(input):not(button):not(a) {
+                  color: inherit;
+                }
                 .clerk-auth-wrapper .cl-footer { display: none !important; }
+                .clerk-auth-wrapper .cl-internal-b3fm6y {
+                  background-color: #ffffff !important;
+                }
                 @media (max-width: 640px) {
-                  .clerk-auth-wrapper { max-height: 75vh; width: 100%; }
+                  .clerk-auth-wrapper { max-height: 70vh; width: 100%; }
                   .clerk-auth-wrapper .cl-formFieldInput, .clerk-auth-wrapper input { font-size: 16px !important; }
                 }
               `}</style>
