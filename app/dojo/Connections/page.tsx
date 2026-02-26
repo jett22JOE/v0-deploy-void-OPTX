@@ -205,6 +205,14 @@ export default function ConnectionsPage() {
 
   const connectWs = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
+    if (!JOE_WS_URL) {
+      setWsStatus("error")
+      setChatMessages((prev) => [
+        ...prev,
+        { id: `sys_${Date.now()}`, role: "system", content: "JOE WebSocket URL not configured", timestamp: Date.now() },
+      ])
+      return
+    }
     setWsStatus("connecting")
     const ws = new WebSocket(JOE_WS_URL)
 
