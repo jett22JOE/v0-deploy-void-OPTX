@@ -50,16 +50,30 @@ export default function JETTHubPage() {
     return () => window.removeEventListener("resize", update)
   }, [])
 
-  // Divider line endpoints in the 0-100 viewBox coordinate space.
-  // On desktop (~16:9, ratio ~1.78) these go to corners: (0,0), (100,0), (50,100).
-  // On mobile (~9:19.5, ratio ~0.46) the x-spread is pulled inward so the visual
-  // angle stays ~120° (Mercedes pattern) instead of splaying to screen corners.
+  // Divider line endpoints — true 120° visual Mercedes pattern on any screen.
+  // With preserveAspectRatio="none", SVG coords stretch non-uniformly.
+  // Lines at visual 210° and 330° (120° from straight down) exit the viewBox
+  // at the left/right edges on portrait screens, or top edge on landscape.
   const agtLineEndpoints = (() => {
-    const spread = Math.min(50, 50 * aspectRatio / 0.75)
-    return {
-      down:     { x2: 50, y2: 100 },
-      topLeft:  { x2: 50 - spread, y2: 0 },
-      topRight: { x2: 50 + spread, y2: 0 },
+    const r = aspectRatio // W/H
+    const sqrt3 = Math.sqrt(3) // ~1.732
+
+    if (r < sqrt3) {
+      // Portrait/mobile: upper lines hit left/right edges
+      const yHit = 50 - (50 * r) / sqrt3
+      return {
+        down:     { x2: 50, y2: 100 },
+        topLeft:  { x2: 0, y2: yHit },
+        topRight: { x2: 100, y2: yHit },
+      }
+    } else {
+      // Landscape/desktop: upper lines hit top edge near corners
+      const xOffset = (50 * sqrt3) / r
+      return {
+        down:     { x2: 50, y2: 100 },
+        topLeft:  { x2: 50 - xOffset, y2: 0 },
+        topRight: { x2: 50 + xOffset, y2: 0 },
+      }
     }
   })()
 
