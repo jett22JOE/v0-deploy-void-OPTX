@@ -41,29 +41,14 @@ export default function JETTHubPage() {
   const [selectedTensor, setSelectedTensor] = useState<"emo" | "cog" | "env" | null>(null)
   const [hoveredTensor, setHoveredTensor] = useState<"emo" | "cog" | "env" | null>(null)
 
-  // Aspect ratio correction for AGT dashed lines on mobile
-  // On tall screens (phones), the 100x100 SVG viewBox stretches vertically,
-  // distorting line angles. We compute corrected endpoints so the visual
-  // angles match the native iOS app (~120° spread, Mercedes-Benz pattern).
-  const [aspectRatio, setAspectRatio] = useState(1)
+  // Screen dimensions for correct line rendering on mobile
+  const [screenSize, setScreenSize] = useState({ w: 1, h: 1 })
   useEffect(() => {
-    const update = () => setAspectRatio(window.innerWidth / window.innerHeight)
+    const update = () => setScreenSize({ w: window.innerWidth, h: window.innerHeight })
     update()
     window.addEventListener("resize", update)
     return () => window.removeEventListener("resize", update)
   }, [])
-
-  // On a square screen (1:1), lines go to (0,0), (100,0), (50,100) — correct.
-  // On a phone (~0.46 ratio), we need to pull the x-endpoints inward so the
-  // visual angle stays ~30° from vertical instead of splaying to corners.
-  const agtLineEndpoints = (() => {
-    const spread = Math.min(50, 50 * aspectRatio / 0.75) // Normalized to ~4:3 reference
-    return {
-      down:     { x2: 50, y2: 100 },
-      topLeft:  { x2: 50 - spread, y2: 0 },
-      topRight: { x2: 50 + spread, y2: 0 },
-    }
-  })()
 
   const tensorColors = {
     hub: "#f97316",
@@ -235,11 +220,11 @@ export default function JETTHubPage() {
             transition: animationState === "panning" ? "transform 500ms ease-out" : "none",
           }}
         >
-          {/* SVG Lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {/* SVG Lines — viewBox matches screen pixels so lines render at correct angles on mobile */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${screenSize.w} ${screenSize.h}`}>
             <defs>
               <filter id="glow">
-                <feGaussianBlur stdDeviation="0.6" result="coloredBlur" />
+                <feGaussianBlur stdDeviation="4" result="coloredBlur" />
                 <feMerge>
                   <feMergeNode in="coloredBlur" />
                   <feMergeNode in="SourceGraphic" />
@@ -247,94 +232,123 @@ export default function JETTHubPage() {
               </filter>
             </defs>
 
-            {/* Three AGT section dividers — aspect-ratio corrected for mobile */}
-            <g>
-              {[
-                {
-                  x2: animationState === "growing" ? 50 + (agtLineEndpoints.down.x2 - 50) * growthProgress : agtLineEndpoints.down.x2,
-                  y2: animationState === "growing" ? 50 + (agtLineEndpoints.down.y2 - 50) * growthProgress : agtLineEndpoints.down.y2,
-                },
-                {
-                  x2: animationState === "growing" ? 50 + (agtLineEndpoints.topLeft.x2 - 50) * growthProgress : agtLineEndpoints.topLeft.x2,
-                  y2: animationState === "growing" ? 50 + (agtLineEndpoints.topLeft.y2 - 50) * growthProgress : agtLineEndpoints.topLeft.y2,
-                },
-                {
-                  x2: animationState === "growing" ? 50 + (agtLineEndpoints.topRight.x2 - 50) * growthProgress : agtLineEndpoints.topRight.x2,
-                  y2: animationState === "growing" ? 50 + (agtLineEndpoints.topRight.y2 - 50) * growthProgress : agtLineEndpoints.topRight.y2,
-                },
-              ].map((line, i) => (
-                <line
-                  key={i}
-                  x1="50" y1="50"
-                  x2={line.x2} y2={line.y2}
-                  stroke="#f97316"
-                  strokeWidth="0.5"
-                  strokeDasharray="2 3"
-                  className={animationState !== "growing" ? "pulse-line" : undefined}
-                  opacity={animationState === "growing" ? growthProgress * 0.7 : undefined}
-                />
-              ))}
-            </g>
+            {(() => {
+              // Convert percentage positions to pixel positions
+              const cx = screenSize.w * 0.5
+              const cy = screenSize.h * 0.5
+              const sw = screenSize.w
+              const sh = screenSize.h
+              const strokeW = Math.max(1, screenSize.w * 0.003)
+              const thinW = Math.max(0.5, screenSize.w * 0.0015)
 
-            {/* Connection lines */}
-            {animationState === "idle" &&
-              currentState.connections.map((conn) => {
-                const isHovered = hoveredPath === conn.id
-                const color = tensorColors[conn.tensor as keyof typeof tensorColors]
-                return (
-                  <g key={conn.id}>
-                    <line x1="50" y1="50" x2={conn.x} y2={conn.y} stroke={color} strokeWidth="0.2" opacity={isHovered ? 0 : 0.15} />
-                    {isHovered && (
-                      <>
-                        <line x1="50" y1="50" x2={conn.x} y2={conn.y} stroke={color} strokeWidth="0.3" opacity="0.6" />
-                        <circle r="1" fill={color} opacity="1" filter="url(#glow)">
-                          <animateMotion dur="1s" repeatCount="indefinite" path={`M 50,50 L ${conn.x},${conn.y}`} />
-                        </circle>
-                      </>
-                    )}
-                  </g>
-                )
-              })}
+              // AGT divider lines: from center to edges at 120° intervals (Mercedes pattern)
+              // Use actual pixel coords so angles are visually correct regardless of aspect ratio
+              const dividerLines = [
+                { x2: cx, y2: sh },                          // straight down
+                { x2: cx - sh * 0.577, y2: 0 },              // 120° upper-left (tan(30°) ≈ 0.577)
+                { x2: cx + sh * 0.577, y2: 0 },              // 120° upper-right
+              ]
 
-            {/* Parent line */}
-            {animationState === "idle" && currentView !== "jett-hub" && currentState.parentPos && (
-              <line x1="50" y1="50" x2={currentState.parentPos.x} y2={currentState.parentPos.y} stroke={tensorColors.hub} strokeWidth="0.2" opacity="0.3" />
-            )}
+              // Clamp x within screen bounds
+              const clampedDividers = dividerLines.map(l => ({
+                x2: Math.max(0, Math.min(sw, l.x2)),
+                y2: l.y2,
+              }))
 
-            {/* Growing lines */}
-            {animationState === "growing" &&
-              currentState.connections.map((conn) => {
-                const color = tensorColors[conn.tensor as keyof typeof tensorColors]
-                const progress = Math.min(growthProgress / 0.8, 1)
-                return (
-                  <g key={conn.id}>
-                    <line
-                      x1="50" y1="50"
-                      x2={50 + (conn.x - 50) * progress}
-                      y2={50 + (conn.y - 50) * progress}
-                      stroke={color} strokeWidth="0.5" opacity={progress * 0.7} filter="url(#glow)"
-                    />
-                    {progress > 0.1 && (
-                      <circle
-                        cx={50 + (conn.x - 50) * progress}
-                        cy={50 + (conn.y - 50) * progress}
-                        r="0.5" fill={color} opacity={progress} filter="url(#glow)"
-                      />
-                    )}
-                  </g>
-                )
-              })}
-
-            {/* Growing parent line */}
-            {animationState === "growing" && currentView !== "jett-hub" && currentState.parentPos && (() => {
-              const progress = Math.min(growthProgress / 0.8, 1)
               return (
-                <line
-                  x1="50" y1="50"
-                  x2={50 + (currentState.parentPos.x - 50) * progress}
-                  y2={50 + (currentState.parentPos.y - 50) * progress}
-                  stroke={tensorColors.hub} strokeWidth="0.4" opacity={progress * 0.5} filter="url(#glow)"
-                />
+                <>
+                  {/* Three AGT section dividers — true 120° angles */}
+                  <g>
+                    {clampedDividers.map((line, i) => {
+                      const lx = animationState === "growing" ? cx + (line.x2 - cx) * growthProgress : line.x2
+                      const ly = animationState === "growing" ? cy + (line.y2 - cy) * growthProgress : line.y2
+                      return (
+                        <line
+                          key={i}
+                          x1={cx} y1={cy}
+                          x2={lx} y2={ly}
+                          stroke="#f97316"
+                          strokeWidth={strokeW}
+                          strokeDasharray="8 12"
+                          className={animationState !== "growing" ? "pulse-line" : undefined}
+                          opacity={animationState === "growing" ? growthProgress * 0.7 : undefined}
+                        />
+                      )
+                    })}
+                  </g>
+
+                  {/* Connection lines */}
+                  {animationState === "idle" &&
+                    currentState.connections.map((conn) => {
+                      const isHovered = hoveredPath === conn.id
+                      const color = tensorColors[conn.tensor as keyof typeof tensorColors]
+                      const nx = sw * conn.x / 100
+                      const ny = sh * conn.y / 100
+                      return (
+                        <g key={conn.id}>
+                          <line x1={cx} y1={cy} x2={nx} y2={ny} stroke={color} strokeWidth={thinW} opacity={isHovered ? 0 : 0.15} />
+                          {isHovered && (
+                            <>
+                              <line x1={cx} y1={cy} x2={nx} y2={ny} stroke={color} strokeWidth={strokeW} opacity="0.6" />
+                              <circle r={strokeW * 2} fill={color} opacity="1" filter="url(#glow)">
+                                <animateMotion dur="1s" repeatCount="indefinite" path={`M ${cx},${cy} L ${nx},${ny}`} />
+                              </circle>
+                            </>
+                          )}
+                        </g>
+                      )
+                    })}
+
+                  {/* Parent line */}
+                  {animationState === "idle" && currentView !== "jett-hub" && currentState.parentPos && (
+                    <line
+                      x1={cx} y1={cy}
+                      x2={sw * currentState.parentPos.x / 100} y2={sh * currentState.parentPos.y / 100}
+                      stroke={tensorColors.hub} strokeWidth={thinW} opacity="0.3"
+                    />
+                  )}
+
+                  {/* Growing lines */}
+                  {animationState === "growing" &&
+                    currentState.connections.map((conn) => {
+                      const color = tensorColors[conn.tensor as keyof typeof tensorColors]
+                      const progress = Math.min(growthProgress / 0.8, 1)
+                      const nx = sw * conn.x / 100
+                      const ny = sh * conn.y / 100
+                      return (
+                        <g key={conn.id}>
+                          <line
+                            x1={cx} y1={cy}
+                            x2={cx + (nx - cx) * progress}
+                            y2={cy + (ny - cy) * progress}
+                            stroke={color} strokeWidth={strokeW} opacity={progress * 0.7} filter="url(#glow)"
+                          />
+                          {progress > 0.1 && (
+                            <circle
+                              cx={cx + (nx - cx) * progress}
+                              cy={cy + (ny - cy) * progress}
+                              r={strokeW} fill={color} opacity={progress} filter="url(#glow)"
+                            />
+                          )}
+                        </g>
+                      )
+                    })}
+
+                  {/* Growing parent line */}
+                  {animationState === "growing" && currentView !== "jett-hub" && currentState.parentPos && (() => {
+                    const progress = Math.min(growthProgress / 0.8, 1)
+                    const px = sw * currentState.parentPos.x / 100
+                    const py = sh * currentState.parentPos.y / 100
+                    return (
+                      <line
+                        x1={cx} y1={cy}
+                        x2={cx + (px - cx) * progress}
+                        y2={cy + (py - cy) * progress}
+                        stroke={tensorColors.hub} strokeWidth={strokeW * 0.8} opacity={progress * 0.5} filter="url(#glow)"
+                      />
+                    )
+                  })()}
+                </>
               )
             })()}
           </svg>
