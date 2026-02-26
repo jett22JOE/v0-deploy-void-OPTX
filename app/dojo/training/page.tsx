@@ -31,6 +31,20 @@ const TENSOR_COLORS: Record<string, string> = {
   EMO: "oklch(0.65 0.25 25)",
 }
 
+// ─── Directed Training Constants ─────────────────────────────────────────────
+const CALIBRATION_DURATION = 2220 // 2.22 seconds in ms
+const TRAINING_AMPLIFIER = 3 // 3x weight boost for on-target gaze
+const KEY_TENSOR_MAP: Record<number, { tensor: "COG" | "EMO" | "ENV"; emoji: string; direction: string }> = {
+  1: { tensor: "COG", emoji: "🧠", direction: "UP" },
+  2: { tensor: "EMO", emoji: "❤️", direction: "BOTTOM-LEFT" },
+  3: { tensor: "ENV", emoji: "🌍", direction: "BOTTOM-RIGHT" },
+}
+const TARGET_POSITIONS: Record<number, { x: number; y: number }> = {
+  1: { x: 50, y: 21.13 },   // COG — top center
+  2: { x: 15, y: 78.87 },   // EMO — bottom-left
+  3: { x: 85, y: 78.87 },   // ENV — bottom-right
+}
+
 export default function TrainingPage() {
   const { user, isLoaded } = useUser()
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -57,6 +71,20 @@ export default function TrainingPage() {
   const [isSpacePressed, setIsSpacePressed] = useState(false)
   const [currentSector, setCurrentSector] = useState<"COG" | "EMO" | "ENV" | "CENTER">("CENTER")
 
+  // ─── Directed Training State ───────────────────────────────────────────────
+  const [trainingKey, setTrainingKey] = useState<1 | 2 | 3 | null>(null)
+  const [holdStartTime, setHoldStartTime] = useState<number | null>(null)
+  const [holdProgress, setHoldProgress] = useState(0) // 0-1
+  const [attestationReady, setAttestationReady] = useState<{
+    tensor: "COG" | "EMO" | "ENV"
+    emoji: string
+    confidence: number
+  } | null>(null)
+  const [attestationFlash, setAttestationFlash] = useState(false)
+  const [sessionAttestations, setSessionAttestations] = useState(0)
+  const trainingKeyRef = useRef<1 | 2 | 3 | null>(null)
+  const holdStartRef = useRef<number | null>(null)
+
   // MediaPipe gaze hook (replaces Math.random mock)
   const { videoRef, canvasRef, start: startMediaPipe, stop: stopMediaPipe, isLive: mediaPipeLive, fps: mediaPipeFps } = useMediaPipeGaze({
     onGaze: (event: GazeEvent) => {
@@ -71,10 +99,48 @@ export default function TrainingPage() {
       }
 
       setClassification(result)
-      setAgtWeights((prev) => ({
-        ...prev,
-        [tensor]: prev[tensor] + 1,
-      }))
+
+      // ─── Directed training: amplify on-target gaze 3x ───
+      const activeKey = trainingKeyRef.current
+      if (activeKey) {
+        const targetTensor = KEY_TENSOR_MAP[activeKey].tensor
+        const isOnTarget = tensor === targetTensor
+        const increment = isOnTarget ? TRAINING_AMPLIFIER : 1
+        setAgtWeights((prev) => ({
+          ...prev,
+          [tensor]: prev[tensor] + increment,
+        }))
+
+        // Update hold progress
+        const start = holdStartRef.current
+        if (start) {
+          const elapsed = Date.now() - start
+          const progress = Math.min(elapsed / CALIBRATION_DURATION, 1)
+          setHoldProgress(progress)
+
+          // Calibration complete!
+          if (progress >= 1) {
+            setAttestationReady((prev) => {
+              if (prev) return prev // already set
+              const info = KEY_TENSOR_MAP[activeKey]
+              setAttestationFlash(true)
+              setTimeout(() => setAttestationFlash(false), 600)
+              return {
+                tensor: info.tensor,
+                emoji: info.emoji,
+                confidence: Math.round(event.confidence * 100),
+              }
+            })
+          }
+        }
+      } else {
+        // Normal (passive) training — 1x increment
+        setAgtWeights((prev) => ({
+          ...prev,
+          [tensor]: prev[tensor] + 1,
+        }))
+      }
+
       setFrameCount((prev) => prev + 1)
       setFps(mediaPipeFps)
     },
@@ -192,12 +258,47 @@ export default function TrainingPage() {
 
   // Old mock gaze loop removed — MediaPipe hook's onGaze callback handles all classification + canvas overlays
 
-  // Space bar for gaze capture
+  // ─── Attestation confirm handler ─────────────────────────────────────────
+  const confirmAttestation = useCallback(() => {
+    if (!attestationReady) return
+    // Insert classified emoji into chat input
+    setChatMessage((prev) => prev + attestationReady.emoji)
+    // Send attestation to JOE via WebSocket
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: "attestation",
+        tensor: attestationReady.tensor,
+        emoji: attestationReady.emoji,
+        confidence: attestationReady.confidence,
+        duration: CALIBRATION_DURATION / 1000,
+      }))
+    }
+    setSessionAttestations((prev) => prev + 1)
+    setAttestationReady(null)
+  }, [attestationReady])
+
+  // Space bar for gaze capture + Keys 1/2/3 for directed training + Enter to confirm
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space" && !e.repeat) {
         e.preventDefault()
         setIsSpacePressed(true)
+      }
+      // Keys 1, 2, 3 for directed training
+      const keyNum = parseInt(e.key)
+      if ((keyNum === 1 || keyNum === 2 || keyNum === 3) && !e.repeat && isTraining) {
+        e.preventDefault()
+        setTrainingKey(keyNum as 1 | 2 | 3)
+        trainingKeyRef.current = keyNum as 1 | 2 | 3
+        setHoldStartTime(Date.now())
+        holdStartRef.current = Date.now()
+        setHoldProgress(0)
+        setAttestationReady(null)
+      }
+      // Enter to confirm attestation
+      if (e.key === "Enter" && attestationReady && document.activeElement?.tagName !== "INPUT") {
+        e.preventDefault()
+        confirmAttestation()
       }
     }
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -208,6 +309,19 @@ export default function TrainingPage() {
           setChatMessage((prev) => prev + TENSOR_EMOTICONS[currentSector])
         }
       }
+      // Release training key
+      const keyNum = parseInt(e.key)
+      if ((keyNum === 1 || keyNum === 2 || keyNum === 3) && trainingKeyRef.current === keyNum) {
+        // If calibration not complete, reset (partial training data kept)
+        if (holdProgress < 1) {
+          setAttestationReady(null)
+        }
+        setTrainingKey(null)
+        trainingKeyRef.current = null
+        setHoldStartTime(null)
+        holdStartRef.current = null
+        setHoldProgress(0)
+      }
     }
     window.addEventListener("keydown", handleKeyDown)
     window.addEventListener("keyup", handleKeyUp)
@@ -215,11 +329,16 @@ export default function TrainingPage() {
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
     }
-  }, [currentSector])
+  }, [currentSector, isTraining, attestationReady, holdProgress, confirmAttestation])
 
-  // Update cursor
+  // Update cursor — directed training overrides position to target zone
   useEffect(() => {
-    if (isSpacePressed && isTraining) {
+    if (trainingKey && isTraining) {
+      // Directed training: cursor moves to target position
+      const target = TARGET_POSITIONS[trainingKey]
+      setCursorPosition(target)
+      setCurrentSector(KEY_TENSOR_MAP[trainingKey].tensor)
+    } else if (isSpacePressed && isTraining) {
       const newPos = calculateCursorPosition(agtWeights)
       setCursorPosition(newPos)
       setCurrentSector(determineSector(newPos.x, newPos.y))
@@ -227,7 +346,21 @@ export default function TrainingPage() {
       setCursorPosition({ x: 50, y: 50 })
       setCurrentSector("CENTER")
     }
-  }, [isSpacePressed, agtWeights, isTraining])
+  }, [isSpacePressed, agtWeights, isTraining, trainingKey])
+
+  // Hold progress animation (smooth update via requestAnimationFrame)
+  useEffect(() => {
+    if (!trainingKey || !holdStartTime) return
+    let raf: number
+    const tick = () => {
+      const elapsed = Date.now() - holdStartTime
+      const progress = Math.min(elapsed / CALIBRATION_DURATION, 1)
+      setHoldProgress(progress)
+      if (progress < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [trainingKey, holdStartTime])
 
   // WebSocket connection to JOE agent
   const connectJoeWs = useCallback(() => {
@@ -311,6 +444,22 @@ export default function TrainingPage() {
 
   return (
     <div className={`h-screen flex flex-col overflow-hidden bg-gradient-to-br ${isDark ? 'from-gray-900 via-slate-900 to-black' : 'from-orange-50/50 via-white to-zinc-50'}`}>
+      {/* Attestation flash overlay */}
+      {attestationFlash && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <div className="absolute inset-0 animate-ping-once" style={{
+            background: `radial-gradient(circle, ${trainingKey ? TENSOR_COLORS[KEY_TENSOR_MAP[trainingKey].tensor] + '30' : 'rgba(249,115,22,0.2)'} 0%, transparent 70%)`,
+          }} />
+          <style>{`
+            @keyframes ping-once {
+              0% { opacity: 0; transform: scale(0.8); }
+              50% { opacity: 1; transform: scale(1); }
+              100% { opacity: 0; transform: scale(1.2); }
+            }
+            .animate-ping-once { animation: ping-once 0.6s ease-out forwards; }
+          `}</style>
+        </div>
+      )}
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-2 border-b ${isDark ? 'border-orange-500/20' : 'border-orange-200/30'}`}>
         <div className="flex items-center gap-3">
@@ -377,12 +526,51 @@ export default function TrainingPage() {
                       <line x1="50" y1="50" x2="50" y2="100" stroke="rgba(249, 115, 22, 0.5)" strokeWidth="0.3" strokeDasharray="2,2" />
                       <line x1="50" y1="50" x2="0" y2="21.13" stroke="rgba(249, 115, 22, 0.5)" strokeWidth="0.3" strokeDasharray="2,2" />
                       <line x1="50" y1="50" x2="100" y2="21.13" stroke="rgba(249, 115, 22, 0.5)" strokeWidth="0.3" strokeDasharray="2,2" />
-                      <circle cx={cursorPosition.x} cy={cursorPosition.y} r={isSpacePressed ? "2" : "1.5"}
+                      <circle cx={cursorPosition.x} cy={cursorPosition.y} r={(isSpacePressed || trainingKey) ? "2" : "1.5"}
                         fill={currentSector === "COG" ? "oklch(0.82 0.18 95)" : currentSector === "EMO" ? "oklch(0.65 0.25 25)" : currentSector === "ENV" ? "oklch(0.60 0.20 250)" : "oklch(0.646 0.222 41.116)"}
-                        opacity={isSpacePressed ? "1" : "0.7"} style={{ transition: "all 0.3s ease" }}>
+                        opacity={(isSpacePressed || trainingKey) ? "1" : "0.7"} style={{ transition: "all 0.3s ease" }}>
                         <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite" />
                       </circle>
+                      {/* ─── Progress ring during directed training ─── */}
+                      {trainingKey && (
+                        <circle
+                          cx={cursorPosition.x} cy={cursorPosition.y}
+                          r="4"
+                          fill="none"
+                          stroke={TENSOR_COLORS[KEY_TENSOR_MAP[trainingKey].tensor]}
+                          strokeWidth="0.6"
+                          strokeDasharray={2 * Math.PI * 4}
+                          strokeDashoffset={2 * Math.PI * 4 * (1 - holdProgress)}
+                          strokeLinecap="round"
+                          style={{ transition: "stroke-dashoffset 0.1s linear" }}
+                        />
+                      )}
                     </svg>
+                    {/* ─── Training guide overlay on camera feed ─── */}
+                    {trainingKey && isTraining && (
+                      <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-end pb-3">
+                        <div className="bg-black/70 backdrop-blur-sm rounded-lg px-3 py-1.5 text-center">
+                          <div className="flex items-center gap-2 justify-center">
+                            <span className="text-lg">{KEY_TENSOR_MAP[trainingKey].emoji}</span>
+                            <span className="text-orange-300 font-mono text-xs">
+                              Hold gaze {KEY_TENSOR_MAP[trainingKey].direction} — training {KEY_TENSOR_MAP[trainingKey].tensor}
+                            </span>
+                          </div>
+                          <div className="mt-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-100"
+                              style={{
+                                width: `${holdProgress * 100}%`,
+                                background: `linear-gradient(90deg, ${TENSOR_COLORS[KEY_TENSOR_MAP[trainingKey].tensor]}, ${TENSOR_COLORS[KEY_TENSOR_MAP[trainingKey].tensor]}cc)`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-orange-400/60 font-mono text-[9px]">
+                            {(holdProgress * CALIBRATION_DURATION / 1000).toFixed(1)}s / {(CALIBRATION_DURATION / 1000).toFixed(2)}s
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     {!cameraActive && (
                       <div className={`absolute inset-0 flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-black/90 to-orange-500/10' : 'bg-gradient-to-br from-zinc-100/90 to-orange-100/30'}`}>
                         <div className="text-center">
@@ -428,19 +616,58 @@ export default function TrainingPage() {
                       )
                     })}
                   </div>
-                  {/* Current Detection */}
-                  {classification && (
+                  {/* Current Detection + Attestation Badge */}
+                  {attestationReady ? (
+                    <button
+                      onClick={confirmAttestation}
+                      className={`mt-3 w-full p-2 rounded text-center cursor-pointer transition-all duration-300 ${
+                        isDark
+                          ? 'bg-black/30 border-2 hover:bg-black/40'
+                          : 'bg-orange-50/80 border-2 hover:bg-orange-100/80'
+                      } ${attestationFlash ? 'animate-pulse' : ''}`}
+                      style={{
+                        borderColor: TENSOR_COLORS[attestationReady.tensor],
+                        boxShadow: `0 0 20px ${TENSOR_COLORS[attestationReady.tensor]}40`,
+                      }}
+                    >
+                      <span className="text-2xl">{attestationReady.emoji}</span>
+                      <span className={`${isDark ? 'text-orange-200' : 'text-orange-800'} font-mono text-sm ml-2 font-semibold`}>
+                        {attestationReady.tensor} Classified
+                      </span>
+                      <span className={`${isDark ? 'text-orange-400/70' : 'text-zinc-500'} font-mono text-xs ml-1`}>
+                        — {attestationReady.confidence}% confidence
+                      </span>
+                      <span className={`ml-2 text-xs font-mono ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                        [Confirm ✓]
+                      </span>
+                    </button>
+                  ) : classification ? (
                     <div className={`mt-3 p-2 rounded ${isDark ? 'bg-black/20 border border-orange-500/20' : 'bg-orange-50/50 border border-orange-200/30'} text-center`}>
                       <span className="text-2xl">{TENSOR_EMOTICONS[classification.tensor]}</span>
                       <span className={`${isDark ? 'text-orange-300' : 'text-orange-700'} font-mono text-sm ml-2`}>{classification.tensor}</span>
                       <span className={`${isDark ? 'text-orange-400/50' : 'text-zinc-500'} font-mono text-xs ml-2`}>({(classification.confidence * 100).toFixed(0)}%)</span>
                     </div>
-                  )}
+                  ) : null}
 
-                  {/* Gaze-Lock Status */}
-                  <div className={`mt-2 p-1.5 rounded ${isDark ? 'bg-black/10 border border-orange-500/10' : 'bg-green-50/50 border border-green-200/30'} flex items-center gap-2`}>
-                    <Shield className={`w-3 h-3 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
-                    <span className={`text-[10px] ${isDark ? 'text-green-400/80' : 'text-green-700'} font-mono`}>Gaze-Lock {isTraining ? "Active" : "Standby"}</span>
+                  {/* Gaze-Lock Status — context-aware */}
+                  <div className={`mt-2 p-1.5 rounded ${isDark ? 'bg-black/10 border border-orange-500/10' : 'bg-green-50/50 border border-green-200/30'} flex items-center justify-between`}>
+                    <div className="flex items-center gap-2">
+                      <Shield className={`w-3 h-3 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                      <span className={`text-[10px] ${isDark ? 'text-green-400/80' : 'text-green-700'} font-mono`}>
+                        {attestationReady
+                          ? `✓ ${attestationReady.tensor} Classified`
+                          : trainingKey
+                            ? `Training ${KEY_TENSOR_MAP[trainingKey].tensor}...`
+                            : isTraining
+                              ? "Active — free gaze"
+                              : "Standby"}
+                      </span>
+                    </div>
+                    {sessionAttestations > 0 && (
+                      <span className={`text-[9px] font-mono ${isDark ? 'text-orange-400/50' : 'text-zinc-400'}`}>
+                        {sessionAttestations} attestation{sessionAttestations !== 1 ? 's' : ''}
+                      </span>
+                    )}
                   </div>
 
                   {/* JETTUX Radar + Donut */}
@@ -507,7 +734,7 @@ export default function TrainingPage() {
                   <div className="flex gap-2 flex-shrink-0">
                     <input type="text" value={chatMessage} onChange={(e) => setChatMessage(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                      placeholder="Type message... (hold Space + gaze for emoji)"
+                      placeholder="Type message... (hold 1/2/3 to train COG/EMO/ENV)"
                       className={`flex-1 px-2 py-1 ${isDark ? 'bg-black/30 border-orange-500/30 text-orange-200 placeholder:text-orange-400/40 focus:ring-orange-500/50' : 'bg-white/80 border-orange-200/50 text-zinc-800 placeholder:text-zinc-400 focus:ring-orange-400/50'} border rounded text-[10px] focus:outline-none focus:ring-1`} />
                     <Button onClick={handleSendMessage} size="sm" className="bg-gradient-to-r from-orange-500 to-orange-600 border-0 h-6">
                       <Send className="w-2.5 h-2.5" />
