@@ -9,6 +9,7 @@ import Link from "next/link"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
 import { StarfieldBackground } from "@/components/ui/starfield-background"
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 // AnimatedMetalBorder removed for hydration performance
 import { useWallet } from "@solana/wallet-adapter-react"
 import { Shield, Eye, Fingerprint, Wallet, Brain, Link2, ChevronRight, ChevronLeft } from "lucide-react"
