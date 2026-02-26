@@ -38,6 +38,26 @@ const FOUNDER_WALLETS = [
 
 type Tab = "jettchat" | "sessions" | "wallets"
 
+// Sanitize JOE responses — strip internal tool syntax that DOJO users should never see
+function sanitizeJoeResponse(content: string): string {
+  // Remove [TOOL:xxx] {...} blocks (multiline)
+  let cleaned = content.replace(/\[TOOL:\w+\]\s*\{[^}]*\}/gs, "").trim()
+  // Remove standalone [TOOL:xxx] references (with or without backticks)
+  cleaned = cleaned.replace(/`?\[TOOL:\w+\]`?/g, "").trim()
+  // Remove "- Files: ... (read/write/append)" tool listings
+  cleaned = cleaned.replace(/[-–]\s*Files:.*$/gm, "").trim()
+  cleaned = cleaned.replace(/[-–]\s*Python:.*$/gm, "").trim()
+  cleaned = cleaned.replace(/[-–]\s*Web:.*$/gm, "").trim()
+  // Clean up leftover whitespace/dashes
+  cleaned = cleaned.replace(/^\s*[-–]\s*$/gm, "").trim()
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n").trim()
+  // If everything was stripped, return friendly fallback
+  if (!cleaned || cleaned.length < 3) {
+    cleaned = "I'm here to help with the DOJO. What would you like to know?"
+  }
+  return cleaned
+}
+
 interface ChatMessage {
   id: string
   role: "user" | "joe" | "system"
@@ -106,7 +126,7 @@ export default function ConnectionsPage() {
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   // ─── Convex Chat (Global Layer) ───────────────────────────────────
-  const [activeChannelName, setActiveChannelName] = useState<"general" | "dojo-training" | "augments">("general")
+  const activeChannelName = "general"
   const channels = useQuery(api.messages.listChannels) ?? []
   const activeChannel = channels.find((c) => c.name === activeChannelName)
   const activeChannelId = activeChannel?._id as Id<"channels"> | undefined
@@ -248,29 +268,20 @@ export default function ConnectionsPage() {
           return
         }
 
-        // Default: chat message from JOE — save to Convex too
-        const joeContent = data.content || data.response || event.data
+        // Default: chat message from JOE
+        const rawContent = data.content || data.response || event.data
+        const joeContent = sanitizeJoeResponse(rawContent)
         setChatMessages((prev) => [
           ...prev,
           {
             id: `joe_${Date.now()}`, role: "joe",
             content: joeContent,
             timestamp: Date.now(), cstb_score: data.cstb_score,
-            tools_used: data.tools_used, tensor: data.tensor,
+            tensor: data.tensor,
           },
         ])
-        // Persist JOE response to Convex
-        if (activeChannelId) {
-          sendConvexMessage({
-            channelId: activeChannelId,
-            clerkUserId: "joe-agent",
-            displayName: "JOE",
-            content: joeContent,
-            messageType: "joe",
-            tensor: data.tensor,
-            emoji: data.tensor === "COG" ? "🧠" : data.tensor === "EMO" ? "❤️" : data.tensor === "ENV" ? "🌍" : undefined,
-          }).catch(() => {/* non-critical */})
-        }
+        // NOTE: JOE persists to Convex server-side (convex_client.py on Jetson)
+        // No frontend Convex save needed — prevents duplicates
       } catch {
         setChatMessages((prev) => [...prev, { id: `joe_${Date.now()}`, role: "joe", content: event.data, timestamp: Date.now() }])
       }
@@ -320,10 +331,9 @@ export default function ConnectionsPage() {
         setChatMessages((prev) => prev.filter((m) => m.id !== optimisticId))
       } catch (err) {
         console.error("Convex sendMessage failed:", err)
-        // Mark as failed so user knows
-        setChatMessages((prev) =>
-          prev.map((m) => m.id === optimisticId ? { ...m, content: `${content} ⚠ failed to save` } : m)
-        )
+        // Don't mark as failed — JOE still got the message via WS
+        // Just remove optimistic message; WS response is what matters
+        setChatMessages((prev) => prev.filter((m) => m.id !== optimisticId))
       }
     }
 
@@ -333,6 +343,8 @@ export default function ConnectionsPage() {
         type: "chat",
         user: displayName || "anonymous",
         content,
+        context: "dojo",
+        channel: "general",
       }))
     }
   }
@@ -442,22 +454,10 @@ export default function ConnectionsPage() {
               </Card>
             </div>
 
-            {/* Channel Tabs */}
-            <div className={`flex gap-1 rounded-lg p-1 ${isDark ? 'bg-zinc-900/60' : 'bg-zinc-100'}`}>
-              {(["general", "dojo-training", "augments"] as const).map((ch) => (
-                <button
-                  key={ch}
-                  onClick={() => setActiveChannelName(ch)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-[10px] transition-all ${
-                    activeChannelName === ch
-                      ? `${isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-white text-orange-700 shadow-sm'}`
-                      : `${isDark ? 'text-zinc-500 hover:text-orange-400/70' : 'text-zinc-400 hover:text-orange-600'}`
-                  }`}
-                >
-                  <Hash className="w-3 h-3" />
-                  {ch}
-                </button>
-              ))}
+            {/* Channel Header */}
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-[10px] ${isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-white text-orange-700 shadow-sm'}`}>
+              <Hash className="w-3 h-3" />
+              general
             </div>
 
             {/* Display Name Editor */}
@@ -509,7 +509,7 @@ export default function ConnectionsPage() {
                       <div className={`w-20 h-20 rounded-full ${isDark ? 'bg-orange-500/10 border-orange-500/20' : 'bg-orange-100 border-orange-200'} border flex items-center justify-center mx-auto mb-4`}>
                         <Globe className={`w-10 h-10 ${isDark ? 'text-orange-500/30' : 'text-orange-400'}`} />
                       </div>
-                      <p className={`${isDark ? 'text-orange-400/60' : 'text-orange-600'} font-mono text-sm mb-1`}>Global Layer • #{activeChannelName}</p>
+                      <p className={`${isDark ? 'text-orange-400/60' : 'text-orange-600'} font-mono text-sm mb-1`}>Global Layer • #general</p>
                       <p className={`${isDark ? 'text-zinc-500' : 'text-zinc-400'} font-mono text-xs max-w-md mx-auto`}>
                         Real-time persistent chat powered by Convex. Messages survive page refresh. JOE Agent responds via edge tunnel.
                       </p>
@@ -613,7 +613,7 @@ export default function ConnectionsPage() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder={activeChannelId ? `Message #${activeChannelName}...` : "Loading channels..."}
+                    placeholder={activeChannelId ? "Message #general..." : "Loading channels..."}
                     disabled={!activeChannelId}
                     className={`flex-1 px-4 py-2.5 ${isDark ? 'bg-black/40 border-orange-500/20 text-orange-200 placeholder:text-zinc-600' : 'bg-white border-orange-200 text-zinc-900 placeholder:text-zinc-400'} border rounded-xl text-xs font-mono focus:outline-none focus:ring-1 focus:ring-orange-500/40 disabled:opacity-40 transition-all`}
                   />

@@ -100,8 +100,6 @@ export const seedChannels = mutation({
   handler: async (ctx) => {
     const defaults = [
       { name: "general", description: "General discussion" },
-      { name: "dojo-training", description: "DOJO training sessions & AGT data" },
-      { name: "augments", description: "Research & augment discussion" },
     ]
 
     const channelIds = []
