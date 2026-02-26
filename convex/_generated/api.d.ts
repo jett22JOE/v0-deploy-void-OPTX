@@ -9,6 +9,9 @@
  */
 
 import type * as dev from "../dev.js";
+import type * as http from "../http.js";
+import type * as messages from "../messages.js";
+import type * as migrations from "../migrations.js";
 import type * as users from "../users.js";
 import type * as waitlist from "../waitlist.js";
 
@@ -20,6 +23,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   dev: typeof dev;
+  http: typeof http;
+  messages: typeof messages;
+  migrations: typeof migrations;
   users: typeof users;
   waitlist: typeof waitlist;
 }>;

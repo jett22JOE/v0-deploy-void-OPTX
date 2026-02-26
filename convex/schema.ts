@@ -67,4 +67,27 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_joined_at", ["joinedAt"])
     .index("by_clerk_user", ["clerkUserId"]),
+
+  channels: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    createdBy: v.string(),
+    createdAt: v.number(),
+    isDefault: v.optional(v.boolean()),
+  })
+    .index("by_name", ["name"]),
+
+  messages: defineTable({
+    channelId: v.id("channels"),
+    clerkUserId: v.string(),
+    displayName: v.string(),
+    content: v.string(),
+    tensor: v.optional(v.string()),
+    emoji: v.optional(v.string()),
+    messageType: v.string(),
+    avatarUrl: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_channel", ["channelId", "createdAt"])
+    .index("by_user", ["clerkUserId"]),
 })

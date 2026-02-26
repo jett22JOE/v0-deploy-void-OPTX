@@ -5,6 +5,9 @@ import { useUser } from "@clerk/nextjs"
 import { useSearchParams } from "next/navigation"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useWalletModal } from "@solana/wallet-adapter-react-ui"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -102,6 +105,30 @@ export default function ConnectionsPage() {
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
+  // ─── Convex Chat (Global Layer) ───────────────────────────────────
+  const [activeChannelName, setActiveChannelName] = useState<"general" | "dojo-training" | "augments">("general")
+  const channels = useQuery(api.messages.listChannels) ?? []
+  const activeChannel = channels.find((c) => c.name === activeChannelName)
+  const activeChannelId = activeChannel?._id as Id<"channels"> | undefined
+  const convexMessages = useQuery(
+    api.messages.listMessages,
+    activeChannelId ? { channelId: activeChannelId } : "skip"
+  ) ?? []
+  const sendConvexMessage = useMutation(api.messages.sendMessage)
+  const seedChannelsMutation = useMutation(api.messages.seedChannels)
+
+  // Seed channels on first load if none exist
+  useEffect(() => {
+    if (channels.length === 0) {
+      seedChannelsMutation().catch(() => {/* already seeded */})
+    }
+  }, [channels.length, seedChannelsMutation])
+
+  // Auto-scroll when convex messages update
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [convexMessages])
+
   const [sessions] = useState<Session[]>([
     {
       id: "sess_001",
@@ -176,10 +203,6 @@ export default function ConnectionsPage() {
     }
   }, [activeTab, wsStatus, requestWalletData])
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [chatMessages])
-
   const connectWs = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     setWsStatus("connecting")
@@ -217,16 +240,29 @@ export default function ConnectionsPage() {
           return
         }
 
-        // Default: chat message
+        // Default: chat message from JOE — save to Convex too
+        const joeContent = data.content || data.response || event.data
         setChatMessages((prev) => [
           ...prev,
           {
             id: `joe_${Date.now()}`, role: "joe",
-            content: data.content || data.response || event.data,
+            content: joeContent,
             timestamp: Date.now(), cstb_score: data.cstb_score,
             tools_used: data.tools_used, tensor: data.tensor,
           },
         ])
+        // Persist JOE response to Convex
+        if (activeChannelId) {
+          sendConvexMessage({
+            channelId: activeChannelId,
+            clerkUserId: "joe-agent",
+            displayName: "JOE",
+            content: joeContent,
+            messageType: "joe",
+            tensor: data.tensor,
+            emoji: data.tensor === "COG" ? "🧠" : data.tensor === "EMO" ? "❤️" : data.tensor === "ENV" ? "🌍" : undefined,
+          }).catch(() => {/* non-critical */})
+        }
       } catch {
         setChatMessages((prev) => [...prev, { id: `joe_${Date.now()}`, role: "joe", content: event.data, timestamp: Date.now() }])
       }
@@ -238,7 +274,7 @@ export default function ConnectionsPage() {
     }
     ws.onerror = () => setWsStatus("disconnected")
     wsRef.current = ws
-  }, [])
+  }, [activeChannelId, sendConvexMessage])
 
   useEffect(() => {
     if (activeTab === "jettchat") connectWs()
@@ -249,15 +285,35 @@ export default function ConnectionsPage() {
     return () => { wsRef.current?.close(); if (reconnectRef.current) clearTimeout(reconnectRef.current) }
   }, [])
 
-  const sendMessage = () => {
-    if (!chatInput.trim() || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
-    setChatMessages((prev) => [...prev, { id: `user_${Date.now()}`, role: "user", content: chatInput, timestamp: Date.now() }])
-    wsRef.current.send(JSON.stringify({
-      type: "chat",
-      user: displayName || "anonymous",
-      content: chatInput,
-    }))
+  const sendMessage = async () => {
+    if (!chatInput.trim()) return
+    const content = chatInput.trim()
     setChatInput("")
+
+    // 1. Persist to Convex (always, even if JOE offline)
+    if (activeChannelId && user?.id) {
+      try {
+        await sendConvexMessage({
+          channelId: activeChannelId,
+          clerkUserId: user.id,
+          displayName: displayName || "anonymous",
+          content,
+          messageType: "chat",
+          avatarUrl: user.imageUrl || undefined,
+        })
+      } catch (err) {
+        console.error("Convex sendMessage failed:", err)
+      }
+    }
+
+    // 2. Also send to JOE WebSocket (parallel, for AI response)
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: "chat",
+        user: displayName || "anonymous",
+        content,
+      }))
+    }
   }
 
   const copyAddress = (addr: string) => {
@@ -349,7 +405,7 @@ export default function ConnectionsPage() {
         {/* ===================== JETTCHAT TAB ===================== */}
         {activeTab === "jettchat" && (
           <div className="h-full flex flex-col max-w-5xl mx-auto gap-3">
-            {/* Status bar */}
+            {/* Status bar + Channel selector */}
             <div className="flex items-center gap-3">
               <Card className={`${isDark ? 'border-orange-500/20 bg-black/40' : 'border-orange-200/30 bg-white/60'} flex-1`}>
                 <CardContent className="p-2.5 flex items-center gap-3">
@@ -357,12 +413,30 @@ export default function ConnectionsPage() {
                     <Globe className={`w-4 h-4 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
                   </div>
                   <div className="flex-1">
-                    <p className={`font-mono text-xs ${isDark ? 'text-orange-300' : 'text-orange-800'}`}>JOE Agent Chat</p>
-                    <p className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>$OPTX Signature Testing via OPTX edge protocol</p>
+                    <p className={`font-mono text-xs ${isDark ? 'text-orange-300' : 'text-orange-800'}`}>Global Layer Chat</p>
+                    <p className={`font-mono text-[9px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>Convex real-time + JOE Agent via OPTX edge protocol</p>
                   </div>
-                  <Badge className={`${isDark ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-orange-100 text-orange-700 border-orange-200/30'} text-[9px]`}>CSTB Protocol</Badge>
+                  <Badge className={`${isDark ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-orange-100 text-orange-700 border-orange-200/30'} text-[9px]`}>Global</Badge>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Channel Tabs */}
+            <div className={`flex gap-1 rounded-lg p-1 ${isDark ? 'bg-zinc-900/60' : 'bg-zinc-100'}`}>
+              {(["general", "dojo-training", "augments"] as const).map((ch) => (
+                <button
+                  key={ch}
+                  onClick={() => setActiveChannelName(ch)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-[10px] transition-all ${
+                    activeChannelName === ch
+                      ? `${isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-white text-orange-700 shadow-sm'}`
+                      : `${isDark ? 'text-zinc-500 hover:text-orange-400/70' : 'text-zinc-400 hover:text-orange-600'}`
+                  }`}
+                >
+                  <Hash className="w-3 h-3" />
+                  {ch}
+                </button>
+              ))}
             </div>
 
             {/* Display Name Editor */}
@@ -409,14 +483,14 @@ export default function ConnectionsPage() {
             <Card className={`${isDark ? 'border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent' : 'border-orange-200/30 bg-white/60'} backdrop-blur flex-1 flex flex-col min-h-0`}>
               <CardContent className="flex-1 flex flex-col min-h-0 p-0">
                 <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
-                  {chatMessages.length === 0 && (
+                  {convexMessages.length === 0 && chatMessages.length === 0 && (
                     <div className="text-center py-16">
                       <div className={`w-20 h-20 rounded-full ${isDark ? 'bg-orange-500/10 border-orange-500/20' : 'bg-orange-100 border-orange-200'} border flex items-center justify-center mx-auto mb-4`}>
                         <Globe className={`w-10 h-10 ${isDark ? 'text-orange-500/30' : 'text-orange-400'}`} />
                       </div>
-                      <p className={`${isDark ? 'text-orange-400/60' : 'text-orange-600'} font-mono text-sm mb-1`}>JOE Agent</p>
+                      <p className={`${isDark ? 'text-orange-400/60' : 'text-orange-600'} font-mono text-sm mb-1`}>Global Layer • #{activeChannelName}</p>
                       <p className={`${isDark ? 'text-zinc-500' : 'text-zinc-400'} font-mono text-xs max-w-md mx-auto`}>
-                        Real-time AI chat via encrypted edge tunnel. Ask about CSTB attestation, $OPTX rewards, gaze analysis, or anything.
+                        Real-time persistent chat powered by Convex. Messages survive page refresh. JOE Agent responds via edge tunnel.
                       </p>
                       {wsStatus === "disconnected" && (
                         <Button onClick={connectWs} size="sm" className="mt-6 bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 font-mono">
@@ -425,48 +499,54 @@ export default function ConnectionsPage() {
                       )}
                     </div>
                   )}
-                  {chatMessages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : msg.role === "system" ? "justify-center" : "justify-start"}`}>
-                      <div className={`max-w-[80%] ${
-                        msg.role === "user"
-                          ? isDark ? "bg-orange-500/15 border border-orange-500/25 rounded-2xl rounded-br-md" : "bg-orange-100 border border-orange-200 rounded-2xl rounded-br-md"
-                          : msg.role === "joe"
-                            ? isDark ? "bg-zinc-800/60 border border-zinc-700/40 rounded-2xl rounded-bl-md" : "bg-zinc-100 border border-zinc-200 rounded-2xl rounded-bl-md"
-                            : "bg-transparent"
-                      } ${msg.role === "system" ? "" : "p-3"}`}>
-                        {msg.role === "system" ? (
-                          <p className="text-zinc-500 font-mono text-[10px] flex items-center gap-1">
-                            <Hash className="w-3 h-3" /> {msg.content}
-                          </p>
-                        ) : (
-                          <>
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <span className="font-mono text-[10px] font-bold" style={{ color: msg.role === "user" ? "#fb923c" : "#60a5fa" }}>
-                                {msg.role === "user" ? displayName : "JOE"}
-                              </span>
-                              <span className="font-mono text-[9px] text-zinc-600">{formatTime(msg.timestamp)}</span>
-                              {msg.tensor && (
-                                <span className="text-xs">{msg.tensor === "COG" ? "\u{1F9E0}" : msg.tensor === "EMO" ? "\u{2764}\u{FE0F}" : "\u{1F30D}"}</span>
-                              )}
-                              {msg.cstb_score !== undefined && (
-                                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-[8px] h-4">
-                                  CSTB {msg.cstb_score}
-                                </Badge>
-                              )}
-                            </div>
-                            <p className={`font-mono text-xs leading-relaxed ${isDark ? 'text-orange-100/80' : 'text-zinc-700'}`}>{msg.content}</p>
-                            {msg.tools_used && msg.tools_used.length > 0 && (
-                              <div className="mt-2 flex gap-1 flex-wrap">
-                                {msg.tools_used.map((t) => (
-                                  <Badge key={t} className="bg-green-500/10 text-green-400/70 border-green-500/20 text-[8px] h-4">
-                                    {t}
-                                  </Badge>
-                                ))}
+                  {/* Render Convex-persisted messages */}
+                  {convexMessages.map((msg) => {
+                    const isUser = msg.clerkUserId !== "joe-agent" && msg.messageType !== "joe" && msg.messageType !== "system"
+                    const isSystem = msg.messageType === "system"
+                    const isJoe = msg.messageType === "joe" || msg.clerkUserId === "joe-agent"
+                    return (
+                      <div key={msg._id} className={`flex ${isUser ? "justify-end" : isSystem ? "justify-center" : "justify-start"}`}>
+                        <div className={`max-w-[80%] ${
+                          isUser
+                            ? isDark ? "bg-orange-500/15 border border-orange-500/25 rounded-2xl rounded-br-md" : "bg-orange-100 border border-orange-200 rounded-2xl rounded-br-md"
+                            : isJoe
+                              ? isDark ? "bg-zinc-800/60 border border-zinc-700/40 rounded-2xl rounded-bl-md" : "bg-zinc-100 border border-zinc-200 rounded-2xl rounded-bl-md"
+                              : "bg-transparent"
+                        } ${isSystem ? "" : "p-3"}`}>
+                          {isSystem ? (
+                            <p className="text-zinc-500 font-mono text-[10px] flex items-center gap-1">
+                              <Hash className="w-3 h-3" /> {msg.content}
+                            </p>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2 mb-1.5">
+                                {msg.avatarUrl && (
+                                  <img src={msg.avatarUrl} alt="" className="w-4 h-4 rounded-full" />
+                                )}
+                                <span className="font-mono text-[10px] font-bold" style={{ color: isUser ? "#fb923c" : "#60a5fa" }}>
+                                  {msg.displayName}
+                                </span>
+                                <span className="font-mono text-[9px] text-zinc-600">{formatTime(msg.createdAt)}</span>
+                                {msg.tensor && (
+                                  <span className="text-xs">{msg.tensor === "COG" ? "\u{1F9E0}" : msg.tensor === "EMO" ? "\u{2764}\u{FE0F}" : "\u{1F30D}"}</span>
+                                )}
+                                {isJoe && (
+                                  <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/25 text-[8px] h-4">AI</Badge>
+                                )}
                               </div>
-                            )}
-                          </>
-                        )}
+                              <p className={`font-mono text-xs leading-relaxed ${isDark ? 'text-orange-100/80' : 'text-zinc-700'}`}>{msg.content}</p>
+                            </>
+                          )}
+                        </div>
                       </div>
+                    )
+                  })}
+                  {/* Ephemeral system messages (connection status) from WS — not persisted */}
+                  {chatMessages.filter(m => m.role === "system").map((msg) => (
+                    <div key={msg.id} className="flex justify-center">
+                      <p className="text-zinc-500 font-mono text-[10px] flex items-center gap-1">
+                        <Hash className="w-3 h-3" /> {msg.content}
+                      </p>
                     </div>
                   ))}
                   <div ref={chatEndRef} />
@@ -480,13 +560,13 @@ export default function ConnectionsPage() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder={wsStatus === "connected" ? "Message JOE..." : "Connecting to JOE..."}
-                    disabled={wsStatus !== "connected"}
+                    placeholder={activeChannelId ? `Message #${activeChannelName}...` : "Loading channels..."}
+                    disabled={!activeChannelId}
                     className={`flex-1 px-4 py-2.5 ${isDark ? 'bg-black/40 border-orange-500/20 text-orange-200 placeholder:text-zinc-600' : 'bg-white border-orange-200 text-zinc-900 placeholder:text-zinc-400'} border rounded-xl text-xs font-mono focus:outline-none focus:ring-1 focus:ring-orange-500/40 disabled:opacity-40 transition-all`}
                   />
                   <Button
                     onClick={sendMessage}
-                    disabled={wsStatus !== "connected" || !chatInput.trim()}
+                    disabled={!activeChannelId || !chatInput.trim()}
                     className="bg-gradient-to-r from-orange-500 to-orange-600 border-0 rounded-xl h-10 px-5 disabled:opacity-30 transition-all"
                   >
                     <Send className="w-4 h-4" />
