@@ -107,19 +107,24 @@ export default function GazeVerifyPage() {
 
   // Initialize verification session
   const isLocalDev = typeof window !== "undefined" && window.location.hostname === "localhost"
+  // Allow wallet-connected users even without Clerk (Phantom direct sign-in)
+  const hasAuth = isSignedIn || (connected && publicKey)
   useEffect(() => {
-    // DEV: Skip Clerk auth check on localhost
+    // DEV: Skip auth check on localhost
     if (!isLocalDev && !authLoaded) return
 
-    if (!isSignedIn && !isLocalDev) {
-      router.push("/optx-login")
-      return
+    if (!hasAuth && !isLocalDev) {
+      // Give a brief delay — Clerk session may still be establishing after redirect
+      const timer = setTimeout(() => {
+        if (!hasAuth) router.push("/optx-login")
+      }, 2000)
+      return () => clearTimeout(timer)
     }
 
     const nonce = crypto.randomUUID()
     setSessionNonce(nonce)
     setState("setup")
-  }, [authLoaded, isSignedIn, router, isLocalDev])
+  }, [authLoaded, hasAuth, router, isLocalDev])
 
   // Aaron session state (for real API calls)
   const [aaronSessionId, setAaronSessionId] = useState<string | null>(null)

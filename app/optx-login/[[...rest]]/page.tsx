@@ -669,15 +669,13 @@ export default function OptxLoginPage() {
     }
   }, [isLoaded, isSignedIn, router])
 
-  // Redirect admin wallets to vault after Phantom connects (no Clerk needed)
+  // Redirect admin wallets to vault ONLY when not signed in via Clerk
+  // If signed in via Clerk, the Clerk redirect above handles it → /dojo
   useEffect(() => {
-    if (connected && publicKey) {
+    if (connected && publicKey && !isSignedIn) {
       const walletAddr = publicKey.toBase58()
       if (ADMIN_WALLETS.includes(walletAddr)) {
         router.push("/vault")
-      } else if (isSignedIn) {
-        // Non-admin wallet + Clerk signed in → gaze verify flow
-        router.push("/gaze-verify")
       }
     }
   }, [connected, publicKey, isSignedIn, router])
@@ -833,6 +831,38 @@ export default function OptxLoginPage() {
                 .clerk-auth-wrapper .cl-footer { display: none !important; }
                 .clerk-auth-wrapper .cl-internal-b3fm6y {
                   background-color: #ffffff !important;
+                }
+                /* Force Solana social button to show text label */
+                .clerk-auth-wrapper .cl-socialButtonsBlockButton,
+                .clerk-auth-wrapper .cl-socialButtonsIconButton {
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: center !important;
+                  gap: 0.5rem !important;
+                  width: 100% !important;
+                  padding: 0.625rem 1rem !important;
+                  border: 1px solid #d4d4d8 !important;
+                  border-radius: 0.5rem !important;
+                  background-color: #ffffff !important;
+                  color: #1a1a1a !important;
+                  font-size: 0.875rem !important;
+                  min-height: 2.75rem !important;
+                }
+                .clerk-auth-wrapper .cl-socialButtonsBlockButton:hover,
+                .clerk-auth-wrapper .cl-socialButtonsIconButton:hover {
+                  background-color: #f4f4f5 !important;
+                }
+                .clerk-auth-wrapper .cl-socialButtonsBlockButtonText,
+                .clerk-auth-wrapper .cl-socialButtonsBlockButtonText__solana {
+                  color: #1a1a1a !important;
+                  font-size: 0.875rem !important;
+                  display: inline !important;
+                  visibility: visible !important;
+                  opacity: 1 !important;
+                }
+                .clerk-auth-wrapper .cl-socialButtonsProviderIcon {
+                  width: 1.25rem !important;
+                  height: 1.25rem !important;
                 }
                 @media (max-width: 640px) {
                   .clerk-auth-wrapper { max-height: 70vh; width: 100%; }
