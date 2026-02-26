@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 
 /**
  * POST /api/aaron/session — Proxy to Aaron Router on Jetson edge node
@@ -6,18 +7,27 @@ import { NextRequest, NextResponse } from "next/server"
  *
  * The Aaron Router runs on the Jetson Orin Nano (edge compute).
  * In production, this reaches the Jetson via Tailscale mesh.
- * For local dev, falls back to localhost:8888 if AARON_URL isn't set.
+ * Requires AARON_ROUTER_URL env var to be set.
  */
 
 // Tailscale Funnel exposes Aaron Router publicly at /aaron path
 // Env var override for custom deployments; default is Funnel URL
-const AARON_URL = process.env.AARON_ROUTER_URL || "https://jettoptx-joe.taile11759.ts.net/aaron"
+function getAaronUrl() {
+  const url = process.env.AARON_ROUTER_URL
+  if (!url) throw new Error("AARON_ROUTER_URL not configured")
+  return url
+}
 
 export async function POST(req: NextRequest) {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const body = await req.json()
 
-    const res = await fetch(`${AARON_URL}/session`, {
+    const res = await fetch(`${getAaronUrl()}/session`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -44,13 +54,18 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const sessionId = req.nextUrl.searchParams.get("sessionId")
   if (!sessionId) {
     return NextResponse.json({ error: "Missing sessionId" }, { status: 400 })
   }
 
   try {
-    const res = await fetch(`${AARON_URL}/session/${sessionId}`, {
+    const res = await fetch(`${getAaronUrl()}/session/${sessionId}`, {
       signal: AbortSignal.timeout(5_000),
     })
 

@@ -404,7 +404,9 @@ export default function TrainingPage() {
   const connectJoeWs = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     setWsStatus("connecting")
-    const ws = new WebSocket(process.env.NEXT_PUBLIC_JOE_WS_URL || "wss://jettoptx-joe.taile11759.ts.net/ws")
+    const wsUrl = process.env.NEXT_PUBLIC_JOE_WS_URL
+    if (!wsUrl) { setWsStatus("error"); return }
+    const ws = new WebSocket(wsUrl)
     ws.onopen = () => {
       setWsStatus("connected")
       setChatMessages((prev) => [...prev, { id: `sys_${Date.now()}`, user: "SYSTEM", content: "Connected to JOE agent" }])

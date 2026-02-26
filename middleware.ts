@@ -11,7 +11,6 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks(.*)",
   "/api/waitlist(.*)",
   "/api/hedgehog(.*)",
-  "/api/aaron(.*)",
   "/api/create-checkout(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
@@ -86,8 +85,8 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   // For OAuth/SSO callbacks: Let Clerk middleware process them automatically
-  // For protected routes: Optionally add auth.protect() to enforce authentication
-  // await auth.protect()
+  // For protected routes: enforce Clerk authentication
+  await auth.protect()
 })
 
 export const config = {

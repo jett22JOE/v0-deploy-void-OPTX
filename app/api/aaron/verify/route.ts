@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 
 /**
  * POST /api/aaron/verify — Proxy gaze proof submission to Aaron Router on Jetson
@@ -9,9 +10,18 @@ import { NextRequest, NextResponse } from "next/server"
  */
 
 // Tailscale Funnel exposes Aaron Router publicly at /aaron path
-const AARON_URL = process.env.AARON_ROUTER_URL || "https://jettoptx-joe.taile11759.ts.net/aaron"
+function getAaronUrl() {
+  const url = process.env.AARON_ROUTER_URL
+  if (!url) throw new Error("AARON_ROUTER_URL not configured")
+  return url
+}
 
 export async function POST(req: NextRequest) {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const body = await req.json()
 
@@ -33,7 +43,7 @@ export async function POST(req: NextRequest) {
       wallet_address: body.walletAddress || body.wallet_address || null,
     }
 
-    const res = await fetch(`${AARON_URL}/verify`, {
+    const res = await fetch(`${getAaronUrl()}/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(snakeBody),
@@ -60,6 +70,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const sessionId = req.nextUrl.searchParams.get("sessionId")
   if (!sessionId) {
     return NextResponse.json({ error: "Missing sessionId" }, { status: 400 })
@@ -67,7 +82,7 @@ export async function GET(req: NextRequest) {
 
   // Poll session status (same endpoint as /api/aaron/session GET)
   try {
-    const res = await fetch(`${AARON_URL}/session/${sessionId}`, {
+    const res = await fetch(`${getAaronUrl()}/session/${sessionId}`, {
       signal: AbortSignal.timeout(5_000),
     })
 

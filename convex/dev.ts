@@ -66,6 +66,11 @@ export const updateOkxWallet = mutation({
 export const setGazeVerified = mutation({
   args: { clerkUserId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity || identity.subject !== args.clerkUserId) {
+      throw new Error("Unauthorized: identity mismatch")
+    }
+
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_user", (q) => q.eq("clerkUserId", args.clerkUserId))
@@ -81,6 +86,11 @@ export const setGazeVerified = mutation({
 export const grantDevAccess = mutation({
   args: { clerkUserId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity || identity.subject !== args.clerkUserId) {
+      throw new Error("Unauthorized: identity mismatch")
+    }
+
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_user", (q) => q.eq("clerkUserId", args.clerkUserId))

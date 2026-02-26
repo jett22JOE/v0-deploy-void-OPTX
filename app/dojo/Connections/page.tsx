@@ -27,7 +27,7 @@ const JTX_MINT = "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
 const OPTX_MINT = "4r9WoPsRjJzrYEuj6VdwowVrFZaXpu16Qt6xogcmdUXC"
 const CSTB_MINT = "4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL"
 
-const JOE_WS_URL = process.env.NEXT_PUBLIC_JOE_WS_URL || "wss://jettoptx-joe.taile11759.ts.net/ws"
+const JOE_WS_URL = process.env.NEXT_PUBLIC_JOE_WS_URL || ""
 
 // Founder-only gating — Clerk user ID + Solana wallet
 const FOUNDER_USER_IDS = ["user_37RFcXc9CeZJYdDIPEWdiuiZXpb"]

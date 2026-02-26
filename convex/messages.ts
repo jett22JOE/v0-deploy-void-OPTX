@@ -38,6 +38,14 @@ export const sendMessage = mutation({
     avatarUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // System/JOE messages don't require user identity
+    if (args.messageType !== "system" && args.messageType !== "joe") {
+      const identity = await ctx.auth.getUserIdentity()
+      if (!identity || identity.subject !== args.clerkUserId) {
+        throw new Error("Unauthorized: identity mismatch")
+      }
+    }
+
     return await ctx.db.insert("messages", {
       channelId: args.channelId,
       clerkUserId: args.clerkUserId,

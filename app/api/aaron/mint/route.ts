@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 
 /**
  * POST /api/aaron/mint — Proxy OPTX mint request to Aaron Router on Jetson
@@ -8,9 +9,18 @@ import { NextRequest, NextResponse } from "next/server"
  * Program: HkJoo6829ANVxPNCVDURjZazRncWv1ht3WfyDc2GD5oH (devnet)
  */
 
-const AARON_URL = process.env.AARON_ROUTER_URL || "https://jettoptx-joe.taile11759.ts.net/aaron"
+function getAaronUrl() {
+  const url = process.env.AARON_ROUTER_URL
+  if (!url) throw new Error("AARON_ROUTER_URL not configured")
+  return url
+}
 
 export async function POST(req: NextRequest) {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const body = await req.json()
 
@@ -28,7 +38,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const res = await fetch(`${AARON_URL}/mint`, {
+    const res = await fetch(`${getAaronUrl()}/mint`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(mintBody),
