@@ -298,6 +298,13 @@ export default function ConnectionsPage() {
     const content = chatInput.trim()
     setChatInput("")
 
+    // Optimistic: show user message immediately
+    const optimisticId = `opt_${Date.now()}`
+    setChatMessages((prev) => [
+      ...prev,
+      { id: optimisticId, role: "user", content, timestamp: Date.now() },
+    ])
+
     // 1. Persist to Convex (always, even if JOE offline)
     if (activeChannelId && user?.id) {
       try {
@@ -309,8 +316,14 @@ export default function ConnectionsPage() {
           messageType: "chat",
           avatarUrl: user.imageUrl || undefined,
         })
+        // Remove optimistic msg once Convex subscription picks it up
+        setChatMessages((prev) => prev.filter((m) => m.id !== optimisticId))
       } catch (err) {
         console.error("Convex sendMessage failed:", err)
+        // Mark as failed so user knows
+        setChatMessages((prev) =>
+          prev.map((m) => m.id === optimisticId ? { ...m, content: `${content} ⚠ failed to save` } : m)
+        )
       }
     }
 
@@ -549,14 +562,46 @@ export default function ConnectionsPage() {
                       </div>
                     )
                   })}
-                  {/* Ephemeral system messages (connection status) from WS — not persisted */}
-                  {chatMessages.filter(m => m.role === "system").map((msg) => (
-                    <div key={msg.id} className="flex justify-center">
-                      <p className="text-zinc-500 font-mono text-[10px] flex items-center gap-1">
-                        <Hash className="w-3 h-3" /> {msg.content}
-                      </p>
-                    </div>
-                  ))}
+                  {/* Ephemeral messages from local state (optimistic user, JOE WS, system) */}
+                  {chatMessages.map((msg) => {
+                    if (msg.role === "system") {
+                      return (
+                        <div key={msg.id} className="flex justify-center">
+                          <p className="text-zinc-500 font-mono text-[10px] flex items-center gap-1">
+                            <Hash className="w-3 h-3" /> {msg.content}
+                          </p>
+                        </div>
+                      )
+                    }
+                    if (msg.role === "user") {
+                      return (
+                        <div key={msg.id} className="flex justify-end">
+                          <div className={`max-w-[80%] p-3 ${isDark ? "bg-orange-500/15 border border-orange-500/25 rounded-2xl rounded-br-md" : "bg-orange-100 border border-orange-200 rounded-2xl rounded-br-md"}`}>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="font-mono text-[10px] font-bold text-orange-400">{displayName || "You"}</span>
+                              <span className="font-mono text-[9px] text-zinc-600">{formatTime(msg.timestamp)}</span>
+                            </div>
+                            <p className={`font-mono text-xs leading-relaxed ${isDark ? 'text-orange-100/80' : 'text-zinc-700'}`}>{msg.content}</p>
+                          </div>
+                        </div>
+                      )
+                    }
+                    if (msg.role === "joe") {
+                      return (
+                        <div key={msg.id} className="flex justify-start">
+                          <div className={`max-w-[80%] p-3 ${isDark ? "bg-zinc-800/60 border border-zinc-700/40 rounded-2xl rounded-bl-md" : "bg-zinc-100 border border-zinc-200 rounded-2xl rounded-bl-md"}`}>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="font-mono text-[10px] font-bold text-blue-400">JOE</span>
+                              <span className="font-mono text-[9px] text-zinc-600">{formatTime(msg.timestamp)}</span>
+                              <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/25 text-[8px] h-4">AI</Badge>
+                            </div>
+                            <p className={`font-mono text-xs leading-relaxed ${isDark ? 'text-orange-100/80' : 'text-zinc-700'}`}>{msg.content}</p>
+                          </div>
+                        </div>
+                      )
+                    }
+                    return null
+                  })}
                   <div ref={chatEndRef} />
                 </div>
 

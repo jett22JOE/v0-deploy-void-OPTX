@@ -41,8 +41,14 @@ export const sendMessage = mutation({
     // System/JOE messages don't require user identity
     if (args.messageType !== "system" && args.messageType !== "joe") {
       const identity = await ctx.auth.getUserIdentity()
-      if (!identity || identity.subject !== args.clerkUserId) {
-        throw new Error("Unauthorized: identity mismatch")
+      if (!identity) {
+        throw new Error("Unauthorized: not authenticated")
+      }
+      // Clerk subject may be user ID or tokenIdentifier may include issuer prefix
+      const idMatch = identity.subject === args.clerkUserId ||
+        identity.tokenIdentifier?.endsWith(args.clerkUserId)
+      if (!idMatch) {
+        throw new Error(`Unauthorized: identity mismatch (subject: ${identity.subject}, expected: ${args.clerkUserId})`)
       }
     }
 
