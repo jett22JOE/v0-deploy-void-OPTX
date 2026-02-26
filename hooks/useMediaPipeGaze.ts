@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaceLandmarker, FilesetResolver, DrawingUtils } from '@mediapipe/tasks-vision';
 import { computeGazeFromLandmarks } from '@/lib/gaze/computeGaze';
 import type { GazeEvent } from '@/lib/gaze/computeGaze';
@@ -20,6 +20,13 @@ export function useMediaPipeGaze({ onGaze, drawOverlays = true }: UseMediaPipeGa
   const rafRef = useRef<number | null>(null);
   const [isLive, setIsLive] = useState(false);
   const [fps, setFps] = useState(0);
+
+  // ─── Use ref for callback to avoid stale closure in RAF loop ───
+  const onGazeRef = useRef(onGaze);
+  useEffect(() => { onGazeRef.current = onGaze; }, [onGaze]);
+
+  const drawOverlaysRef = useRef(drawOverlays);
+  useEffect(() => { drawOverlaysRef.current = drawOverlays; }, [drawOverlays]);
 
   const start = useCallback(async () => {
     const vision = await FilesetResolver.forVisionTasks(
@@ -59,10 +66,11 @@ export function useMediaPipeGaze({ onGaze, drawOverlays = true }: UseMediaPipeGa
       if (results.faceLandmarks?.[0]) {
         const landmarks = results.faceLandmarks[0];
         const event = computeGazeFromLandmarks(landmarks);
-        onGaze(event);
+        // Use ref to always call the latest callback (avoids stale closure)
+        onGazeRef.current(event);
 
         // Canvas overlays: blue iris circles, orange nose dot, red dashed gaze vectors
-        if (drawOverlays && canvasRef.current && videoRef.current) {
+        if (drawOverlaysRef.current && canvasRef.current && videoRef.current) {
           const canvas = canvasRef.current;
           const ctx = canvas.getContext('2d')!;
           canvas.width = videoRef.current.videoWidth;
@@ -116,7 +124,7 @@ export function useMediaPipeGaze({ onGaze, drawOverlays = true }: UseMediaPipeGa
 
     rafRef.current = requestAnimationFrame(processFrame);
     setIsLive(true);
-  }, [onGaze, drawOverlays]);
+  }, []); // No deps needed — uses refs for callbacks
 
   const stop = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);

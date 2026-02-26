@@ -68,7 +68,6 @@ export default function TrainingPage() {
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   const [cursorPosition, setCursorPosition] = useState({ x: 50, y: 50 })
-  const [isSpacePressed, setIsSpacePressed] = useState(false)
   const [currentSector, setCurrentSector] = useState<"COG" | "EMO" | "ENV" | "CENTER">("CENTER")
 
   // ─── Directed Training State ───────────────────────────────────────────────
@@ -118,13 +117,21 @@ export default function TrainingPage() {
           const progress = Math.min(elapsed / CALIBRATION_DURATION, 1)
           setHoldProgress(progress)
 
-          // Calibration complete!
+          // Calibration complete — auto-stop this AGT session
           if (progress >= 1) {
             setAttestationReady((prev) => {
               if (prev) return prev // already set
               const info = KEY_TENSOR_MAP[activeKey]
               setAttestationFlash(true)
               setTimeout(() => setAttestationFlash(false), 600)
+
+              // Auto-release the training key (stop the session)
+              setTrainingKey(null)
+              trainingKeyRef.current = null
+              setHoldStartTime(null)
+              holdStartRef.current = null
+              setHoldProgress(0)
+
               return {
                 tensor: info.tensor,
                 emoji: info.emoji,
@@ -263,27 +270,63 @@ export default function TrainingPage() {
     if (!attestationReady) return
     // Insert classified emoji into chat input
     setChatMessage((prev) => prev + attestationReady.emoji)
-    // Send attestation to JOE via WebSocket
+    // Send full session log to JOE via WebSocket
     if (wsRef.current?.readyState === WebSocket.OPEN) {
+      const total = agtWeights.COG + agtWeights.EMO + agtWeights.ENV || 1
       wsRef.current.send(JSON.stringify({
-        type: "attestation",
+        type: "agt_session_complete",
         tensor: attestationReady.tensor,
         emoji: attestationReady.emoji,
         confidence: attestationReady.confidence,
         duration: CALIBRATION_DURATION / 1000,
+        sessionLog: {
+          weights: {
+            cog: Math.round((agtWeights.COG / total) * 1000) / 10,
+            emo: Math.round((agtWeights.EMO / total) * 1000) / 10,
+            env: Math.round((agtWeights.ENV / total) * 1000) / 10,
+          },
+          rawWeights: agtWeights,
+          totalFrames: frameCount,
+          fps,
+          attestations: sessionAttestations + 1,
+          timestamp: Date.now(),
+        },
       }))
     }
     setSessionAttestations((prev) => prev + 1)
     setAttestationReady(null)
-  }, [attestationReady])
+  }, [attestationReady, agtWeights, frameCount, fps, sessionAttestations])
 
-  // Space bar for gaze capture + Keys 1/2/3 for directed training + Enter to confirm
+  // ─── AGT streaming to JOE (every 2s while training) ─────────────────────
+  useEffect(() => {
+    if (!isTraining || wsStatus !== "connected") return
+    const interval = setInterval(() => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        const total = agtWeights.COG + agtWeights.EMO + agtWeights.ENV || 1
+        wsRef.current.send(JSON.stringify({
+          type: "agt_stream",
+          weights: {
+            cog: Math.round((agtWeights.COG / total) * 1000) / 10,
+            emo: Math.round((agtWeights.EMO / total) * 1000) / 10,
+            env: Math.round((agtWeights.ENV / total) * 1000) / 10,
+          },
+          raw: agtWeights,
+          frameCount,
+          fps,
+          trainingKey: trainingKey ? KEY_TENSOR_MAP[trainingKey].tensor : null,
+          timestamp: Date.now(),
+        }))
+      }
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [isTraining, wsStatus, agtWeights, frameCount, fps, trainingKey])
+
+  // Keys 1/2/3 for directed training + Enter to confirm attestation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" && !e.repeat) {
-        e.preventDefault()
-        setIsSpacePressed(true)
-      }
+      // Don't capture keys when typing in chat input
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return
+
       // Keys 1, 2, 3 for directed training
       const keyNum = parseInt(e.key)
       if ((keyNum === 1 || keyNum === 2 || keyNum === 3) && !e.repeat && isTraining) {
@@ -296,19 +339,14 @@ export default function TrainingPage() {
         setAttestationReady(null)
       }
       // Enter to confirm attestation
-      if (e.key === "Enter" && attestationReady && document.activeElement?.tagName !== "INPUT") {
+      if (e.key === "Enter" && attestationReady) {
         e.preventDefault()
         confirmAttestation()
       }
     }
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        e.preventDefault()
-        setIsSpacePressed(false)
-        if (currentSector !== "CENTER") {
-          setChatMessage((prev) => prev + TENSOR_EMOTICONS[currentSector])
-        }
-      }
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return
+
       // Release training key
       const keyNum = parseInt(e.key)
       if ((keyNum === 1 || keyNum === 2 || keyNum === 3) && trainingKeyRef.current === keyNum) {
@@ -329,7 +367,7 @@ export default function TrainingPage() {
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
     }
-  }, [currentSector, isTraining, attestationReady, holdProgress, confirmAttestation])
+  }, [isTraining, attestationReady, holdProgress, confirmAttestation])
 
   // Update cursor — directed training overrides position to target zone
   useEffect(() => {
@@ -338,7 +376,7 @@ export default function TrainingPage() {
       const target = TARGET_POSITIONS[trainingKey]
       setCursorPosition(target)
       setCurrentSector(KEY_TENSOR_MAP[trainingKey].tensor)
-    } else if (isSpacePressed && isTraining) {
+    } else if (isTraining) {
       const newPos = calculateCursorPosition(agtWeights)
       setCursorPosition(newPos)
       setCurrentSector(determineSector(newPos.x, newPos.y))
@@ -346,7 +384,7 @@ export default function TrainingPage() {
       setCursorPosition({ x: 50, y: 50 })
       setCurrentSector("CENTER")
     }
-  }, [isSpacePressed, agtWeights, isTraining, trainingKey])
+  }, [agtWeights, isTraining, trainingKey])
 
   // Hold progress animation (smooth update via requestAnimationFrame)
   useEffect(() => {
@@ -526,9 +564,9 @@ export default function TrainingPage() {
                       <line x1="50" y1="50" x2="50" y2="100" stroke="rgba(249, 115, 22, 0.5)" strokeWidth="0.3" strokeDasharray="2,2" />
                       <line x1="50" y1="50" x2="0" y2="21.13" stroke="rgba(249, 115, 22, 0.5)" strokeWidth="0.3" strokeDasharray="2,2" />
                       <line x1="50" y1="50" x2="100" y2="21.13" stroke="rgba(249, 115, 22, 0.5)" strokeWidth="0.3" strokeDasharray="2,2" />
-                      <circle cx={cursorPosition.x} cy={cursorPosition.y} r={(isSpacePressed || trainingKey) ? "2" : "1.5"}
+                      <circle cx={cursorPosition.x} cy={cursorPosition.y} r={trainingKey ? "2" : "1.5"}
                         fill={currentSector === "COG" ? "oklch(0.82 0.18 95)" : currentSector === "EMO" ? "oklch(0.65 0.25 25)" : currentSector === "ENV" ? "oklch(0.60 0.20 250)" : "oklch(0.646 0.222 41.116)"}
-                        opacity={(isSpacePressed || trainingKey) ? "1" : "0.7"} style={{ transition: "all 0.3s ease" }}>
+                        opacity={trainingKey ? "1" : "0.7"} style={{ transition: "all 0.3s ease" }}>
                         <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite" />
                       </circle>
                       {/* ─── Progress ring during directed training ─── */}
@@ -681,7 +719,7 @@ export default function TrainingPage() {
                       isActive={isTraining}
                       cursorPosition={cursorPosition}
                       currentSector={currentSector}
-                      isSpacePressed={isSpacePressed}
+                      isSpacePressed={false}
                     />
                   </div>
                 </CardContent>
