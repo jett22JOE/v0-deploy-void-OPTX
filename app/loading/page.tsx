@@ -10,11 +10,13 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSafeClerk, useSafeAuth, useSafeUser } from "@/lib/hooks/use-safe-auth"
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
+import { JettAuthModal } from "@/components/jett-auth-modal"
 
 export default function LoadingPage() {
   const router = useRouter()
   const [showButton, setShowButton] = useState(false)
   const [videoError, setVideoError] = useState(false)
+  const [showJettModal, setShowJettModal] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // Verify Clerk is loaded before allowing submission
@@ -89,6 +91,14 @@ export default function LoadingPage() {
         Loading...
       </h1>
 
+      {/* JETT Auth 6-step OPTX modal */}
+      {showJettModal && (
+        <JettAuthModal onDismiss={() => {
+          setShowJettModal(false)
+          router.push("/optx-login?tab=signup")
+        }} />
+      )}
+
       {/* Get Early Access Button - shows when not signed in */}
       {!isSignedIn && (
         <div className="absolute top-[20vh] left-1/2 -translate-x-1/2 md:top-[calc(50%_-_320px)] z-20 flex flex-col items-center gap-6">
@@ -99,7 +109,7 @@ export default function LoadingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                onClick={() => router.push("/optx-login?tab=signup")}
+                onClick={() => setShowJettModal(true)}
                 className="group relative rounded-full overflow-hidden p-[1px] transition-all duration-300
                   focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-black
                   hover:shadow-[0_0_30px_rgba(181,82,0,0.3)] active:shadow-[0_0_30px_rgba(181,82,0,0.3)]"
