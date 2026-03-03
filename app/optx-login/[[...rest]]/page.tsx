@@ -669,13 +669,17 @@ export default function OptxLoginPage() {
     }
   }, [isLoaded, isSignedIn, router])
 
-  // Redirect admin wallets to vault ONLY when not signed in via Clerk
-  // If signed in via Clerk, the Clerk redirect above handles it → /dojo
+  // Redirect wallet-connected users to gaze verification (JETT Auth flow)
+  // Admin wallets get vault access; regular wallets go to gaze-verify
   useEffect(() => {
     if (connected && publicKey && !isSignedIn) {
       const walletAddr = publicKey.toBase58()
       if (ADMIN_WALLETS.includes(walletAddr)) {
-        router.push("/vault")
+        // Admin wallets: offer vault access via /dojo (not /vault which redirects to astroknots)
+        router.push("/gaze-verify")
+      } else {
+        // Regular wallets: proceed to JETT Auth gaze verification
+        router.push("/gaze-verify")
       }
     }
   }, [connected, publicKey, isSignedIn, router])
