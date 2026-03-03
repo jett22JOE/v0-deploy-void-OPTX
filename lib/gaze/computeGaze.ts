@@ -11,10 +11,12 @@ export interface GazeEvent {
 }
 
 const classifyGaze = (x: number, y: number): GazeTensor => {
-  if (y > 0.35) return 'COG';
-  if (x < -0.35 && y < -0.25) return 'EMO';
-  if (x > 0.35 && y < -0.25) return 'ENV';
-  return 'COG'; // safe default
+  // Use barycentric weights to determine dominant tensor
+  // This ensures classification matches the AGT triangle distribution
+  const weights = computeBarycentric(x, y);
+  if (weights.cog >= weights.emo && weights.cog >= weights.env) return 'COG';
+  if (weights.emo >= weights.env) return 'EMO';
+  return 'ENV';
 };
 
 const computeBarycentric = (x: number, y: number) => {

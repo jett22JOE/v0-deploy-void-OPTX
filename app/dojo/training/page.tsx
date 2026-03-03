@@ -12,6 +12,25 @@ import { JETTUX } from "@/components/JETTUX"
 import { useMediaPipeGaze } from "@/hooks/useMediaPipeGaze"
 import type { GazeEvent } from "@/lib/gaze/computeGaze"
 
+// Sanitize JOE responses — strip internal tool syntax that DOJO users should never see
+function sanitizeJoeResponse(content: string): string {
+  let cleaned = content.replace(/\[TOOL:\w+\]\s*\{[\s\S]*?\}(?:\s*\})?/g, "").trim()
+  cleaned = cleaned.replace(/\[TOOL:\w+\]\s*"[^"]*"/g, "").trim()
+  cleaned = cleaned.replace(/`?\[TOOL:\w+\]`?/g, "").trim()
+  cleaned = cleaned.replace(/Repo scan initiated\..*$/gm, "").trim()
+  cleaned = cleaned.replace(/Will edit page.*$/gm, "").trim()
+  cleaned = cleaned.replace(/[-–]\s*Files:.*$/gm, "").trim()
+  cleaned = cleaned.replace(/[-–]\s*Python:.*$/gm, "").trim()
+  cleaned = cleaned.replace(/[-–]\s*Web:.*$/gm, "").trim()
+  cleaned = cleaned.replace(/^.*\b(code_exec|file_edit|browser_navigate|browser_get_text)\b.*$/gm, "").trim()
+  cleaned = cleaned.replace(/^\s*[-–]\s*$/gm, "").trim()
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n").trim()
+  if (!cleaned || cleaned.length < 3) {
+    cleaned = "I'm here to help with the DOJO. What would you like to know?"
+  }
+  return cleaned
+}
+
 interface GazeTensor {
   tensor: "COG" | "ENV" | "EMO"
   confidence: number
@@ -99,15 +118,19 @@ export default function TrainingPage() {
 
       setClassification(result)
 
+      // ─── Use barycentric weights for smooth tensor accumulation ───
+      const bary = event.agtWeights // { cog, emo, env } from computeBarycentric
+      const scale = 10 // scale factor for visible accumulation per frame
+
       // ─── Directed training: amplify on-target gaze 3x ───
       const activeKey = trainingKeyRef.current
       if (activeKey) {
         const targetTensor = KEY_TENSOR_MAP[activeKey].tensor
-        const isOnTarget = tensor === targetTensor
-        const increment = isOnTarget ? TRAINING_AMPLIFIER : 1
+        const amplifier = TRAINING_AMPLIFIER
         setAgtWeights((prev) => ({
-          ...prev,
-          [tensor]: prev[tensor] + increment,
+          COG: prev.COG + bary.cog * scale * (targetTensor === "COG" ? amplifier : 1),
+          EMO: prev.EMO + bary.emo * scale * (targetTensor === "EMO" ? amplifier : 1),
+          ENV: prev.ENV + bary.env * scale * (targetTensor === "ENV" ? amplifier : 1),
         }))
 
         // Update hold progress
@@ -141,10 +164,11 @@ export default function TrainingPage() {
           }
         }
       } else {
-        // Normal (passive) training — 1x increment
+        // Normal (passive) training — smooth barycentric accumulation
         setAgtWeights((prev) => ({
-          ...prev,
-          [tensor]: prev[tensor] + 1,
+          COG: prev.COG + bary.cog * scale,
+          EMO: prev.EMO + bary.emo * scale,
+          ENV: prev.ENV + bary.env * scale,
         }))
       }
 
@@ -414,10 +438,17 @@ export default function TrainingPage() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
+        // Skip AGT stream echoes from JOE — they spam the chat
+        if (data.type === "agt_stream" || data.type === "agt_ack") return
+        // Skip wallet/bridge/x402 responses
+        if (data.type === "wallet_status" || data.type === "wallet_metadata" || data.type === "x402_policy" || data.type === "bridge_status") return
+
+        const rawContent = data.content || data.response || event.data
+        const content = sanitizeJoeResponse(rawContent)
         setChatMessages((prev) => [...prev, {
           id: `joe_${Date.now()}`,
           user: "JOE",
-          content: data.content || data.response || event.data,
+          content,
           tensor: data.tensor,
         }])
       } catch {
