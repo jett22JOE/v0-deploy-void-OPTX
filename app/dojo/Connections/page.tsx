@@ -40,14 +40,21 @@ type Tab = "jettchat" | "sessions" | "wallets"
 
 // Sanitize JOE responses — strip internal tool syntax that DOJO users should never see
 function sanitizeJoeResponse(content: string): string {
-  // Remove [TOOL:xxx] {...} blocks (multiline)
-  let cleaned = content.replace(/\[TOOL:\w+\]\s*\{[^}]*\}/gs, "").trim()
+  // Remove [TOOL:xxx] {...} blocks — greedy multiline (handles nested braces, multi-line JSON)
+  let cleaned = content.replace(/\[TOOL:\w+\]\s*\{[\s\S]*?\}(?:\s*\})?/g, "").trim()
+  // Remove [TOOL:xxx] with quoted JSON payloads
+  cleaned = cleaned.replace(/\[TOOL:\w+\]\s*"[^"]*"/g, "").trim()
   // Remove standalone [TOOL:xxx] references (with or without backticks)
   cleaned = cleaned.replace(/`?\[TOOL:\w+\]`?/g, "").trim()
+  // Remove "Repo scan initiated. Will edit page..." type internal narration
+  cleaned = cleaned.replace(/Repo scan initiated\..*$/gm, "").trim()
+  cleaned = cleaned.replace(/Will edit page.*$/gm, "").trim()
   // Remove "- Files: ... (read/write/append)" tool listings
   cleaned = cleaned.replace(/[-–]\s*Files:.*$/gm, "").trim()
   cleaned = cleaned.replace(/[-–]\s*Python:.*$/gm, "").trim()
   cleaned = cleaned.replace(/[-–]\s*Web:.*$/gm, "").trim()
+  // Remove lines that are purely code_exec, file_edit, browser commands
+  cleaned = cleaned.replace(/^.*\b(code_exec|file_edit|browser_navigate|browser_get_text)\b.*$/gm, "").trim()
   // Clean up leftover whitespace/dashes
   cleaned = cleaned.replace(/^\s*[-–]\s*$/gm, "").trim()
   cleaned = cleaned.replace(/\n{3,}/g, "\n\n").trim()
@@ -304,40 +311,47 @@ export default function ConnectionsPage() {
     return () => { wsRef.current?.close(); if (reconnectRef.current) clearTimeout(reconnectRef.current) }
   }, [])
 
+  // Dedup: when Convex confirms a user message, remove matching optimistic from local state
+  useEffect(() => {
+    if (convexMessages.length === 0 || !user?.id) return
+    setChatMessages((prev) => {
+      const convexUserContents = new Set(
+        convexMessages
+          .filter((m) => m.clerkUserId === user.id && m.messageType === "chat")
+          .map((m) => m.content)
+      )
+      // Remove optimistic user messages that Convex now has
+      const filtered = prev.filter(
+        (m) => m.role !== "user" || !convexUserContents.has(m.content)
+      )
+      return filtered.length !== prev.length ? filtered : prev
+    })
+  }, [convexMessages, user?.id])
+
   const sendMessage = async () => {
     if (!chatInput.trim()) return
     const content = chatInput.trim()
     setChatInput("")
 
-    // Optimistic: show user message immediately
-    const optimisticId = `opt_${Date.now()}`
+    // Optimistic: show user message immediately (stays until Convex confirms)
     setChatMessages((prev) => [
       ...prev,
-      { id: optimisticId, role: "user", content, timestamp: Date.now() },
+      { id: `opt_${Date.now()}`, role: "user", content, timestamp: Date.now() },
     ])
 
-    // 1. Persist to Convex (always, even if JOE offline)
+    // 1. Persist to Convex (fire-and-forget — optimistic stays visible regardless)
     if (activeChannelId && user?.id) {
-      try {
-        await sendConvexMessage({
-          channelId: activeChannelId,
-          clerkUserId: user.id,
-          displayName: displayName || "anonymous",
-          content,
-          messageType: "chat",
-          avatarUrl: user.imageUrl || undefined,
-        })
-        // Remove optimistic msg once Convex subscription picks it up
-        setChatMessages((prev) => prev.filter((m) => m.id !== optimisticId))
-      } catch (err) {
-        console.error("Convex sendMessage failed:", err)
-        // Don't mark as failed — JOE still got the message via WS
-        // Just remove optimistic message; WS response is what matters
-        setChatMessages((prev) => prev.filter((m) => m.id !== optimisticId))
-      }
+      sendConvexMessage({
+        channelId: activeChannelId,
+        clerkUserId: user.id,
+        displayName: displayName || "anonymous",
+        content,
+        messageType: "chat",
+        avatarUrl: user.imageUrl || undefined,
+      }).catch((err) => console.error("Convex sendMessage failed:", err))
     }
 
-    // 2. Also send to JOE WebSocket (parallel, for AI response)
+    // 2. Send to JOE WebSocket (parallel, for AI response)
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: "chat",
