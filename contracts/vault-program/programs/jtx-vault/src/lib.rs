@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 
-declare_id!("JTXVau1t111111111111111111111111111111111");
+declare_id!("JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7");
 
 /// JTX Fundraiser Vault Program — astroknots.space
 ///

@@ -3,10 +3,10 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-jtx_vault = "JTXVau1t111111111111111111111111111111111"
+jtx_vault = "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
 
 [programs.mainnet]
-jtx_vault = "JTXVau1t111111111111111111111111111111111"
+jtx_vault = "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
 
 [registry]
 url = "https://api.apr.dev"
