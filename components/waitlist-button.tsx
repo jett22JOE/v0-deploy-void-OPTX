@@ -36,7 +36,7 @@ export function WaitlistButton() {
         animate={{ y: isHovered ? "0%" : "100%" }}
         transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
       />
-      <div className="relative py-16 md:py-24 px-8 md:px-12 border-t border-white/10">
+      <div className="relative py-8 md:py-12 px-8 md:px-12 border-t border-white/10">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <motion.h2
             className="font-sans text-4xl md:text-6xl lg:text-8xl font-light tracking-tight text-center md:text-left"

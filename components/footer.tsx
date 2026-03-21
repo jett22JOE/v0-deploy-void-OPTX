@@ -43,16 +43,20 @@ export function Footer() {
     <footer id="contact" className="relative">
       <WaitlistButton />
 
-      {/* Footer Info */}
-      <div className="px-8 md:px-12 py-8 border-t border-white/10">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col items-center md:items-start gap-2">
+      {/* Footer Info Bar — compact, centered */}
+      <div className="px-8 md:px-12 py-3 border-t border-white/10">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex flex-col items-center md:items-start gap-0.5">
             <a
               href="mailto:founder@jettoptics.ai"
-              className="font-mono text-xs tracking-widest hover:opacity-80 transition-opacity duration-300"
+              className="font-mono text-xs tracking-widest hover:text-accent transition-colors duration-300 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation()
+                window.location.href = "mailto:founder@jettoptics.ai"
+              }}
             >
               <span className="text-accent">Contact: </span>
-              <span className="text-white">founder@jettoptics.ai</span>
+              <span className="text-white hover:text-accent transition-colors">founder@jettoptics.ai</span>
             </a>
             <p className="font-mono text-xs tracking-widest text-muted-foreground">
               <span className="text-accent">UTC(GMT) - </span>
@@ -60,7 +64,7 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
             {socialLinks.map((social) => (
               <Link
                 key={social.name}
