@@ -558,7 +558,7 @@ export default function VaultPage() {
         </nav>
       </header>
 
-      <main className="relative z-10 max-w-3xl mx-auto px-4 pt-20 pb-32 space-y-8 font-[family-name:var(--font-geist-mono)]">
+      <main className="relative z-10 max-w-3xl mx-auto px-4 pt-20 pb-8 space-y-8 font-[family-name:var(--font-geist-mono)]">
         {/* ═══ Title ═══ */}
         <div className="text-center">
           <h1 className="text-3xl md:text-4xl font-black tracking-tight" style={{ fontFamily: "var(--font-orbitron)" }}>
@@ -1283,7 +1283,7 @@ export default function VaultPage() {
       {connected && publicKey && ADMIN_WALLETS.includes(publicKey.toBase58()) && (
         <button
           onClick={() => setAdminOpen(!adminOpen)}
-          className="fixed bottom-14 left-4 z-50 w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500/30 transition-all duration-300 hover:scale-110 hover:border-orange-400 hover:shadow-lg hover:shadow-orange-500/30 group cursor-pointer"
+          className="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500/30 transition-all duration-300 hover:scale-110 hover:border-orange-400 hover:shadow-lg hover:shadow-orange-500/30 group cursor-pointer"
           title="Admin Terminal"
         >
           <img src="/icons/lightLOGOjettoptics.jpeg" alt="Admin" className="w-full h-full object-cover opacity-60 transition-all duration-300 group-hover:opacity-100 group-hover:rotate-12" />
@@ -1355,9 +1355,9 @@ export default function VaultPage() {
         </div>
       )}
 
-      {/* ═══ Sticky Footer ═══ */}
-      <footer className={`fixed bottom-0 left-0 right-0 z-40 border-t py-3 px-4 md:px-8 ${
-        darkMode ? "bg-[#0a0a0f]/95 border-white/5 backdrop-blur-md" : "bg-white/95 border-orange-100 backdrop-blur-md"
+      {/* ═══ Footer ═══ */}
+      <footer className={`border-t py-3 px-4 md:px-8 ${
+        darkMode ? "bg-[#0a0a0f] border-white/5" : "bg-white border-orange-100"
       }`}>
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           {/* Left: Contact + UTC clock (desktop only) */}
