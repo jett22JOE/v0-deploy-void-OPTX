@@ -83,11 +83,12 @@ const SOCIAL_LINKS = [
 
 // ─── FAQ Data ────────────────────────────────────────────────────────────────
 const FAQ_ITEMS = [
-  { q: "Is my SOL safe?", a: "Yes. Your funds are secured by smart contract code on Solana. The vault program is non-custodial — no individual can withdraw your SOL. Either the fundraising goal is reached and the pool launches, or you can claim a full refund." },
-  { q: "What happens to my donation?", a: "Your SOL is held in the on-chain vault program. When the goal is reached, the SOL is used to create a JTX/SOL liquidity pool on Raydium. Your wallet address is recorded for OPTX airdrop eligibility." },
-  { q: "How do refunds work?", a: "If the fundraising goal is not reached by the deadline, you can connect your donor wallet and claim a full refund of your SOL. The refund mechanism is built into the smart contract." },
-  { q: "What triggers the pool launch?", a: "When the vault collects 5,874 SOL (approximately $781,242), the Raydium CPMM pool is automatically created with JTX/SOL liquidity at the $8/token target price." },
-  { q: "Who controls the vault?", a: "Nobody. The vault is a trustless Solana program. Once deployed, the rules are enforced by code. There is no admin key that can withdraw funds. The only outcomes are pool launch or refund." },
+  { q: "Is my SOL safe?", a: "Yes. Your funds are held in a PDA (Program Derived Address) controlled by the on-chain vault program (JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7). No individual can withdraw your SOL. Either the fundraising goal is reached and the pool launches, or you can claim a full refund." },
+  { q: "What happens to my donation?", a: "Your SOL is held in the vault PDA on Solana mainnet. A Donor record is created on-chain tracking your contribution and OPTX multiplier. When the goal is reached, the SOL funds a JTX/SOL liquidity pool on Raydium. Donors also receive an NFT receipt representing their JTX claim at $8/token." },
+  { q: "How do refunds work?", a: "If the fundraising goal is not reached by the Phase 2 deadline (June 30, 2026), refunds are enabled automatically. Connect the same wallet you donated with and claim your proportional SOL refund directly from the vault program." },
+  { q: "What triggers the pool launch?", a: "When the vault collects 5,874 SOL (approximately $781,242), the Raydium CPMM pool is created with JTX/SOL liquidity at the $8/token target price. This can only be triggered by the founder authority after the goal is verified on-chain." },
+  { q: "Who controls the vault?", a: "The vault program is governed by a 2-of-3 multisig (founder + JOE agent + backup). Emergency pause and pool launch require multisig approval. Day-to-day operations (donations, refunds) are permissionless — anyone can donate, and refunds are claimable by donors directly." },
+  { q: "What is the NFT receipt?", a: "Every donor who contributes $8+ worth of SOL (approximately 0.06 SOL) receives an on-chain NFT receipt. This receipt records the exact JTX tokens you are entitled to at the $8/JTX price, including any OPTX multiplier bonus from Phase 1 (2x) or Phase 2 (1x). The receipt is your claim ticket for the OPTX airdrop in Q1 2027." },
 ]
 
 // Social icons imported from @/components/icons/social-icons
