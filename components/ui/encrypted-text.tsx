@@ -114,49 +114,50 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
   }
 
   return (
-    <span
-      ref={ref}
-      className={cn("relative inline-block", className)}
-      aria-label={text}
-    >
-      {/* Ghost text: invisible but reserves the exact final layout space */}
-      <span
-        className={cn(revealedClassName)}
-        style={{ visibility: "hidden" }}
-        aria-hidden="true"
-      >
-        {text}
-      </span>
-      {/* Animated overlay: positioned on top of the ghost text */}
-      <span
-        className="absolute inset-0"
-        aria-hidden="true"
-      >
-        {text.split("").map((char, index) => {
-          const isRevealed = index < revealCount;
+    <span ref={ref} className={cn(className)} aria-label={text}>
+      {text.split("").map((char, index) => {
+        const isRevealed = index < revealCount;
 
-          let displayChar: string;
-          if (isRevealed) {
-            displayChar = char;
-          } else if (char === " ") {
-            displayChar = " ";
-          } else {
-            // Use scrambleKey to force re-render with new random chars
-            displayChar = getRandomChar(charset);
-          }
-
+        // Each character is wrapped in a relative span that always
+        // reserves the real character's width, preventing layout shift.
+        // The scrambled glyph is absolutely positioned on top.
+        if (char === " ") {
           return (
             <span
-              key={`${index}-${isRevealed ? "r" : scrambleKey}`}
-              className={cn(
-                isRevealed ? revealedClassName : encryptedClassName
-              )}
+              key={`${index}-space`}
+              className={cn(isRevealed ? revealedClassName : encryptedClassName)}
             >
-              {displayChar}
+              {" "}
             </span>
           );
-        })}
-      </span>
+        }
+
+        return (
+          <span
+            key={index}
+            className="relative inline-block"
+            style={{ overflow: "hidden" }}
+          >
+            {/* Real character — always in flow, drives width */}
+            <span
+              className={cn(revealedClassName)}
+              style={{ visibility: isRevealed ? "visible" : "hidden" }}
+            >
+              {char}
+            </span>
+            {/* Scrambled character overlay — shown until revealed */}
+            {!isRevealed && (
+              <span
+                key={`${index}-${scrambleKey}`}
+                className={cn(encryptedClassName, "absolute inset-0 flex items-center justify-center")}
+                aria-hidden="true"
+              >
+                {getRandomChar(charset)}
+              </span>
+            )}
+          </span>
+        );
+      })}
     </span>
   );
 };
