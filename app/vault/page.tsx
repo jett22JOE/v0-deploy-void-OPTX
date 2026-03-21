@@ -19,7 +19,12 @@ import { InstagramIcon, XIcon, ZoraIcon, FarcasterIcon, CosmosIcon } from "@/com
 // ─── Constants ───────────────────────────────────────────────────────────────
 const JTX_MINT = "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
 const JOE_PUBLIC_KEY = "EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk"
-const SOLANA_RPC = process.env.NEXT_PUBLIC_HELIUS_RPC_URL || "https://api.devnet.solana.com"
+const _heliusKey = process.env.NEXT_PUBLIC_HELIUS_API_KEY || ""
+const _network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || "mainnet-beta"
+const _isMainnet = _network.includes("mainnet")
+const SOLANA_RPC = process.env.NEXT_PUBLIC_HELIUS_RPC_URL 
+  || (_heliusKey ? `https://${_isMainnet ? "mainnet" : "devnet"}.helius-rpc.com/?api-key=${_heliusKey}` : "")
+  || (_isMainnet ? "https://api.mainnet-beta.solana.com" : "https://api.devnet.solana.com")
 const SOL_GOAL = 5874
 const SOL_PRICE_EST = 133
 const DOLLAR_GOAL = SOL_GOAL * SOL_PRICE_EST // ~$781,242
@@ -920,7 +925,7 @@ export default function VaultPage() {
           {txSig && (
             <div className="mb-3 p-3 rounded-lg border border-green-500/30 bg-green-500/10 text-green-400 text-xs font-mono">
               <span>TX: </span>
-              <a href={`https://solscan.io/tx/${txSig}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="underline hover:text-green-300">
+              <a href={`https://solscan.io/tx/${txSig}?cluster=${_isMainnet ? "mainnet-beta" : "devnet"}`} target="_blank" rel="noopener noreferrer" className="underline hover:text-green-300">
                 {txSig.slice(0, 20)}...
               </a>
             </div>
@@ -1288,7 +1293,7 @@ export default function VaultPage() {
             <div className={`rounded-xl p-4 mb-4 border ${darkMode ? "border-yellow-500/20 bg-yellow-500/5" : "border-yellow-300 bg-yellow-50"}`}>
               <p className="text-yellow-400 text-xs font-bold uppercase tracking-wider mb-2 font-mono">Development Notice</p>
               <p className={`text-xs font-mono ${textSecondary} leading-relaxed`}>
-                The JTX Community Vault is currently operating on <span className="font-bold text-orange-400">Solana devnet</span>.
+                The JTX Community Vault is currently operating on <span className="font-bold text-orange-400">Solana {_isMainnet ? "Mainnet" : "Devnet"}</span>.
                 Full on-chain functionality including SOL donations, x402 agent payments, and Raydium pool launch
                 will go live on <span className="font-bold text-orange-400">mainnet</span> once the JETT DePIN gaze authentication
                 system is verified in DOJO.
