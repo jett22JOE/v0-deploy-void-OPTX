@@ -959,7 +959,7 @@ export default function VaultPage() {
               }`}
               style={{ fontFamily: "var(--font-orbitron)" }}
             >
-              <XIcon className="w-4 h-4" /> SHARE ON X FOR OPTX
+              <XIcon className="w-4 h-4" /> SHARE OPT𝕏
             </button>
           )}
         </section>
