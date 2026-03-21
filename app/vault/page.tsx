@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useWalletModal } from "@solana/wallet-adapter-react-ui"
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js"
+import { Connection, PublicKey, Transaction, TransactionInstruction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { getAssociatedTokenAddressSync, createTransferInstruction, TOKEN_2022_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAccount } from "@solana/spl-token"
 import Link from "next/link"
 import Image from "next/image"
@@ -192,7 +192,40 @@ export default function VaultPage() {
     setTimeout(() => setCopiedMint(false), 2000)
   }
 
-  // ─── Donate handler — SOL or JTX ─────────────────────────────────────────
+  // ─── Anchor Vault Program Helpers ──────────────────────────────────────────
+  const VAULT_PROGRAM_ID = new PublicKey(
+    process.env.NEXT_PUBLIC_VAULT_PROGRAM_ID || "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
+  )
+
+  // Anchor sighash: first 8 bytes of sha256("global:<name>")
+  function anchorSighash(name: string): Buffer {
+    const crypto = require("crypto")
+    return crypto.createHash("sha256").update(`global:${name}`).digest().slice(0, 8)
+  }
+
+  function encodeBN(value: bigint): Buffer {
+    const buf = Buffer.alloc(8)
+    buf.writeBigUInt64LE(value)
+    return buf
+  }
+
+  // PDA derivation
+  const getVaultPda = () => PublicKey.findProgramAddressSync(
+    [Buffer.from("vault_config")],
+    VAULT_PROGRAM_ID
+  )[0]
+
+  const getDonorPda = (wallet: PublicKey) => PublicKey.findProgramAddressSync(
+    [Buffer.from("donor"), wallet.toBuffer()],
+    VAULT_PROGRAM_ID
+  )[0]
+
+  const getReceiptPda = (vault: PublicKey, donor: PublicKey) => PublicKey.findProgramAddressSync(
+    [Buffer.from("receipt"), vault.toBuffer(), donor.toBuffer()],
+    VAULT_PROGRAM_ID
+  )[0]
+
+  // ─── Donate handler — SOL or JTX via Anchor Vault Program ────────────────
   const handleDonate = async () => {
     if (!connected || !publicKey || !wallet?.adapter) return
     const amount = parseFloat(donateAmount)
@@ -205,22 +238,36 @@ export default function VaultPage() {
     try {
       const conn = new Connection(SOLANA_RPC, "confirmed")
       const tx = new Transaction()
-      const vaultPubkey = new PublicKey(FOUNDER_WALLET)
+      const vaultPda = getVaultPda()
+      const donorPda = getDonorPda(publicKey)
 
       if (contributeType === "SOL") {
-        // SOL transfer
+        // ─── SOL donation via vault program's donate_sol instruction ───
+        const lamports = BigInt(Math.round(amount * LAMPORTS_PER_SOL))
+        const data = Buffer.concat([
+          anchorSighash("donate_sol"),
+          encodeBN(lamports),
+          Buffer.from([0]), // None referrer (Option<Pubkey> = None)
+        ])
+
         tx.add(
-          SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: vaultPubkey,
-            lamports: Math.round(amount * LAMPORTS_PER_SOL),
+          new TransactionInstruction({
+            programId: VAULT_PROGRAM_ID,
+            keys: [
+              { pubkey: publicKey, isSigner: true, isWritable: true },     // donor_signer
+              { pubkey: donorPda, isSigner: false, isWritable: true },      // donor PDA
+              { pubkey: vaultPda, isSigner: false, isWritable: true },      // vault_config PDA
+              { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+            ],
+            data,
           })
         )
       } else {
-        // JTX SPL Token-2022 transfer
+        // ─── JTX SPL Token-2022 transfer (legacy path until vault supports JTX deposits) ───
         const mintPubkey = new PublicKey(JTX_MINT)
+        const vaultWallet = new PublicKey(FOUNDER_WALLET)
         const senderAta = getAssociatedTokenAddressSync(mintPubkey, publicKey, false, TOKEN_2022_PROGRAM_ID)
-        const receiverAta = getAssociatedTokenAddressSync(mintPubkey, vaultPubkey, false, TOKEN_2022_PROGRAM_ID)
+        const receiverAta = getAssociatedTokenAddressSync(mintPubkey, vaultWallet, false, TOKEN_2022_PROGRAM_ID)
 
         // Check if receiver ATA exists, create if not
         try {
@@ -230,7 +277,7 @@ export default function VaultPage() {
             createAssociatedTokenAccountInstruction(
               publicKey,       // payer
               receiverAta,     // ATA to create
-              vaultPubkey,     // owner
+              vaultWallet,     // owner
               mintPubkey,      // mint
               TOKEN_2022_PROGRAM_ID,
             )
