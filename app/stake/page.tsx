@@ -308,7 +308,7 @@ export default function StakePage() {
               {[
                 { label: "VAULT", href: "/vault" },
                 { label: "STAKE", href: "/stake", active: true },
-                { label: "AARON", href: "/aaron-docs" },
+                { label: "AARON", href: "/aaron" },
               ].map((link, index) => (
                 <li key={link.label}>
                   <Link

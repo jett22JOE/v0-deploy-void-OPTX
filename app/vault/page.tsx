@@ -205,7 +205,11 @@ export default function VaultPage() {
 
   function encodeBN(value: bigint): Buffer {
     const buf = Buffer.alloc(8)
-    buf.writeBigUInt64LE(value)
+    let v = value
+    for (let i = 0; i < 8; i++) {
+      buf[i] = Number(v & 0xffn)
+      v >>= 8n
+    }
     return buf
   }
 
@@ -417,7 +421,7 @@ export default function VaultPage() {
               {[
                 { label: "VAULT", href: "/vault", active: true },
                 { label: "STAKE", href: "/stake" },
-                { label: "AARON", href: "/aaron-docs" },
+                { label: "AARON", href: "/aaron" },
               ].map((link, index) => (
                 <li key={link.label}>
                   <Link

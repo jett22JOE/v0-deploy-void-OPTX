@@ -338,7 +338,7 @@ function BridgePageInner() {
                 { label: "VAULT", href: "/vault" },
                 { label: "BRIDGE", href: "/bridge", active: true },
                 { label: "STAKE", href: "/stake" },
-                { label: "AARON", href: "/aaron-docs" },
+                { label: "AARON", href: "/aaron" },
               ].map((link, index) => (
                 <li key={link.label}>
                   <Link
