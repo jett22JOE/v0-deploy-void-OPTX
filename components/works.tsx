@@ -183,11 +183,11 @@ export function Works() {
                     className="max-w-4xl py-12 md:py-24 border-t border-white/10"
                   >
                     <p className="font-mono text-xs tracking-[0.3em] text-accent mb-6">02 - JOE AI </p>
-                    <h2 className="font-sans text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-8 text-white leading-[1.15]">
-                      <MatrixText text="Building the Future of" speed={30} />
+                    <h2 className="font-sans text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-8 text-white leading-[1.2]">
+                      <MatrixText text="Building the Future" speed={30} />
                       <br />
                       <span className="italic text-orange-500">
-                        <MatrixText text="Spatial Security" speed={30} />
+                        <MatrixText text="of Spatial Security" speed={30} />
                       </span>
                     </h2>
                     <p className="font-mono text-sm md:text-base text-muted-foreground leading-relaxed max-w-2xl">
