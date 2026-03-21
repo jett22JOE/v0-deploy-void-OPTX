@@ -113,49 +113,74 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
     );
   }
 
+  // Split text into words so natural word-wrapping is preserved.
+  // Each word is inline-block (won't break mid-word); spaces between
+  // words allow the browser to line-break at word boundaries.
+  const words = text.split(" ");
+
+  // Pre-compute where each word starts in the global char index.
+  const wordStarts: number[] = [];
+  let offset = 0;
+  for (const word of words) {
+    wordStarts.push(offset);
+    offset += word.length + 1; // +1 for space
+  }
+
   return (
     <span ref={ref} className={cn(className)} aria-label={text}>
-      {text.split("").map((char, index) => {
-        const isRevealed = index < revealCount;
-
-        // Each character is wrapped in a relative span that always
-        // reserves the real character's width, preventing layout shift.
-        // The scrambled glyph is absolutely positioned on top.
-        if (char === " ") {
-          return (
-            <span
-              key={`${index}-space`}
-              className={cn(isRevealed ? revealedClassName : encryptedClassName)}
-            >
-              {" "}
-            </span>
-          );
-        }
+      {words.map((word, wordIndex) => {
+        const wordStart = wordStarts[wordIndex];
 
         return (
-          <span
-            key={index}
-            className="relative inline-block"
-            style={{ overflow: "hidden" }}
-          >
-            {/* Real character — always in flow, drives width */}
-            <span
-              className={cn(revealedClassName)}
-              style={{ visibility: isRevealed ? "visible" : "hidden" }}
-            >
-              {char}
+          <React.Fragment key={wordIndex}>
+            {/* Word wrapper — inline-block keeps word together, allows wrap between words */}
+            <span className="inline-block">
+              {word.split("").map((char, charIndex) => {
+                const globalIndex = wordStart + charIndex;
+                const isRevealed = globalIndex < revealCount;
+
+                return (
+                  <span
+                    key={globalIndex}
+                    className="relative inline-block"
+                  >
+                    {/* Real character — always in flow, drives width + height */}
+                    <span
+                      className={cn(revealedClassName)}
+                      style={{ visibility: isRevealed ? "visible" : "hidden" }}
+                    >
+                      {char}
+                    </span>
+                    {/* Scrambled overlay — sits on top until revealed */}
+                    {!isRevealed && (
+                      <span
+                        key={`${globalIndex}-${scrambleKey}`}
+                        className={cn(
+                          encryptedClassName,
+                          "absolute inset-0 flex items-center justify-center"
+                        )}
+                        aria-hidden="true"
+                      >
+                        {getRandomChar(charset)}
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
             </span>
-            {/* Scrambled character overlay — shown until revealed */}
-            {!isRevealed && (
+            {/* Space between words — regular inline, participates in line wrapping */}
+            {wordIndex < words.length - 1 && (
               <span
-                key={`${index}-${scrambleKey}`}
-                className={cn(encryptedClassName, "absolute inset-0 flex items-center justify-center")}
-                aria-hidden="true"
+                className={cn(
+                  wordStart + word.length < revealCount
+                    ? revealedClassName
+                    : encryptedClassName
+                )}
               >
-                {getRandomChar(charset)}
+                {" "}
               </span>
             )}
-          </span>
+          </React.Fragment>
         );
       })}
     </span>
