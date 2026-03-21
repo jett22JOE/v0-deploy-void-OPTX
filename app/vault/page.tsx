@@ -1221,7 +1221,7 @@ export default function VaultPage() {
       {/* ═══ Devnet Notice Modal ═══ */}
       {showDevnetModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className={`max-w-md w-full mx-4 rounded-2xl border p-6 shadow-2xl ${
+          <div className={`max-w-md w-full mx-4 rounded-2xl border p-6 shadow-2xl font-mono ${
             darkMode ? "bg-[#111118] border-orange-500/30 shadow-orange-500/10" : "bg-white border-orange-200"
           }`}>
             <div className="flex items-center gap-3 mb-4">
@@ -1230,13 +1230,13 @@ export default function VaultPage() {
               </div>
               <div>
                 <h3 className="font-bold text-base" style={{ fontFamily: "var(--font-orbitron)" }}>DEVNET PREVIEW</h3>
-                <p className={`text-xs ${textMuted}`}>astroknots.space</p>
+                <p className={`text-xs font-mono ${textMuted}`}>astroknots.space</p>
               </div>
             </div>
 
             <div className={`rounded-xl p-4 mb-4 border ${darkMode ? "border-yellow-500/20 bg-yellow-500/5" : "border-yellow-300 bg-yellow-50"}`}>
-              <p className="text-yellow-400 text-xs font-bold uppercase tracking-wider mb-2">Development Notice</p>
-              <p className={`text-sm ${textSecondary} leading-relaxed`}>
+              <p className="text-yellow-400 text-xs font-bold uppercase tracking-wider mb-2 font-mono">Development Notice</p>
+              <p className={`text-xs font-mono ${textSecondary} leading-relaxed`}>
                 The JTX Community Vault is currently operating on <span className="font-bold text-orange-400">Solana devnet</span>.
                 Full on-chain functionality including SOL donations, x402 agent payments, and Raydium pool launch
                 will go live on <span className="font-bold text-orange-400">mainnet</span> once the JETT DePIN gaze authentication
@@ -1244,7 +1244,7 @@ export default function VaultPage() {
               </p>
             </div>
 
-            <div className={`space-y-2 text-xs ${textSecondary} mb-5`}>
+            <div className={`space-y-2 text-xs font-mono ${textSecondary} mb-5`}>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                 <span>Smart contract audit in progress (Anchor 0.30.1)</span>
@@ -1263,14 +1263,14 @@ export default function VaultPage() {
               </div>
             </div>
 
-            <p className={`text-[10px] ${textMuted} mb-4 leading-relaxed`}>
+            <p className={`text-[10px] font-mono ${textMuted} mb-4 leading-relaxed`}>
               You can explore the vault interface, view live JTX price data, and connect your wallet.
               Donations are disabled until mainnet launch. No funds are at risk.
             </p>
 
             <button
               onClick={() => setShowDevnetModal(false)}
-              className={`w-full py-3 rounded-xl font-bold text-sm tracking-widest transition-all ${btnOrange}`}
+              className={`w-full py-3 rounded-xl font-bold text-xs tracking-widest transition-all ${btnOrange}`}
               style={{ fontFamily: "var(--font-orbitron)" }}
             >
               I UNDERSTAND — EXPLORE VAULT
