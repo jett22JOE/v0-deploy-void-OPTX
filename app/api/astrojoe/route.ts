@@ -6,8 +6,9 @@ const FOUNDER_WALLET = "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"
 // Vercel env: MATRIX_HOMESERVER
 // Production: Tailscale Funnel public URL
 // Local dev fallback: Tailscale private IP
+// Conduit is on the /conduit subpath via Tailscale Funnel
 const MATRIX_HOMESERVER =
-  process.env.MATRIX_HOMESERVER || "https://jettoptx-joe.taile11759.ts.net"
+  process.env.MATRIX_HOMESERVER || "https://jettoptx-joe.taile11759.ts.net/conduit"
 const MATRIX_ACCESS_TOKEN = process.env.MATRIX_ACCESS_TOKEN || ""
 const MATRIX_ROOM_ID =
   process.env.MATRIX_ROOM_ID ||

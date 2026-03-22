@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 const MATRIX_HOMESERVER =
-  process.env.MATRIX_HOMESERVER || "https://jettoptx-joe.taile11759.ts.net"
+  process.env.MATRIX_HOMESERVER || "https://jettoptx-joe.taile11759.ts.net/conduit"
 const MATRIX_ACCESS_TOKEN = process.env.MATRIX_ACCESS_TOKEN || ""
 const MATRIX_ROOM_ID =
   process.env.MATRIX_ROOM_ID ||
