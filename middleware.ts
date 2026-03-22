@@ -16,8 +16,11 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/optx-login(.*)",
   "/gaze-verify(.*)",
+  "/aaron(.*)",
   "/aaron-docs(.*)",
   "/aaron-status(.*)",
+  "/bridge(.*)",
+  "/security(.*)",
   "/privacy(.*)",
   "/terms(.*)",
   "/vault(.*)",
@@ -55,6 +58,10 @@ export default clerkMiddleware(async (auth, request) => {
       const subpath = url.pathname.replace(/^\/optx\/?/, "")
       url.pathname = subpath ? `/api/aaron/${subpath}` : "/api/aaron/session"
       return NextResponse.rewrite(url)
+    }
+    // Aaron page on astroknots.space → serves /aaron directly
+    if (url.pathname === "/aaron" || url.pathname.startsWith("/aaron/")) {
+      return
     }
     // Stake page on astroknots.space → serves /stake directly
     if (url.pathname === "/stake" || url.pathname.startsWith("/stake/")) {

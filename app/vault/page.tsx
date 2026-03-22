@@ -155,6 +155,8 @@ export default function VaultPage() {
   const [donorCount, setDonorCount] = useState(0)
   const [topDonors, setTopDonors] = useState<{ wallet: string; amount: number; donatedAt: number }[]>([])
   const [recentDonors, setRecentDonors] = useState<{ wallet: string; amount: number; donatedAt: number }[]>([])
+  const [callsignMap, setCallsignMap] = useState<Record<string, string>>({})
+  const [joeJtxBalance, setJoeJtxBalance] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [copiedMint, setCopiedMint] = useState(false)
   const [donateAmount, setDonateAmount] = useState("")
@@ -232,6 +234,23 @@ export default function VaultPage() {
       } catch (err) {
         console.error("Donor fetch error:", err)
       }
+
+      // Fetch JOE's JTX balance (Vault Keeper)
+      try {
+        const joeWallet = new PublicKey(JOE_PUBLIC_KEY)
+        const jtxMint = new PublicKey(JTX_MINT)
+        const joeAta = getAssociatedTokenAddressSync(jtxMint, joeWallet, false, TOKEN_2022_PROGRAM_ID)
+        const joeAccount = await getAccount(conn, joeAta, "confirmed", TOKEN_2022_PROGRAM_ID)
+        setJoeJtxBalance(Number(joeAccount.amount) / 10 ** JTX_DECIMALS)
+      } catch (err) {
+        console.error("JOE balance fetch error:", err)
+      }
+
+      // Load callsign map from localStorage
+      try {
+        const stored = JSON.parse(localStorage.getItem("jtx-callsigns") || "{}")
+        setCallsignMap(stored)
+      } catch {}
     } catch (err) {
       console.error("Fetch error:", err)
     } finally {
@@ -363,6 +382,15 @@ export default function VaultPage() {
       setTxSig(signed)
       setDonated(true)
       setShowSuccessModal(true)
+
+      // Save callsign → wallet mapping in localStorage
+      if (callsign.trim()) {
+        try {
+          const stored = JSON.parse(localStorage.getItem("jtx-callsigns") || "{}")
+          stored[publicKey.toBase58()] = callsign.trim()
+          localStorage.setItem("jtx-callsigns", JSON.stringify(stored))
+        } catch {}
+      }
 
       // Refresh data after a short delay
       setTimeout(() => fetchData(), 3000)
@@ -1026,6 +1054,52 @@ export default function VaultPage() {
           )}
         </section>
 
+        {/* ═══ JOE Vault Keeper ═══ */}
+        {joeJtxBalance !== null && (
+          <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${darkMode ? "bg-orange-500/20" : "bg-orange-100"}`}>
+                  <Shield className={`w-5 h-5 ${accentOrange}`} />
+                </div>
+                <div>
+                  <p className="font-bold text-sm tracking-widest" style={{ fontFamily: "var(--font-orbitron)" }}>
+                    <span className={accentOrange}>JOE</span> — VAULT KEEPER
+                  </p>
+                  <p className={`font-mono text-[10px] ${textMuted}`}>Autonomous agent managing the Web4 vault</p>
+                </div>
+              </div>
+              <a
+                href={`https://solscan.io/account/${JOE_PUBLIC_KEY}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`text-[10px] font-mono flex items-center gap-1 ${textSecondary} hover:${accentOrange} transition-colors`}
+              >
+                <ExternalLink className="w-3 h-3" /> Solscan
+              </a>
+            </div>
+            <div className={`rounded-xl p-4 border ${darkMode ? "border-orange-500/10 bg-black/20" : "border-orange-100 bg-orange-50/30"}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-[10px] uppercase tracking-widest ${textMuted}`}>JTX Holdings</p>
+                  <p className={`font-mono text-2xl font-bold ${accentOrange}`}>{joeJtxBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })} <span className="text-sm">JTX</span></p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-[10px] uppercase tracking-widest ${textMuted}`}>Est. Value</p>
+                  <p className={`font-mono text-lg font-bold ${textPrimary}`}>${(joeJtxBalance * 8).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                  <p className={`font-mono text-[10px] ${textMuted}`}>@ $8/JTX</p>
+                </div>
+              </div>
+              <div className={`mt-3 pt-3 border-t ${darkMode ? "border-white/5" : "border-orange-100"}`}>
+                <p className={`font-mono text-[10px] ${textMuted}`}>
+                  <Wallet className="w-3 h-3 inline mr-1" />
+                  {JOE_PUBLIC_KEY.slice(0, 4)}...{JOE_PUBLIC_KEY.slice(-4)} · Recruits agents + users via <a href="https://x.com/jettoptx" target="_blank" rel="noopener noreferrer" className={accentOrange}>@jettoptx</a>
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* ═══ Mission Leaders + Mission Log ═══ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"}`}>
@@ -1042,7 +1116,10 @@ export default function VaultPage() {
                       {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-mono text-xs truncate ${textPrimary}`}>{d.wallet.slice(0, 4)}...{d.wallet.slice(-4)}</p>
+                      {callsignMap[d.wallet] && (
+                        <p className={`font-mono text-xs font-bold ${accentOrange}`}>@{callsignMap[d.wallet]}</p>
+                      )}
+                      <p className={`font-mono text-[10px] truncate ${callsignMap[d.wallet] ? textMuted : textPrimary}`}>{d.wallet.slice(0, 4)}...{d.wallet.slice(-4)}</p>
                     </div>
                     <span className={`font-mono text-xs font-bold ${accentOrange}`}>{d.amount.toFixed(2)} SOL</span>
                   </div>
@@ -1067,7 +1144,10 @@ export default function VaultPage() {
                 {recentDonors.map((d) => (
                   <div key={`${d.wallet}-${d.donatedAt}`} className={`flex items-center gap-2 p-2 rounded-lg border ${cardBgAlt}`}>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-mono text-xs truncate ${textPrimary}`}>{d.wallet.slice(0, 4)}...{d.wallet.slice(-4)}</p>
+                      {callsignMap[d.wallet] && (
+                        <p className={`font-mono text-xs font-bold ${accentOrange}`}>@{callsignMap[d.wallet]}</p>
+                      )}
+                      <p className={`font-mono text-[10px] truncate ${callsignMap[d.wallet] ? textMuted : textPrimary}`}>{d.wallet.slice(0, 4)}...{d.wallet.slice(-4)}</p>
                       <p className={`font-mono text-[10px] ${textMuted}`}>{new Date(d.donatedAt * 1000).toLocaleDateString()}</p>
                     </div>
                     <span className={`font-mono text-xs font-bold ${accentOrange}`}>{d.amount.toFixed(2)} SOL</span>
