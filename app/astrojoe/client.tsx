@@ -14,9 +14,16 @@ import {
   Send, Terminal, ChevronDown, ChevronRight, Image, Code2,
   Globe, Brain, Circle, Cpu, Database, Layers, Shield, Wallet,
   Zap, Network, Hash, Activity, Lock, Unlock, Server,
-  ArrowLeft,
+  ArrowLeft, ExternalLink, CheckCircle2,
 } from "lucide-react"
 import Link from "next/link"
+import nextDynamic from "next/dynamic"
+
+// Dynamic import WalletMultiButton (SSR-safe)
+const WalletMultiButton = nextDynamic(
+  () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
+  { ssr: false }
+)
 
 // ─── Constants ──────────────────────────────────────────────
 const FOUNDER_WALLET = "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"
@@ -426,6 +433,92 @@ function NodeIcon({ layer, className, style }: { layer: string; className?: stri
   }
 }
 
+// ─── Wallet Connect Button ──────────────────────────────────
+function WalletConnectButton({
+  connected,
+  isFounder,
+  walletAddress,
+  setWalletModalVisible,
+}: {
+  connected: boolean
+  isFounder: boolean
+  walletAddress: string | null
+  setWalletModalVisible: (v: boolean) => void
+}) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+  }, [])
+
+  if (connected && walletAddress) {
+    return (
+      <Badge
+        className={`text-[9px] font-mono cursor-pointer ${
+          isFounder
+            ? "bg-red-500/20 text-red-400 border-red-500/30"
+            : "bg-zinc-700/30 text-zinc-400 border-zinc-600/30"
+        }`}
+      >
+        {isFounder ? (
+          <>
+            <Lock className="w-2.5 h-2.5 mr-1" />
+            FOUNDER
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="w-2.5 h-2.5 mr-1 text-green-400" />
+            {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
+          </>
+        )}
+      </Badge>
+    )
+  }
+
+  if (isMobile) {
+    const phantomDeepLink = `https://phantom.app/ul/browse/${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "https://jettoptics.ai/astrojoe")}?ref=${encodeURIComponent("https://jettoptics.ai")}`
+    return (
+      <a
+        href={phantomDeepLink}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-mono font-bold transition-colors"
+      >
+        <Wallet className="w-3 h-3" />
+        Phantom
+        <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+      </a>
+    )
+  }
+
+  return (
+    <div className="astrojoe-wallet-btn">
+      <style jsx global>{`
+        .astrojoe-wallet-btn .wallet-adapter-button {
+          background-color: #0891b2 !important;
+          border: 1px solid rgba(6, 182, 212, 0.4) !important;
+          border-radius: 0.5rem !important;
+          font-family: "Geist Mono", ui-monospace, monospace !important;
+          font-size: 0.65rem !important;
+          font-weight: 600 !important;
+          padding: 0.25rem 0.75rem !important;
+          height: 28px !important;
+          line-height: 1 !important;
+          letter-spacing: 0.05em !important;
+          transition: background-color 0.2s !important;
+        }
+        .astrojoe-wallet-btn .wallet-adapter-button:hover {
+          background-color: #06b6d4 !important;
+        }
+        .astrojoe-wallet-btn .wallet-adapter-button-start-icon {
+          width: 14px !important;
+          height: 14px !important;
+          margin-right: 4px !important;
+        }
+      `}</style>
+      <WalletMultiButton />
+    </div>
+  )
+}
+
 // ─── Terminal Message ───────────────────────────────────────
 interface TerminalMessage {
   id: string
@@ -693,39 +786,13 @@ function TerminalPanel() {
               {conduitOnline ? "CONDUIT" : "NO MESH"}
             </span>
           </div>
-          {/* Wallet connect */}
-          {!connected && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setWalletModalVisible(true)}
-              className="h-6 text-[10px] text-zinc-500 hover:text-zinc-300"
-            >
-              <Wallet className="w-3 h-3 mr-1" />
-              Connect
-            </Button>
-          )}
-          {connected && (
-            <Badge
-              className={`text-[9px] font-mono ${
-                isFounder
-                  ? "bg-red-500/20 text-red-400 border-red-500/30"
-                  : "bg-zinc-700/30 text-zinc-400 border-zinc-600/30"
-              }`}
-            >
-              {isFounder ? (
-                <>
-                  <Lock className="w-2.5 h-2.5 mr-1" />
-                  FOUNDER
-                </>
-              ) : (
-                <>
-                  <Unlock className="w-2.5 h-2.5 mr-1" />
-                  {walletAddress?.slice(0, 4)}...{walletAddress?.slice(-4)}
-                </>
-              )}
-            </Badge>
-          )}
+          {/* Wallet connect — full WalletMultiButton */}
+          <WalletConnectButton
+            connected={connected}
+            isFounder={isFounder}
+            walletAddress={walletAddress}
+            setWalletModalVisible={setWalletModalVisible}
+          />
         </div>
       </div>
 
@@ -837,9 +904,135 @@ function TerminalPanel() {
   )
 }
 
+// ─── Wallet Gate Screen ─────────────────────────────────────
+// This is the ONE page that uses direct wallet auth — no gaze-verify redirect
+function WalletGateScreen() {
+  const { publicKey, connected } = useWallet()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+  }, [])
+
+  const phantomDeepLink = `https://phantom.app/ul/browse/${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "https://jettoptics.ai/astrojoe")}?ref=${encodeURIComponent("https://jettoptics.ai")}`
+
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="max-w-md mx-4 w-full">
+        <Card className="bg-zinc-900/80 border-zinc-800 backdrop-blur">
+          <CardHeader className="text-center pb-4">
+            <div className="flex justify-center mb-4">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+                  <Terminal className="w-8 h-8 text-cyan-400" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-black border border-zinc-700 flex items-center justify-center">
+                  <Wallet className="w-3 h-3 text-cyan-400" />
+                </div>
+              </div>
+            </div>
+            <CardTitle className="font-orbitron text-cyan-400 text-lg tracking-wider">
+              ASTROJOE
+            </CardTitle>
+            <p className="text-xs font-mono text-zinc-500 mt-1">
+              JOEclaw Terminal — OPTX Agentic OS
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-zinc-400 text-center">
+              Connect your Solana wallet to access the terminal.
+              Dev mode requires the FEU founder wallet.
+            </p>
+
+            {/* Wallet Connect */}
+            <div className="space-y-3">
+              {connected && publicKey ? (
+                <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  <span className="font-mono text-sm text-green-400">
+                    {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+                  </span>
+                </div>
+              ) : isMobile ? (
+                <a
+                  href={phantomDeepLink}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-sm border border-cyan-500/30 transition-colors"
+                >
+                  <Wallet className="w-4 h-4" />
+                  Open in Phantom App
+                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                </a>
+              ) : (
+                <div className="astrojoe-gate-wallet flex justify-center">
+                  <style jsx global>{`
+                    .astrojoe-gate-wallet .wallet-adapter-button {
+                      width: 100% !important;
+                      justify-content: center !important;
+                      background-color: #0891b2 !important;
+                      border: 1px solid rgba(6, 182, 212, 0.4) !important;
+                      border-radius: 0.75rem !important;
+                      font-family: "Geist Mono", ui-monospace, monospace !important;
+                      font-size: 0.875rem !important;
+                      font-weight: 600 !important;
+                      padding: 0.75rem 1rem !important;
+                      height: auto !important;
+                      letter-spacing: 0.05em !important;
+                      transition: background-color 0.2s !important;
+                    }
+                    .astrojoe-gate-wallet .wallet-adapter-button:hover {
+                      background-color: #06b6d4 !important;
+                    }
+                    .astrojoe-gate-wallet .wallet-adapter-button-start-icon {
+                      width: 20px !important;
+                      height: 20px !important;
+                      margin-right: 8px !important;
+                    }
+                  `}</style>
+                  <WalletMultiButton className="!w-full" />
+                </div>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />
+              <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">or</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />
+            </div>
+
+            {/* Clerk sign-in fallback */}
+            <Link href="/optx-login" className="block">
+              <Button
+                variant="outline"
+                className="w-full border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 font-mono text-sm"
+              >
+                Sign in with OPTX Account
+              </Button>
+            </Link>
+
+            {/* Supported wallets */}
+            <div className="flex flex-wrap justify-center gap-2 pt-2">
+              <Badge className="bg-zinc-800/50 text-zinc-600 border-zinc-700/50 text-[9px] font-mono">
+                Phantom
+              </Badge>
+              <Badge className="bg-zinc-800/50 text-zinc-600 border-zinc-700/50 text-[9px] font-mono">
+                Solflare
+              </Badge>
+              <Badge className="bg-zinc-800/50 text-zinc-600 border-zinc-700/50 text-[9px] font-mono">
+                Backpack
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Page ──────────────────────────────────────────────
 export default function AstroJoeClient() {
   const { user, isLoaded } = useUser()
+  const { publicKey, connected } = useWallet()
 
   if (!isLoaded) {
     return (
@@ -852,29 +1045,13 @@ export default function AstroJoeClient() {
     )
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Card className="bg-zinc-900 border-zinc-800 max-w-md mx-4">
-          <CardHeader>
-            <CardTitle className="font-orbitron text-cyan-400 text-center">
-              Authentication Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-sm text-zinc-400 mb-4">
-              Sign in to access JOEclaw Terminal.
-            </p>
-            <Link href="/sign-in">
-              <Button className="bg-cyan-600 hover:bg-cyan-500 text-white">
-                Sign In
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
+  // Not signed in AND no wallet connected → wallet gate
+  // This is the ONE page that uses wallet-first auth (no gaze-verify)
+  if (!user && !connected) {
+    return <WalletGateScreen />
   }
+
+  const displayName = user?.firstName || user?.username || (publicKey ? `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}` : "anon")
 
   return (
     <div className="min-h-screen bg-black text-zinc-200">
@@ -898,7 +1075,7 @@ export default function AstroJoeClient() {
           </Badge>
         </div>
         <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-600">
-          <span>{user.firstName || user.username}</span>
+          <span>{displayName}</span>
           <span>·</span>
           <span>grok-4.20</span>
         </div>

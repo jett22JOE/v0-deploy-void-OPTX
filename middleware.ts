@@ -26,6 +26,8 @@ const isPublicRoute = createRouteMatcher([
   "/vault(.*)",
   "/stake(.*)",
   "/api/donate(.*)",
+  "/astrojoe(.*)",
+  "/api/astrojoe(.*)",
   // OAuth callback routes - critical for social login flows
   "/sso-callback(.*)",
   "/oauth-callback(.*)",
