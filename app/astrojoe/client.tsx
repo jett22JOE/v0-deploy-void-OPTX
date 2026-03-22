@@ -6,7 +6,6 @@ import { useWallet } from "@solana/wallet-adapter-react"
 import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -586,14 +585,14 @@ function TerminalPanel() {
   const mode = isFounder ? "dev" : "public"
   const channelName = isFounder ? "astrojoe-dev" : "astrojoe"
 
-  // Convex channel setup
-  const channel = useQuery(api.astrojoe.getChannelByName, { channelName })
-  const getOrCreate = useMutation(api.astrojoe.getOrCreateChannel)
+  // Convex channel setup — uses existing messages API (already deployed)
+  const channels = useQuery(api.messages.listChannels)
+  const channel = channels?.find((c: { name: string }) => c.name === channelName) ?? null
   const convexMessages = useQuery(
-    api.astrojoe.listMessages,
-    channel ? { channelId: channel._id } : "skip"
+    api.messages.listMessages,
+    channel ? { channelId: channel._id, limit: 100 } : "skip"
   )
-  const sendConvexMsg = useMutation(api.astrojoe.sendMessage)
+  const sendConvexMsg = useMutation(api.messages.sendMessage)
 
   // Local state
   const [input, setInput] = useState("")
@@ -606,15 +605,10 @@ function TerminalPanel() {
   const inputRef = useRef<HTMLInputElement>(null)
   const channelCreated = useRef(false)
 
-  // Create channel on mount
-  useEffect(() => {
-    if (!user || channelCreated.current || channel) return
-    channelCreated.current = true
-    getOrCreate({
-      channelName: channelName as "astrojoe" | "astrojoe-dev",
-      createdBy: user.id,
-    })
-  }, [user, channel, channelName, getOrCreate])
+  // Channel is found from the existing channels list above.
+  // If it doesn't exist yet, the first sendMessage will work
+  // once a channel is manually created in Convex dashboard.
+  // No auto-create needed — messages go to Matrix directly via API route.
 
   // Check JOE status
   useEffect(() => {
@@ -666,7 +660,9 @@ function TerminalPanel() {
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim()
-    if (!trimmed || !user || sending) return
+    if (!trimmed || sending) return
+    // Allow wallet-only users (no Clerk user required)
+    if (!user && !connected) return
 
     const content = codeMode ? "```\n" + trimmed + "\n```" : trimmed
     const now = Date.now()
@@ -674,7 +670,7 @@ function TerminalPanel() {
     // Add user message locally
     const userMsg: TerminalMessage = {
       id: `local-${now}`,
-      sender: user.firstName || user.username || "user",
+      sender: user?.firstName || user?.username || (walletAddress ? `${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}` : "user"),
       content,
       type: mode === "dev" ? "dev" : "chat",
       timestamp: now,
@@ -688,8 +684,8 @@ function TerminalPanel() {
       if (channel) {
         await sendConvexMsg({
           channelId: channel._id,
-          clerkUserId: user.id,
-          displayName: user.firstName || user.username || "user",
+          clerkUserId: user?.id || walletAddress || "wallet-user",
+          displayName: user?.firstName || user?.username || (walletAddress ? `${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}` : "user"),
           content,
           messageType: mode === "dev" ? "dev" : "chat",
         })
@@ -721,7 +717,7 @@ function TerminalPanel() {
         if (channel) {
           await sendConvexMsg({
             channelId: channel._id,
-            clerkUserId: "joe-system",
+            clerkUserId: "joe-system",  // JOE system messages bypass auth
             displayName: "JOE",
             content: data.response,
             messageType: "joe",
@@ -888,7 +884,7 @@ function TerminalPanel() {
           onKeyDown={handleKeyDown}
           placeholder={mode === "dev" ? "Enter command or message..." : "Chat with JOE..."}
           className="flex-1 bg-transparent text-xs font-mono text-zinc-200 placeholder:text-zinc-600 outline-none caret-green-400"
-          disabled={!user}
+          disabled={!user && !connected}
         />
         <Button
           variant="ghost"
