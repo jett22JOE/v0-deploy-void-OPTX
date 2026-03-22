@@ -1,19 +1,28 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { CheckCircle2, AlertTriangle, XCircle, Clock, Sun, Moon, Activity, Server, Globe, Cpu, MessageSquare, Wifi, Database, Zap, Wallet, RefreshCw, Copy, Check, ExternalLink } from "lucide-react"
+import { CheckCircle2, AlertTriangle, XCircle, Clock, Sun, Moon, Activity, Server, Globe, Cpu, MessageSquare, Wifi, Database, Zap, Wallet, RefreshCw, Copy, Check, ExternalLink, Shield } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
 // ── Wallet addresses ──
-const JOE_WALLET = "PJM2Y4xqCSqxX1g9AWN5ejy8s6o9SeGfUTbj2cKEycs"
+const JOE_WALLET = "EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk"
 const FOUNDER_WALLET = "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"
 const TOKENS = {
   OPTX: { mint: "4r9WoPsRjJzrYEuj6VdwowVrFZaXpu16Qt6xogcmdUXC", decimals: 9, color: "text-orange-400", bg: "bg-orange-500" },
   JTX: { mint: "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj", decimals: 9, color: "text-cyan-400", bg: "bg-cyan-500" },
   CSTB: { mint: "4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL", decimals: 9, color: "text-purple-400", bg: "bg-purple-500" },
 }
-const SOLANA_RPC = "https://api.devnet.solana.com"
+
+// ── Mainnet RPC ──
+const _heliusKey = process.env.NEXT_PUBLIC_HELIUS_API_KEY || ""
+const _network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || "mainnet-beta"
+const _isMainnet = _network.includes("mainnet")
+const SOLANA_RPC = process.env.NEXT_PUBLIC_HELIUS_RPC_URL
+  || (_heliusKey ? `https://${_isMainnet ? "mainnet" : "devnet"}.helius-rpc.com/?api-key=${_heliusKey}` : "")
+  || (_isMainnet ? "https://api.mainnet-beta.solana.com" : "https://api.devnet.solana.com")
+
+const TOKEN_2022_PROGRAM_ID = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
 
 // ── Service definitions ──
 type ServiceStatus = "operational" | "degraded" | "outage" | "maintenance"
@@ -31,11 +40,12 @@ const SERVICES: Service[] = [
   { name: "Astro Knots Vault", desc: "astroknots.space", status: "operational", icon: Globe, uptime: 99.98, bars: Array(90).fill(true) },
   { name: "AARON Router", desc: "Biometric auth + x402", status: "operational", icon: Zap, uptime: 99.95, bars: [...Array(88).fill(true), false, true] },
   { name: "Edge Database", desc: "Real-time encrypted storage", status: "operational", icon: Database, uptime: 99.90, bars: [...Array(85).fill(true), false, ...Array(4).fill(true)] },
-  { name: "JOE Agent", desc: "Federated messaging", status: "operational", icon: MessageSquare, uptime: 99.80, bars: [...Array(82).fill(true), false, false, ...Array(6).fill(true)] },
+  { name: "JOE — Vault Keeper", desc: "Autonomous agent managing the Web4 vault", status: "operational", icon: MessageSquare, uptime: 99.80, bars: [...Array(82).fill(true), false, false, ...Array(6).fill(true)] },
   { name: "Agent Bridge", desc: "Real-time communication", status: "operational", icon: Wifi, uptime: 99.85, bars: [...Array(84).fill(true), false, ...Array(5).fill(true)] },
   { name: "Edge Compute", desc: "Dedicated inference node", status: "operational", icon: Cpu, uptime: 99.70, bars: [...Array(80).fill(true), false, ...Array(9).fill(true)] },
-  { name: "Solana RPC", desc: "Devnet + mainnet endpoints", status: "operational", icon: Activity, uptime: 99.99, bars: Array(90).fill(true) },
+  { name: "Solana RPC", desc: "Mainnet endpoints", status: "operational", icon: Activity, uptime: 99.99, bars: Array(90).fill(true) },
   { name: "Mesh Network", desc: "Encrypted device tunnels", status: "operational", icon: Server, uptime: 99.95, bars: Array(90).fill(true) },
+  { name: "Vault Program", desc: "JTX5u...EA7 on mainnet", status: "operational", icon: Shield, uptime: 100, bars: Array(90).fill(true) },
 ]
 
 const INCIDENTS = [
@@ -63,6 +73,7 @@ async function getSolBalance(address: string): Promise<number> {
 
 async function getTokenBalance(wallet: string, mint: string, decimals: number): Promise<number> {
   try {
+    // Try standard getTokenAccountsByOwner with mint filter
     const res = await fetch(SOLANA_RPC, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,9 +84,29 @@ async function getTokenBalance(wallet: string, mint: string, decimals: number): 
     })
     const data = await res.json()
     const accounts = data.result?.value || []
-    if (accounts.length === 0) return 0
-    const amount = accounts[0].account.data.parsed.info.tokenAmount.amount
-    return Number(amount) / Math.pow(10, decimals)
+    if (accounts.length > 0) {
+      const amount = accounts[0].account.data.parsed.info.tokenAmount.amount
+      return Number(amount) / Math.pow(10, decimals)
+    }
+
+    // Fallback: try Token-2022 program ID (for JTX)
+    const res2 = await fetch(SOLANA_RPC, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 1, method: "getTokenAccountsByOwner",
+        params: [wallet, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: "jsonParsed" }],
+      }),
+    })
+    const data2 = await res2.json()
+    const accounts2 = data2.result?.value || []
+    for (const acc of accounts2) {
+      if (acc.account.data.parsed.info.mint === mint) {
+        const amount = acc.account.data.parsed.info.tokenAmount.amount
+        return Number(amount) / Math.pow(10, decimals)
+      }
+    }
+    return 0
   } catch { return 0 }
 }
 
@@ -227,7 +258,7 @@ export default function StatusPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* JOE Agent Wallet */}
+            {/* JOE — Vault Keeper */}
             <div className={`p-4 rounded-xl border ${isDark ? "border-zinc-800/50 bg-zinc-900/30" : "border-zinc-200 bg-white"}`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -235,14 +266,14 @@ export default function StatusPage() {
                     <Cpu className="w-3 h-3 text-orange-500" />
                   </div>
                   <div>
-                    <p className={`font-mono text-xs font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>JOE Agent</p>
-                    <p className={`font-mono text-[8px] ${isDark ? "text-zinc-600" : "text-zinc-400"}`}>Autonomous wallet</p>
+                    <p className={`font-mono text-xs font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>JOE — Vault Keeper</p>
+                    <p className={`font-mono text-[8px] ${isDark ? "text-zinc-600" : "text-zinc-400"}`}>Autonomous agent managing the Web4 vault</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <code className={`font-mono text-[9px] ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>{shortAddr(JOE_WALLET)}</code>
                   <CopyButton text={JOE_WALLET} isDark={isDark} />
-                  <Link href={`https://solscan.io/account/${JOE_WALLET}?cluster=devnet`} target="_blank" className="p-1">
+                  <Link href={`https://solscan.io/account/${JOE_WALLET}`} target="_blank" className="p-1">
                     <ExternalLink className="w-3 h-3 text-zinc-500 hover:text-orange-400" />
                   </Link>
                 </div>
@@ -282,7 +313,7 @@ export default function StatusPage() {
                 <div className="flex items-center gap-1">
                   <code className={`font-mono text-[9px] ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>{shortAddr(FOUNDER_WALLET)}</code>
                   <CopyButton text={FOUNDER_WALLET} isDark={isDark} />
-                  <Link href={`https://solscan.io/account/${FOUNDER_WALLET}?cluster=devnet`} target="_blank" className="p-1">
+                  <Link href={`https://solscan.io/account/${FOUNDER_WALLET}`} target="_blank" className="p-1">
                     <ExternalLink className="w-3 h-3 text-zinc-500 hover:text-orange-400" />
                   </Link>
                 </div>
@@ -309,8 +340,36 @@ export default function StatusPage() {
           </div>
 
           <p className={`font-mono text-[8px] mt-2 text-center ${isDark ? "text-zinc-700" : "text-zinc-300"}`}>
-            Devnet balances • Live from Solana RPC
+            Mainnet balances • Live from Solana RPC
           </p>
+        </section>
+
+        {/* ═══ Token Supply ═══ */}
+        <section className="mb-10">
+          <h2 className={`font-mono text-xs uppercase tracking-widest mb-4 ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>
+            Token Supply
+          </h2>
+          <div className="space-y-1.5">
+            {[
+              { name: "JTX", mint: "9XpJi...hUj", standard: "Token-2022", decimals: 9, price: "$8/token", color: "text-cyan-400" },
+              { name: "OPTX", mint: "4r9Wo...UXC", standard: "SPL Token", decimals: 9, price: "Mainnet pending", color: "text-orange-400" },
+              { name: "CSTB", mint: "4waAA...kVL", standard: "SPL Token", decimals: 9, price: "—", color: "text-purple-400" },
+            ].map((t) => (
+              <div key={t.name} className={`p-3 rounded-lg border ${isDark ? "border-zinc-800/40 bg-zinc-900/20" : "border-zinc-200 bg-white"}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className={`font-mono text-xs font-bold ${t.color}`}>{t.name}</span>
+                    <span className={`font-mono text-[9px] ${isDark ? "text-zinc-600" : "text-zinc-400"}`}>Mint {t.mint}</span>
+                    <span className={`font-mono text-[8px] px-1.5 py-0.5 rounded ${isDark ? "bg-zinc-800 text-zinc-400" : "bg-zinc-100 text-zinc-500"}`}>{t.standard}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-mono text-[9px] ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>{t.decimals} dec</span>
+                    <span className={`font-mono text-[9px] ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>{t.price}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* ═══ Services ═══ */}
@@ -371,7 +430,7 @@ export default function StatusPage() {
         <section className={`p-4 rounded-lg border ${isDark ? "border-zinc-800/30 bg-zinc-900/10" : "border-zinc-100 bg-zinc-50"}`}>
           <p className={`font-mono text-[10px] leading-relaxed ${isDark ? "text-zinc-600" : "text-zinc-400"}`}>
             Status of the Astro Knots edge infrastructure. All services run on dedicated hardware with WireGuard encryption.
-            Wallet balances fetched live from Solana devnet. Contact{" "}
+            Wallet balances fetched live from Solana mainnet. Contact{" "}
             <Link href="https://x.com/jettoptx" target="_blank" className="text-orange-500 hover:underline">@jettoptx</Link>.
           </p>
         </section>

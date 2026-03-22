@@ -171,6 +171,19 @@ export default function VaultPage() {
   const [txSig, setTxSig] = useState<string | null>(null)
   const [txError, setTxError] = useState<string | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showReceiptModal, setShowReceiptModal] = useState(false)
+  const [donorReceipt, setDonorReceipt] = useState<{
+    donationLamports: number
+    donationValueUsdc: number
+    solPriceUsdc: number
+    jtxEntitled: number
+    jtxPriceUsdc: number
+    multiplierBps: number
+    mintedAt: number
+    claimed: boolean
+    paymentMethod: number
+    isPreview: boolean
+  } | null>(null)
 
   const pctRaised = solRaised > 0 ? (solRaised / SOL_GOAL) * 100 : 0
   const dollarRaised = solRaised * SOL_PRICE_EST
@@ -246,6 +259,57 @@ export default function VaultPage() {
         console.error("JOE balance fetch error:", err)
       }
 
+      // Fetch NFT receipt for connected wallet
+      if (publicKey) {
+        const vaultPda = getVaultPda()
+        const receiptPda = getReceiptPda(vaultPda, publicKey)
+        const donorPda = getDonorPda(publicKey)
+        try {
+          const receiptInfo = await conn.getAccountInfo(receiptPda)
+          if (receiptInfo && receiptInfo.data.length >= 125) {
+            const rData = receiptInfo.data
+            setDonorReceipt({
+              donationLamports: Number(rData.readBigUInt64LE(72)),
+              donationValueUsdc: Number(rData.readBigUInt64LE(80)),
+              solPriceUsdc: Number(rData.readBigUInt64LE(88)),
+              jtxEntitled: Number(rData.readBigUInt64LE(96)),
+              jtxPriceUsdc: Number(rData.readBigUInt64LE(104)),
+              multiplierBps: rData.readUInt16LE(112),
+              mintedAt: Number(rData.readBigInt64LE(114)),
+              claimed: rData[122] === 1,
+              paymentMethod: rData[123],
+              isPreview: false,
+            })
+          } else {
+            const donorInfo = await conn.getAccountInfo(donorPda)
+            if (donorInfo && donorInfo.data.length >= 95) {
+              const dData = donorInfo.data
+              const lamports = Number(dData.readBigUInt64LE(40))
+              const usdcValue = (lamports / 1e9) * SOL_PRICE_EST * 1e6
+              const jtxEntitled = ((usdcValue / 1e6) / 8) * 1e9
+              const multiplier = dData.readUInt16LE(92)
+              const jtxWithMultiplier = (jtxEntitled * multiplier) / 100
+              setDonorReceipt({
+                donationLamports: lamports,
+                donationValueUsdc: Math.round(usdcValue),
+                solPriceUsdc: SOL_PRICE_EST * 1e6,
+                jtxEntitled: Math.round(jtxWithMultiplier),
+                jtxPriceUsdc: 8_000_000,
+                multiplierBps: multiplier,
+                mintedAt: Number(dData.readBigInt64LE(48)),
+                claimed: false,
+                paymentMethod: 0,
+                isPreview: true,
+              })
+            } else {
+              setDonorReceipt(null)
+            }
+          }
+        } catch (err) {
+          console.error("Receipt fetch error:", err)
+        }
+      }
+
       // Load callsign map from localStorage
       try {
         const stored = JSON.parse(localStorage.getItem("jtx-callsigns") || "{}")
@@ -256,7 +320,8 @@ export default function VaultPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publicKey])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -646,6 +711,25 @@ export default function VaultPage() {
                           </button>
                         )}
 
+                        {/* View NFT Receipt */}
+                        {donorReceipt && (
+                          <button
+                            onClick={() => {
+                              setWalletMenuOpen(false)
+                              setShowReceiptModal(true)
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
+                              darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                            }`}
+                          >
+                            <Trophy className="w-4 h-4 text-orange-400" />
+                            <div>
+                              <p className="font-medium">View My NFT Receipt</p>
+                              <p className={`text-[10px] ${textMuted}`}>{donorReceipt.isPreview ? "Preview — pending mint" : "On-chain receipt"}</p>
+                            </div>
+                          </button>
+                        )}
+
                         {/* Divider */}
                         <div className={`mx-2 border-t ${darkMode ? "border-orange-500/10" : "border-orange-100"}`} />
 
@@ -703,6 +787,19 @@ export default function VaultPage() {
             Raising {SOL_GOAL.toLocaleString()} SOL to unlock 97,680 JTX tokens ($1.56M liquidity at $8/token)
           </p>
         </div>
+
+        {/* ═══ NFT Receipt Button ═══ */}
+        {connected && donorReceipt && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowReceiptModal(true)}
+              className={`px-5 py-2.5 rounded-xl font-bold text-xs tracking-widest flex items-center gap-2 transition-all ${btnOrange} shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40`}
+              style={{ fontFamily: "var(--font-orbitron)" }}
+            >
+              🎫 VIEW MY NFT RECEIPT
+            </button>
+          </div>
+        )}
 
         {/* ═══ Mission Status ═══ */}
         <section className={`rounded-2xl border p-6 ${cardBg}`}>
@@ -1583,40 +1680,157 @@ export default function VaultPage() {
         </div>
       )}
 
-      {/* ═══ Devnet Notice Modal ═══ */}
+      {/* ═══ NFT Receipt Modal ═══ */}
+      {showReceiptModal && donorReceipt && publicKey && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className={`max-w-md w-full mx-4 rounded-2xl border p-6 shadow-2xl font-mono ${
+            darkMode ? "bg-[#111118] border-orange-500/30 shadow-orange-500/10" : "bg-white border-orange-200"
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-base" style={{ fontFamily: "var(--font-orbitron)" }}>
+                  ✨ JTX VAULT — NFT RECEIPT
+                </h3>
+                <p className={`text-[10px] font-mono mt-0.5 ${donorReceipt.isPreview ? "text-yellow-400" : "text-emerald-400"}`}>
+                  {donorReceipt.isPreview ? "PREVIEW" : "ON-CHAIN"}
+                </p>
+              </div>
+              <button onClick={() => setShowReceiptModal(false)} className={`text-xs ${textMuted} hover:text-orange-400`}>[close]</button>
+            </div>
+
+            {/* Holographic NFT Card */}
+            <div className="relative rounded-xl p-[2px] mb-4" style={{ background: "conic-gradient(from 0deg, #f97316, #06b6d4, #a855f7, #f97316)" }}>
+              <div className={`rounded-[10px] p-5 ${darkMode ? "bg-[#0d0d14]" : "bg-white"}`}>
+                {/* Callsign + Wallet */}
+                <div className="mb-4">
+                  {callsignMap[publicKey.toBase58()] && (
+                    <p className={`text-sm font-bold ${accentOrange}`} style={{ fontFamily: "var(--font-orbitron)" }}>
+                      @{callsignMap[publicKey.toBase58()]}
+                    </p>
+                  )}
+                  <p className={`font-mono text-[11px] ${textSecondary}`}>
+                    {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+                  </p>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <p className={`text-[9px] uppercase tracking-wider ${textMuted}`}>Donated</p>
+                    <p className="text-sm font-bold">{(donorReceipt.donationLamports / 1e9).toFixed(4)} SOL</p>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] uppercase tracking-wider ${textMuted}`}>USDC Value</p>
+                    <p className="text-sm font-bold">${(donorReceipt.donationValueUsdc / 1e6).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] uppercase tracking-wider ${textMuted}`}>JTX Entitled</p>
+                    <p className="text-sm font-bold text-cyan-400">{(donorReceipt.jtxEntitled / 1e9).toFixed(4)} JTX</p>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] uppercase tracking-wider ${textMuted}`}>OPTX Reward</p>
+                    <p className="text-sm font-bold text-purple-400">{((donorReceipt.jtxEntitled / 1e9) * (donorReceipt.multiplierBps / 100)).toFixed(4)} OPTX</p>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] uppercase tracking-wider ${textMuted}`}>Multiplier</p>
+                    <p className="text-sm font-bold">{(donorReceipt.multiplierBps / 100).toFixed(1)}x</p>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] uppercase tracking-wider ${textMuted}`}>Method</p>
+                    <p className="text-sm font-bold">{donorReceipt.paymentMethod === 0 ? "SOL (Human)" : "USDC (Agent)"}</p>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] uppercase tracking-wider ${textMuted}`}>Status</p>
+                    <p className="text-sm font-bold">{donorReceipt.claimed ? "✅ Claimed" : "⏳ Pending"}</p>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] uppercase tracking-wider ${textMuted}`}>Minted</p>
+                    <p className="text-sm font-bold">{donorReceipt.mintedAt > 0 ? new Date(donorReceipt.mintedAt * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}</p>
+                  </div>
+                </div>
+
+                {/* Estimated value */}
+                <div className={`border-t pt-3 ${darkMode ? "border-white/10" : "border-gray-200"}`}>
+                  <p className={`text-[10px] ${textSecondary}`}>
+                    Est. value: <span className="font-bold text-orange-400">${(donorReceipt.donationValueUsdc / 1e6).toFixed(2)} USDC</span> @ $8/JTX
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between gap-3">
+              <a
+                href={`https://solscan.io/account/${publicKey.toBase58()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-colors ${
+                  darkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                }`}
+              >
+                Solscan <ExternalLink className="w-3 h-3" />
+              </a>
+              <button
+                onClick={() => setShowReceiptModal(false)}
+                className={`text-xs px-4 py-2 rounded-lg transition-colors ${
+                  darkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                }`}
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Preview notice */}
+            {donorReceipt.isPreview && (
+              <p className={`text-[9px] font-mono mt-3 text-center ${darkMode ? "text-yellow-400/60" : "text-yellow-600/60"}`}>
+                Receipt Preview — NFT will be minted on-chain after vault program upgrade
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Mainnet Live Modal ═══ */}
       {showDevnetModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className={`max-w-md w-full mx-4 rounded-2xl border p-6 shadow-2xl font-mono ${
             darkMode ? "bg-[#111118] border-orange-500/30 shadow-orange-500/10" : "bg-white border-orange-200"
           }`}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-orange-400" />
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <h3 className="font-bold text-base" style={{ fontFamily: "var(--font-orbitron)" }}>DEVNET PREVIEW</h3>
+                <h3 className="font-bold text-base" style={{ fontFamily: "var(--font-orbitron)" }}>MAINNET LIVE</h3>
                 <p className={`text-xs font-mono ${textMuted}`}>astroknots.space</p>
               </div>
             </div>
 
-            <div className={`rounded-xl p-4 mb-4 border ${darkMode ? "border-yellow-500/20 bg-yellow-500/5" : "border-yellow-300 bg-yellow-50"}`}>
-              <p className="text-yellow-400 text-xs font-bold uppercase tracking-wider mb-2 font-mono">Development Notice</p>
+            <div className={`rounded-xl p-4 mb-4 border ${darkMode ? "border-emerald-500/20 bg-emerald-500/5" : "border-emerald-300 bg-emerald-50"}`}>
+              <p className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2 font-mono">Operational Status</p>
               <p className={`text-xs font-mono ${textSecondary} leading-relaxed`}>
-                The JTX Community Vault is currently operating on <span className="font-bold text-orange-400">Solana {_isMainnet ? "Mainnet" : "Devnet"}</span>.
-                Full on-chain functionality including SOL donations, x402 agent payments, and Raydium pool launch
-                will go live on <span className="font-bold text-orange-400">mainnet</span> once the JETT DePIN gaze authentication
-                system is verified in DOJO.
+                The JTX Community Vault is live on <span className="font-bold text-orange-400">Solana Mainnet</span>. SOL donations are fully
+                operational via the on-chain Anchor program. Agent wallets can donate via
+                x402 payment headers or Tempo CLI (MPP).
               </p>
             </div>
 
-            <div className={`space-y-2 text-xs font-mono ${textSecondary} mb-5`}>
+            <div className={`space-y-2 text-xs font-mono ${textSecondary} mb-4`}>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>Smart contract audit in progress (Anchor 0.30.1)</span>
+                <span>Vault program deployed (Anchor 0.30.1) — mainnet verified</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span>SOL donations live — human wallets + agent wallets</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span>Agent payments via x402 / MPP (Tempo CLI)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                <span>JETT gaze auth DePIN testing in DOJO</span>
+                <span>JETT gaze auth DePIN verification in DOJO</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
@@ -1624,13 +1838,40 @@ export default function VaultPage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                <span>Estimated mainnet launch: ~4 weeks</span>
+                <span>NFT receipts — minted after vault period ends</span>
               </div>
             </div>
 
+            {/* Agent Integration (collapsible) */}
+            <details className="mb-4 group">
+              <summary className={`text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer select-none ${accentOrange} flex items-center gap-1`}>
+                <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
+                Agent Integration
+              </summary>
+              <div className={`mt-2 relative rounded-lg overflow-hidden ${darkMode ? "bg-black/50" : "bg-zinc-900"}`}>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `POST astroknots.space/api/donate\nx-payment: x402\n\n# Tempo CLI\ntempo send SOL --to vault --amount 0.1 --memo "JTX vault donation"`
+                    )
+                  }}
+                  className="absolute top-2 right-2 p-1 rounded hover:bg-white/10 transition-colors"
+                  title="Copy"
+                >
+                  <Copy className="w-3 h-3 text-zinc-400" />
+                </button>
+                <pre className="p-3 text-[10px] font-mono text-emerald-300 leading-relaxed whitespace-pre-wrap">{`POST astroknots.space/api/donate
+x-payment: x402
+
+# Tempo CLI
+tempo send SOL --to vault --amount 0.1 --memo "JTX vault donation"`}</pre>
+              </div>
+            </details>
+
             <p className={`text-[10px] font-mono ${textMuted} mb-4 leading-relaxed`}>
-              You can explore the vault interface, view live JTX price data, and connect your wallet.
-              Donations are disabled until mainnet launch. No funds are at risk.
+              Connect your wallet to donate SOL or JTX. Agents can use x402 payment
+              headers or Tempo CLI for automated donations. All transactions recorded
+              on-chain with NFT receipt entitlements.
             </p>
 
             <button
@@ -1638,7 +1879,7 @@ export default function VaultPage() {
               className={`w-full py-3 rounded-xl font-bold text-xs tracking-widest transition-all ${btnOrange}`}
               style={{ fontFamily: "var(--font-orbitron)" }}
             >
-              I UNDERSTAND — EXPLORE VAULT
+              EXPLORE VAULT
             </button>
           </div>
         </div>
