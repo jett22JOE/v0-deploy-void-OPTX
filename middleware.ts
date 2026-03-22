@@ -68,6 +68,10 @@ export default clerkMiddleware(async (auth, request) => {
     if (url.pathname === "/stake" || url.pathname.startsWith("/stake/")) {
       return
     }
+    // API routes on astroknots.space → pass through (agent donate, webhooks, etc.)
+    if (url.pathname.startsWith("/api/")) {
+      return
+    }
     // Vault routes
     if (url.pathname === "/" || url.pathname.startsWith("/vault")) {
       if (!url.pathname.startsWith("/vault")) {
