@@ -1,0 +1,921 @@
+"use client"
+
+import { useState, useEffect, useRef, useCallback } from "react"
+import { useUser } from "@clerk/nextjs"
+import { useWallet } from "@solana/wallet-adapter-react"
+import { useWalletModal } from "@solana/wallet-adapter-react-ui"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  Send, Terminal, ChevronDown, ChevronRight, Image, Code2,
+  Globe, Brain, Circle, Cpu, Database, Layers, Shield, Wallet,
+  Zap, Network, Hash, Activity, Lock, Unlock, Server,
+  ArrowLeft,
+} from "lucide-react"
+import Link from "next/link"
+
+// ─── Constants ──────────────────────────────────────────────
+const FOUNDER_WALLET = "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"
+
+// ─── Architecture Data ──────────────────────────────────────
+const LAYERS = [
+  {
+    id: "L0",
+    name: "USER / CLOUD INTERFACE",
+    color: "#06b6d4",
+    nodes: [
+      { name: "Perplexity Max + Computer", tags: ["SEARCH API", "SONAR"] },
+      { name: "Grok 4.20 (xAI)", tags: ["xBridge MCP"] },
+      { name: "Matrix Protocol (Admin)", tags: ["E2E", "Conduit"] },
+      { name: "jettoptics.ai", tags: ["Next.js", "Convex", "Clerk"] },
+    ],
+  },
+  {
+    id: "L1",
+    name: "JOE AGENT (ORCHESTRATOR)",
+    color: "#a855f7",
+    nodes: [
+      { name: "JOE Core (brain.py)", tags: ["SpacetimeDB", "Python", "SOVEREIGN"] },
+      { name: "NemoClaw Harness", tags: ["OpenClaw", "OpenShell", "K8s"] },
+      { name: "AARON Router", tags: ["port :8888", "x402", "Web3/4"] },
+      { name: "JOEclaw Subagents", tags: ["MCP", "Stripe", "SWARM"] },
+      { name: "Tailscale Mesh Network", tags: ["100.x.x.x overlay"] },
+      { name: "WebSocket Bridge", tags: ["port :8765", "WSS"] },
+    ],
+  },
+  {
+    id: "L2",
+    name: "PRIVATE LAYER (HEDGEHOG SPACETIME)",
+    color: "#f97316",
+    nodes: [
+      { name: "HEDGEHOG MCP", tags: ["port :5555", "Grok 4.1", "xBridge", "DEFENSE"] },
+      { name: "Private Knot-Engine", tags: ["AstroKnots theory", "Rust", "QUANTUM"] },
+      { name: "SpacetimeDB", tags: ["Rust Reducers", "systemd", "WASM"] },
+      { name: "AGTs (Gaze Tensors)", tags: ["Patent US20250392457A1", "Markov"] },
+      { name: "Xaman Wallet", tags: ["XRPL", "Xahau", "HOOKS"] },
+      { name: "ERC-8004 Agent Wallet", tags: ["ERC-8004", "READ-ONLY"] },
+    ],
+  },
+  {
+    id: "L3",
+    name: "EDGE COMPUTE (JETSON JOE)",
+    color: "#22c55e",
+    nodes: [
+      { name: "NVIDIA Jetson Orin Nano", tags: ["ARM64", "CUDA", "Tailscale"] },
+      { name: "Docker Runtime", tags: ["Conduit :6167", "xBridge-MCP"] },
+      { name: "xBridge MCP Server", tags: ["19 tools", "xAI", "BYOK"] },
+      { name: "Nemotron Local", tags: ["NemoClaw", "INT8", "LOCAL"] },
+      { name: "Corsair Workstation", tags: ["WSL2", "Docker", "RTX"] },
+    ],
+  },
+  {
+    id: "L4",
+    name: "MULTI-CHAIN SETTLEMENT",
+    color: "#eab308",
+    nodes: [
+      { name: "Solana", tags: ["USDC/SOL", "JTX/SOL", "OPTX/JTX", "Raydium"] },
+      { name: "XRPL / Xahau", tags: ["USDC/XRP", "MAG/RLUSD", "AMM"] },
+      { name: "EVM (Ethereum)", tags: ["WLFI", "USD1", "ERC-8004"] },
+      { name: "Revenue Streams", tags: ["swap fees", "LP yield", "x402", "RWA"] },
+    ],
+  },
+  {
+    id: "L5",
+    name: "HYPERSPACE PROOF OF INTELLIGENCE",
+    color: "#ef4444",
+    nodes: [
+      { name: "PoI Experiment Loop", tags: ["GossipSub", "libp2p", "AGENTCOMMIT 0xF3"] },
+      { name: "ResearchDAG", tags: ["Merkle DAG", "zkWASM"] },
+      { name: "HSCP Verification", tags: ["SHA-256", "INT8"] },
+      { name: "Hyperspace Node Roles", tags: ["Miner", "Fullnode", "Router", "Relay"] },
+      { name: "Slashing & Security", tags: ["VRF", "sybil detection"] },
+    ],
+  },
+]
+
+const BRAIN_MODULES = [
+  {
+    category: "Identity & Auth",
+    modules: [
+      { table: "agent_identity", reducers: ["init_identity", "update_identity"] },
+      { table: "auth_gaze_tensors", reducers: ["verify_gaze", "bind_agt"] },
+      { table: "key_registry", reducers: ["store_key_entry", "revoke_key"] },
+    ],
+  },
+  {
+    category: "Skills & Tools",
+    modules: [
+      { table: "tool_registry", reducers: ["register_tool", "deregister_tool"] },
+      { table: "skill_modules", reducers: ["learn_skill", "invoke_skill"] },
+      { table: "nemoclaw_policies", reducers: ["set_policy", "check_policy"] },
+    ],
+  },
+  {
+    category: "Memory & Context",
+    modules: [
+      { table: "conversations", reducers: ["store_message", "get_history"] },
+      { table: "local_rag", reducers: ["index_doc", "query_rag"] },
+      { table: "perplexity_calls", reducers: ["execute_search", "cache_result"] },
+    ],
+  },
+  {
+    category: "Inference & Routing",
+    modules: [
+      { table: "grok_calls", reducers: ["log_grok_call", "track_cost"] },
+      { table: "routing_state", reducers: ["route_request", "select_model"] },
+      { table: "audit_log", reducers: ["log_action", "query_audit"] },
+    ],
+  },
+  {
+    category: "Tasks & On-Chain",
+    modules: [
+      { table: "task_queue", reducers: ["enqueue_task", "complete_task"] },
+      { table: "wallet_state", reducers: ["record_tx", "sync_balance"] },
+      { table: "player_state", reducers: ["update_dojo", "earn_optx"] },
+      { table: "poi_state", reducers: ["commit_experiment", "log_adoption"] },
+    ],
+  },
+]
+
+// ─── Topology SVG ───────────────────────────────────────────
+function TopologySVG() {
+  const nodes = [
+    // L0
+    { id: "perplexity", label: "PERPLEXITY", x: 80, y: 30, color: "#06b6d4" },
+    { id: "grok", label: "GROK 4.20", x: 240, y: 30, color: "#06b6d4" },
+    { id: "matrix", label: "MATRIX", x: 400, y: 30, color: "#06b6d4" },
+    { id: "jettoptics", label: "jettoptics.ai", x: 560, y: 30, color: "#06b6d4" },
+    // L1
+    { id: "joe", label: "JOE CORE", x: 320, y: 110, color: "#a855f7" },
+    { id: "nemoclaw", label: "NemoClaw", x: 120, y: 110, color: "#a855f7" },
+    { id: "aaron", label: "AARON", x: 520, y: 110, color: "#a855f7" },
+    // Brain
+    { id: "brain", label: "SpacetimeDB", x: 320, y: 180, color: "#ec4899" },
+    // L2
+    { id: "hedgehog", label: "HEDGEHOG", x: 200, y: 250, color: "#f97316" },
+    { id: "knot", label: "Knot-Engine", x: 440, y: 250, color: "#f97316" },
+    // L3
+    { id: "jetson", label: "JETSON JOE", x: 320, y: 320, color: "#22c55e" },
+    // L4
+    { id: "solana", label: "Solana", x: 160, y: 390, color: "#eab308" },
+    { id: "xrpl", label: "XRPL", x: 320, y: 390, color: "#eab308" },
+    { id: "evm", label: "EVM", x: 480, y: 390, color: "#eab308" },
+    // L5
+    { id: "poi", label: "PoI Network", x: 320, y: 460, color: "#ef4444" },
+  ]
+
+  const edges = [
+    { from: "perplexity", to: "joe" }, { from: "grok", to: "joe" },
+    { from: "matrix", to: "joe" }, { from: "jettoptics", to: "joe" },
+    { from: "joe", to: "nemoclaw" }, { from: "joe", to: "aaron" },
+    { from: "joe", to: "brain" },
+    { from: "brain", to: "hedgehog" }, { from: "brain", to: "knot" },
+    { from: "hedgehog", to: "jetson" }, { from: "knot", to: "jetson" },
+    { from: "jetson", to: "solana" }, { from: "jetson", to: "xrpl" },
+    { from: "jetson", to: "evm" },
+    { from: "solana", to: "poi" }, { from: "xrpl", to: "poi" },
+    { from: "evm", to: "poi" },
+  ]
+
+  const nodeMap = Object.fromEntries(nodes.map((n) => [n.id, n]))
+
+  return (
+    <svg viewBox="0 0 660 500" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      {edges.map((e, i) => {
+        const from = nodeMap[e.from]
+        const to = nodeMap[e.to]
+        return (
+          <line
+            key={i}
+            x1={from.x}
+            y1={from.y + 12}
+            x2={to.x}
+            y2={to.y - 12}
+            stroke={to.color}
+            strokeWidth="1"
+            strokeOpacity="0.4"
+          />
+        )
+      })}
+      {nodes.map((n) => (
+        <g key={n.id} filter="url(#glow)">
+          <rect
+            x={n.x - 50}
+            y={n.y - 12}
+            width="100"
+            height="24"
+            rx="4"
+            fill="rgba(0,0,0,0.6)"
+            stroke={n.color}
+            strokeWidth="1"
+            strokeOpacity="0.6"
+          />
+          <text
+            x={n.x}
+            y={n.y + 4}
+            textAnchor="middle"
+            fill={n.color}
+            fontSize="10"
+            fontFamily="var(--font-geist-mono), monospace"
+          >
+            {n.label}
+          </text>
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+// ─── Architecture Panel ─────────────────────────────────────
+function ArchitecturePanel() {
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({ L1: true })
+  const [brainExpanded, setBrainExpanded] = useState(false)
+
+  const toggle = (id: string) =>
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }))
+
+  return (
+    <div className="flex flex-col h-full overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+        <div className="flex items-center gap-2">
+          <Layers className="w-4 h-4 text-cyan-400" />
+          <h2 className="font-orbitron text-sm font-bold tracking-wider text-cyan-400">
+            OPTX AGENTIC OS (jOSH)
+          </h2>
+        </div>
+        <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-[10px]">
+          Mesh v2.9
+        </Badge>
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-2 px-4 py-2 border-b border-zinc-800/50">
+        {LAYERS.map((l) => (
+          <span
+            key={l.id}
+            className="text-[10px] font-mono flex items-center gap-1"
+            style={{ color: l.color }}
+          >
+            <span
+              className="w-2 h-2 rounded-full inline-block"
+              style={{ backgroundColor: l.color }}
+            />
+            {l.id}
+          </span>
+        ))}
+        <span className="text-[10px] font-mono flex items-center gap-1 text-pink-400">
+          <span className="w-2 h-2 rounded-full inline-block bg-pink-400" />
+          Brain
+        </span>
+      </div>
+
+      {/* Layers */}
+      <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
+        {LAYERS.map((layer) => (
+          <div key={layer.id} className="rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggle(layer.id)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-zinc-800/50 transition-colors rounded-lg"
+            >
+              {expanded[layer.id] ? (
+                <ChevronDown className="w-3 h-3 flex-shrink-0" style={{ color: layer.color }} />
+              ) : (
+                <ChevronRight className="w-3 h-3 flex-shrink-0" style={{ color: layer.color }} />
+              )}
+              <span
+                className="font-orbitron text-[11px] font-bold tracking-wider"
+                style={{ color: layer.color }}
+              >
+                {layer.id} — {layer.name}
+              </span>
+            </button>
+            {expanded[layer.id] && (
+              <div className="grid gap-1 px-2 pb-2">
+                {layer.nodes.map((node, ni) => (
+                  <div
+                    key={ni}
+                    className="flex items-start gap-2 px-3 py-2 rounded-md bg-zinc-900/60 border border-zinc-800/50 hover:border-zinc-700/50 transition-colors"
+                  >
+                    <NodeIcon layer={layer.id} className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: layer.color }} />
+                    <div className="min-w-0">
+                      <div className="text-xs font-mono text-zinc-200 truncate">
+                        {node.name}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {node.tags.map((tag, ti) => (
+                          <span
+                            key={ti}
+                            className="text-[9px] font-mono px-1.5 py-0.5 rounded-sm"
+                            style={{
+                              backgroundColor: `${layer.color}15`,
+                              color: layer.color,
+                              border: `1px solid ${layer.color}30`,
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* SpacetimeDB Brain Section */}
+        <div className="rounded-lg overflow-hidden">
+          <button
+            onClick={() => setBrainExpanded(!brainExpanded)}
+            className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-zinc-800/50 transition-colors rounded-lg"
+          >
+            {brainExpanded ? (
+              <ChevronDown className="w-3 h-3 flex-shrink-0 text-pink-400" />
+            ) : (
+              <ChevronRight className="w-3 h-3 flex-shrink-0 text-pink-400" />
+            )}
+            <Brain className="w-3.5 h-3.5 text-pink-400" />
+            <span className="font-orbitron text-[11px] font-bold tracking-wider text-pink-400">
+              JOE BRAIN — SPACETIMEDB
+            </span>
+            <Badge className="ml-auto bg-pink-500/20 text-pink-400 border-pink-500/30 text-[9px]">
+              16 reducers · 48+ tables
+            </Badge>
+          </button>
+          {brainExpanded && (
+            <div className="px-2 pb-2 space-y-2">
+              {BRAIN_MODULES.map((cat, ci) => (
+                <div key={ci}>
+                  <div className="text-[10px] font-orbitron font-bold text-pink-400/70 px-3 py-1 uppercase tracking-widest">
+                    {cat.category}
+                  </div>
+                  <div className="grid gap-1">
+                    {cat.modules.map((mod, mi) => (
+                      <div
+                        key={mi}
+                        className="flex items-start gap-2 px-3 py-1.5 rounded-md bg-pink-950/20 border border-pink-900/20"
+                      >
+                        <Database className="w-3 h-3 mt-0.5 text-pink-400/60 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-[11px] font-mono text-pink-300">
+                            {mod.table}
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {mod.reducers.map((r, ri) => (
+                              <span
+                                key={ri}
+                                className="text-[9px] font-mono px-1 py-0.5 rounded-sm bg-pink-500/10 text-pink-400/80 border border-pink-500/20"
+                              >
+                                {r}()
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div className="flex flex-wrap gap-2 px-3 py-2 text-[9px] font-mono text-pink-400/60">
+                <span>WASM Compiled</span>
+                <span>·</span>
+                <span>Real-Time Subscriptions</span>
+                <span>·</span>
+                <span>ACID per Reducer</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Topology SVG */}
+        <div className="mt-2 rounded-lg border border-zinc-800/50 bg-zinc-950/50 p-2">
+          <div className="text-[10px] font-orbitron text-zinc-500 px-2 py-1 uppercase tracking-widest">
+            Topology
+          </div>
+          <TopologySVG />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NodeIcon({ layer, className, style }: { layer: string; className?: string; style?: React.CSSProperties }) {
+  switch (layer) {
+    case "L0": return <Globe className={className} style={style} />
+    case "L1": return <Cpu className={className} style={style} />
+    case "L2": return <Shield className={className} style={style} />
+    case "L3": return <Server className={className} style={style} />
+    case "L4": return <Wallet className={className} style={style} />
+    case "L5": return <Zap className={className} style={style} />
+    default: return <Hash className={className} style={style} />
+  }
+}
+
+// ─── Terminal Message ───────────────────────────────────────
+interface TerminalMessage {
+  id: string
+  sender: string
+  content: string
+  type: "chat" | "joe" | "system" | "dev" | "error"
+  timestamp: number
+}
+
+function TerminalLine({ msg }: { msg: TerminalMessage }) {
+  const colorMap: Record<string, string> = {
+    chat: "text-zinc-300",
+    joe: "text-cyan-400",
+    system: "text-yellow-400",
+    dev: "text-green-400",
+    error: "text-red-400",
+  }
+
+  const prefixMap: Record<string, string> = {
+    chat: "user",
+    joe: "JOE",
+    system: "SYS",
+    dev: "DEV",
+    error: "ERR",
+  }
+
+  const time = new Date(msg.timestamp).toLocaleTimeString("en-US", {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+
+  return (
+    <div className="group px-3 py-0.5 hover:bg-zinc-800/30">
+      <div className="flex items-start gap-2 text-xs font-mono">
+        <span className="text-zinc-600 flex-shrink-0 select-none">{time}</span>
+        <span className={`flex-shrink-0 ${colorMap[msg.type]}`}>
+          [{prefixMap[msg.type]}]
+        </span>
+        {msg.type === "chat" && (
+          <span className="text-zinc-500 flex-shrink-0">{msg.sender}:</span>
+        )}
+        <span
+          className={`break-words whitespace-pre-wrap ${
+            msg.type === "joe" || msg.type === "dev"
+              ? colorMap[msg.type]
+              : "text-zinc-300"
+          }`}
+        >
+          {msg.content}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ─── JOEclaw Terminal Panel ─────────────────────────────────
+function TerminalPanel() {
+  const { user } = useUser()
+  const { publicKey, connected } = useWallet()
+  const { setVisible: setWalletModalVisible } = useWalletModal()
+
+  const walletAddress = publicKey?.toBase58() ?? null
+  const isFounder = walletAddress === FOUNDER_WALLET
+  const mode = isFounder ? "dev" : "public"
+  const channelName = isFounder ? "astrojoe-dev" : "astrojoe"
+
+  // Convex channel setup
+  const channel = useQuery(api.astrojoe.getChannelByName, { channelName })
+  const getOrCreate = useMutation(api.astrojoe.getOrCreateChannel)
+  const convexMessages = useQuery(
+    api.astrojoe.listMessages,
+    channel ? { channelId: channel._id } : "skip"
+  )
+  const sendConvexMsg = useMutation(api.astrojoe.sendMessage)
+
+  // Local state
+  const [input, setInput] = useState("")
+  const [localMessages, setLocalMessages] = useState<TerminalMessage[]>([])
+  const [joeOnline, setJoeOnline] = useState(true)
+  const [conduitOnline, setConduitOnline] = useState(false)
+  const [codeMode, setCodeMode] = useState(false)
+  const [sending, setSending] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const channelCreated = useRef(false)
+
+  // Create channel on mount
+  useEffect(() => {
+    if (!user || channelCreated.current || channel) return
+    channelCreated.current = true
+    getOrCreate({
+      channelName: channelName as "astrojoe" | "astrojoe-dev",
+      createdBy: user.id,
+    })
+  }, [user, channel, channelName, getOrCreate])
+
+  // Check JOE status
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const res = await fetch("/api/astrojoe/status")
+        const data = await res.json()
+        setJoeOnline(data.online)
+        setConduitOnline(data.conduit?.online ?? false)
+      } catch {
+        setJoeOnline(false)
+        setConduitOnline(false)
+      }
+    }
+    check()
+    const interval = setInterval(check, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Build message list from Convex + local
+  const messages: TerminalMessage[] = [
+    // System boot message
+    {
+      id: "boot",
+      sender: "SYSTEM",
+      content: `JOEclaw Terminal v2.9 — ${mode === "dev" ? "DEV MODE [FOUNDER ACCESS]" : "PUBLIC MODE"}\nMatrix: @joe:jettoptx-joe via Conduit (100.85.183.16:6167)\nType a message to chat with JOE. ${mode === "dev" ? "Commands: /execute, /code, /browse, /status, /brain, /matrix" : ""}`,
+      type: "system",
+      timestamp: Date.now() - 100000,
+    },
+    // Convex messages
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ...(convexMessages ?? []).map((m: any) => ({
+      id: m._id,
+      sender: m.displayName,
+      content: m.content,
+      type: m.messageType as TerminalMessage["type"],
+      timestamp: m.createdAt,
+    })),
+    // Local messages (pending / JOE responses not yet in Convex)
+    ...localMessages,
+  ]
+
+  // Auto-scroll
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [messages.length])
+
+  const handleSend = useCallback(async () => {
+    const trimmed = input.trim()
+    if (!trimmed || !user || sending) return
+
+    const content = codeMode ? "```\n" + trimmed + "\n```" : trimmed
+    const now = Date.now()
+
+    // Add user message locally
+    const userMsg: TerminalMessage = {
+      id: `local-${now}`,
+      sender: user.firstName || user.username || "user",
+      content,
+      type: mode === "dev" ? "dev" : "chat",
+      timestamp: now,
+    }
+    setLocalMessages((prev) => [...prev, userMsg])
+    setInput("")
+    setSending(true)
+
+    try {
+      // Save to Convex if channel exists
+      if (channel) {
+        await sendConvexMsg({
+          channelId: channel._id,
+          clerkUserId: user.id,
+          displayName: user.firstName || user.username || "user",
+          content,
+          messageType: mode === "dev" ? "dev" : "chat",
+        })
+        // Remove local copy (Convex subscription will provide it)
+        setLocalMessages((prev) => prev.filter((m) => m.id !== userMsg.id))
+      }
+
+      // Call API for JOE response
+      const res = await fetch("/api/astrojoe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: trimmed,
+          mode,
+          wallet: walletAddress,
+        }),
+      })
+      const data = await res.json()
+
+      if (data.response) {
+        const joeMsg: TerminalMessage = {
+          id: `joe-${Date.now()}`,
+          sender: "JOE",
+          content: data.response,
+          type: data.type === "system" ? "system" : "joe",
+          timestamp: Date.now(),
+        }
+        // Save JOE response to Convex
+        if (channel) {
+          await sendConvexMsg({
+            channelId: channel._id,
+            clerkUserId: "joe-system",
+            displayName: "JOE",
+            content: data.response,
+            messageType: "joe",
+          })
+        } else {
+          setLocalMessages((prev) => [...prev, joeMsg])
+        }
+      }
+    } catch {
+      setLocalMessages((prev) => [
+        ...prev,
+        {
+          id: `err-${Date.now()}`,
+          sender: "SYSTEM",
+          content: "Failed to reach JOE. Check connection.",
+          type: "error",
+          timestamp: Date.now(),
+        },
+      ])
+    } finally {
+      setSending(false)
+    }
+  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress])
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  const prompt = mode === "dev" ? "astrojoe@hedgehog:~# " : "astrojoe@hedgehog:~$ "
+
+  return (
+    <div className="flex flex-col h-full bg-zinc-950 border-l border-zinc-800 lg:border-l">
+      {/* Terminal Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50">
+        <div className="flex items-center gap-2">
+          <Terminal className="w-4 h-4 text-green-400" />
+          <h2 className="font-orbitron text-sm font-bold tracking-wider text-green-400">
+            JOEclaw CLI
+          </h2>
+          {mode === "dev" && (
+            <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px]">
+              DEV MODE
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Status indicator */}
+          <div className="flex items-center gap-1.5">
+            <Circle
+              className={`w-2 h-2 ${joeOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`}
+            />
+            <span className="text-[10px] font-mono text-zinc-500">
+              {joeOnline ? "API ON" : "OFFLINE"}
+            </span>
+            <Circle
+              className={`w-2 h-2 ${conduitOnline ? "text-green-400 fill-green-400" : "text-yellow-400 fill-yellow-400"}`}
+            />
+            <span className="text-[10px] font-mono text-zinc-500">
+              {conduitOnline ? "CONDUIT" : "NO MESH"}
+            </span>
+          </div>
+          {/* Wallet connect */}
+          {!connected && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setWalletModalVisible(true)}
+              className="h-6 text-[10px] text-zinc-500 hover:text-zinc-300"
+            >
+              <Wallet className="w-3 h-3 mr-1" />
+              Connect
+            </Button>
+          )}
+          {connected && (
+            <Badge
+              className={`text-[9px] font-mono ${
+                isFounder
+                  ? "bg-red-500/20 text-red-400 border-red-500/30"
+                  : "bg-zinc-700/30 text-zinc-400 border-zinc-600/30"
+              }`}
+            >
+              {isFounder ? (
+                <>
+                  <Lock className="w-2.5 h-2.5 mr-1" />
+                  FOUNDER
+                </>
+              ) : (
+                <>
+                  <Unlock className="w-2.5 h-2.5 mr-1" />
+                  {walletAddress?.slice(0, 4)}...{walletAddress?.slice(-4)}
+                </>
+              )}
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto py-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
+      >
+        {messages.map((msg) => (
+          <TerminalLine key={msg.id} msg={msg} />
+        ))}
+        {sending && (
+          <div className="px-3 py-0.5">
+            <span className="text-xs font-mono text-cyan-400/60 animate-pulse">
+              JOE is thinking...
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-1 px-3 py-1.5 border-t border-zinc-800/50 bg-zinc-900/30">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
+          title="Attach image"
+          onClick={() => {
+            const fileInput = document.createElement("input")
+            fileInput.type = "file"
+            fileInput.accept = "image/*"
+            fileInput.click()
+          }}
+        >
+          <Image className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`h-6 w-6 p-0 ${codeMode ? "text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
+          title="Toggle code mode"
+          onClick={() => setCodeMode(!codeMode)}
+        >
+          <Code2 className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
+          title="Browse URL"
+          onClick={() => {
+            const url = window.prompt("Enter URL for JOE to browse:")
+            if (url) {
+              setInput(`/browse ${url}`)
+              inputRef.current?.focus()
+            }
+          }}
+        >
+          <Globe className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
+          title="SpacetimeDB Brain"
+          onClick={() => {
+            setInput("/brain")
+            inputRef.current?.focus()
+          }}
+        >
+          <Brain className="w-3.5 h-3.5" />
+        </Button>
+        {mode === "dev" && (
+          <>
+            <div className="w-px h-4 bg-zinc-800 mx-1" />
+            <Badge className="bg-green-500/10 text-green-400/60 border-green-500/20 text-[8px] select-none">
+              /execute /code /browse /status /brain /matrix
+            </Badge>
+          </>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="flex items-center gap-2 px-3 py-2 border-t border-zinc-800 bg-black">
+        <span className="text-xs font-mono text-green-400 flex-shrink-0 select-none">
+          {prompt}
+        </span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={mode === "dev" ? "Enter command or message..." : "Chat with JOE..."}
+          className="flex-1 bg-transparent text-xs font-mono text-zinc-200 placeholder:text-zinc-600 outline-none caret-green-400"
+          disabled={!user}
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 text-green-400 hover:text-green-300 disabled:text-zinc-700"
+          onClick={handleSend}
+          disabled={!input.trim() || sending || !user}
+        >
+          <Send className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Page ──────────────────────────────────────────────
+export default function AstroJoeClient() {
+  const { user, isLoaded } = useUser()
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Activity className="w-8 h-8 text-cyan-400 animate-pulse mx-auto mb-3" />
+          <p className="text-sm font-mono text-zinc-500">Initializing JOEclaw...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Card className="bg-zinc-900 border-zinc-800 max-w-md mx-4">
+          <CardHeader>
+            <CardTitle className="font-orbitron text-cyan-400 text-center">
+              Authentication Required
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-sm text-zinc-400 mb-4">
+              Sign in to access JOEclaw Terminal.
+            </p>
+            <Link href="/sign-in">
+              <Button className="bg-cyan-600 hover:bg-cyan-500 text-white">
+                Sign In
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-zinc-200">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-950">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <Network className="w-4 h-4 text-cyan-400" />
+            <h1 className="font-orbitron text-sm font-bold tracking-wider text-cyan-400">
+              ASTROJOE
+            </h1>
+          </div>
+          <Badge className="bg-zinc-800 text-zinc-500 border-zinc-700 text-[10px]">
+            OPTX Agentic OS
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-600">
+          <span>{user.firstName || user.username}</span>
+          <span>·</span>
+          <span>grok-4.20</span>
+        </div>
+      </div>
+
+      {/* Two-panel layout */}
+      <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 41px)" }}>
+        {/* Left: Architecture Viewer */}
+        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full border-b lg:border-b-0 border-zinc-800 bg-zinc-950">
+          <ArchitecturePanel />
+        </div>
+
+        {/* Right: Terminal */}
+        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full">
+          <TerminalPanel />
+        </div>
+      </div>
+    </div>
+  )
+}
