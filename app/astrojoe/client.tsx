@@ -601,9 +601,44 @@ function TerminalPanel() {
   const [conduitOnline, setConduitOnline] = useState(false)
   const [codeMode, setCodeMode] = useState(false)
   const [sending, setSending] = useState(false)
+  const [attachedImages, setAttachedImages] = useState<{ name: string; data: string; preview: string }[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const channelCreated = useRef(false)
+
+  // Handle file selection (from picker or paste)
+  const handleFiles = useCallback((files: FileList | File[]) => {
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) return
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const data = e.target?.result as string
+        setAttachedImages((prev) => [
+          ...prev,
+          { name: file.name, data, preview: data },
+        ])
+      }
+      reader.readAsDataURL(file)
+    })
+  }, [])
+
+  // Clipboard paste handler
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+    const imageFiles: File[] = []
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const file = items[i].getAsFile()
+        if (file) imageFiles.push(file)
+      }
+    }
+    if (imageFiles.length > 0) {
+      e.preventDefault()
+      handleFiles(imageFiles)
+    }
+  }, [handleFiles])
 
   // Channel is found from the existing channels list above.
   // If it doesn't exist yet, the first sendMessage will work
@@ -664,7 +699,9 @@ function TerminalPanel() {
     // Allow wallet-only users (no Clerk user required)
     if (!user && !connected) return
 
-    const content = codeMode ? "```\n" + trimmed + "\n```" : trimmed
+    // Don't wrap slash commands in code blocks — they need to be parsed raw
+    const isSlashCommand = trimmed.startsWith("/")
+    const content = (codeMode && !isSlashCommand) ? "```\n" + trimmed + "\n```" : trimmed
     const now = Date.now()
 
     // Add user message locally
@@ -701,6 +738,11 @@ function TerminalPanel() {
           message: trimmed,
           mode,
           wallet: walletAddress,
+          attachments: attachedImages.map((img) => ({
+            type: "image",
+            data: img.data,
+            name: img.name,
+          })),
         }),
       })
       const data = await res.json()
@@ -739,8 +781,9 @@ function TerminalPanel() {
       ])
     } finally {
       setSending(false)
+      setAttachedImages([])
     }
-  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress])
+  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress, connected, attachedImages])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -809,19 +852,53 @@ function TerminalPanel() {
         )}
       </div>
 
+      {/* Image preview strip */}
+      {attachedImages.length > 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 border-t border-zinc-800/50 bg-zinc-900/30 overflow-x-auto">
+          {attachedImages.map((img, i) => (
+            <div key={i} className="relative flex-shrink-0 group">
+              <img
+                src={img.preview}
+                alt={img.name}
+                className="w-12 h-12 rounded-md object-cover border border-zinc-700"
+              />
+              <button
+                onClick={() => setAttachedImages((prev) => prev.filter((_, idx) => idx !== i))}
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                ×
+              </button>
+              <span className="block text-[7px] font-mono text-zinc-600 mt-0.5 max-w-[48px] truncate">
+                {img.name}
+              </span>
+            </div>
+          ))}
+          <span className="text-[9px] font-mono text-zinc-600">
+            {attachedImages.length} image{attachedImages.length > 1 ? "s" : ""}
+          </span>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex items-center gap-1 px-3 py-1.5 border-t border-zinc-800/50 bg-zinc-900/30">
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files) handleFiles(e.target.files)
+            e.target.value = "" // reset so same file can be re-selected
+          }}
+        />
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
+          className={`h-6 w-6 p-0 ${attachedImages.length > 0 ? "text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
           title="Attach image"
-          onClick={() => {
-            const fileInput = document.createElement("input")
-            fileInput.type = "file"
-            fileInput.accept = "image/*"
-            fileInput.click()
-          }}
+          onClick={() => fileInputRef.current?.click()}
         >
           <Image className="w-3.5 h-3.5" />
         </Button>
@@ -882,7 +959,8 @@ function TerminalPanel() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={mode === "dev" ? "Enter command or message..." : "Chat with JOE..."}
+          onPaste={handlePaste}
+          placeholder={mode === "dev" ? "Enter command or message... (paste images here)" : "Chat with JOE... (paste images here)"}
           className="flex-1 bg-transparent text-xs font-mono text-zinc-200 placeholder:text-zinc-600 outline-none caret-green-400"
           disabled={!user && !connected}
         />
@@ -891,7 +969,7 @@ function TerminalPanel() {
           size="sm"
           className="h-6 w-6 p-0 text-green-400 hover:text-green-300 disabled:text-zinc-700"
           onClick={handleSend}
-          disabled={!input.trim() || sending || !user}
+          disabled={!input.trim() || sending || (!user && !connected)}
         >
           <Send className="w-3.5 h-3.5" />
         </Button>
