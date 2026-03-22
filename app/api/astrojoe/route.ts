@@ -2,42 +2,122 @@ import { NextRequest, NextResponse } from "next/server"
 
 const FOUNDER_WALLET = "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"
 
-// Matrix/Conduit homeserver on Jetson via Tailscale
-const MATRIX_HOMESERVER = "http://100.85.183.16:6167"
+// Matrix/Conduit homeserver — exposed via Tailscale Funnel
+// Vercel env: MATRIX_HOMESERVER
+// Production: Tailscale Funnel public URL
+// Local dev fallback: Tailscale private IP
+const MATRIX_HOMESERVER =
+  process.env.MATRIX_HOMESERVER || "https://jettoptx-joe.taile11759.ts.net"
+const MATRIX_ACCESS_TOKEN = process.env.MATRIX_ACCESS_TOKEN || ""
+const MATRIX_ROOM_ID =
+  process.env.MATRIX_ROOM_ID ||
+  "!ex1nY7tFxIMTZxZ6Xh3GREOfCYGgUq3a18-rMBSe8ZQ"
+
 const MATRIX_BOT_USER = "@joe:jettoptx-joe"
 
-// Helper: send a message to JOE via Matrix Client-Server API
-async function sendMatrixMessage(roomId: string, message: string, accessToken: string) {
-  const txnId = `astrojoe-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  const res = await fetch(
-    `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${txnId}`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        msgtype: "m.text",
-        body: message,
-      }),
+// ─── Matrix Client-Server API helpers ────────────────────────
+
+async function matrixSend(roomId: string, body: string): Promise<string | null> {
+  const txnId = `web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  try {
+    const res = await fetch(
+      `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${txnId}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${MATRIX_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ msgtype: "m.text", body }),
+        signal: AbortSignal.timeout(10000),
+      }
+    )
+    if (!res.ok) {
+      const err = await res.text()
+      console.error("[Matrix] send failed:", res.status, err)
+      return null
     }
-  )
-  return res.json()
+    const data = await res.json()
+    return data.event_id ?? null
+  } catch (e) {
+    console.error("[Matrix] send error:", e)
+    return null
+  }
 }
 
-// Helper: get recent messages from a Matrix room
-async function getMatrixMessages(roomId: string, accessToken: string, limit = 10) {
-  const res = await fetch(
-    `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages?dir=b&limit=${limit}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+async function matrixPollResponse(
+  roomId: string,
+  afterEventId: string,
+  timeoutMs = 12000,
+  pollIntervalMs = 1500
+): Promise<string | null> {
+  // Poll room messages backwards from "now" until we find a message from JOE
+  // that was sent after our command
+  const deadline = Date.now() + timeoutMs
+  let lastToken: string | null = null
+
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, pollIntervalMs))
+
+    try {
+      const url = new URL(
+        `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages`
+      )
+      url.searchParams.set("dir", "b") // backwards from latest
+      url.searchParams.set("limit", "10")
+      if (lastToken) url.searchParams.set("from", lastToken)
+
+      const res = await fetch(url.toString(), {
+        headers: { Authorization: `Bearer ${MATRIX_ACCESS_TOKEN}` },
+        signal: AbortSignal.timeout(5000),
+      })
+
+      if (!res.ok) continue
+
+      const data = await res.json()
+      lastToken = data.end ?? lastToken
+
+      // Look for a response from JOE (not from us)
+      for (const event of data.chunk ?? []) {
+        if (
+          event.type === "m.room.message" &&
+          event.sender === MATRIX_BOT_USER &&
+          event.content?.body &&
+          // Only consider events newer than our sent event
+          event.unsigned?.age !== undefined &&
+          event.unsigned.age < timeoutMs
+        ) {
+          return event.content.body
+        }
+      }
+    } catch {
+      // continue polling
     }
-  )
-  return res.json()
+  }
+
+  return null
 }
+
+// Send command to Matrix room and wait for JOE's response
+async function sendAndWait(command: string, waitMs = 12000): Promise<string> {
+  if (!MATRIX_ACCESS_TOKEN) {
+    return `[ERROR] MATRIX_ACCESS_TOKEN not configured. Set it in Vercel env vars.`
+  }
+
+  const eventId = await matrixSend(MATRIX_ROOM_ID, command)
+  if (!eventId) {
+    return `[ERROR] Failed to send to Matrix room. Check Tailscale Funnel and Conduit status.\nHomeserver: ${MATRIX_HOMESERVER}\nRoom: ${MATRIX_ROOM_ID}`
+  }
+
+  const response = await matrixPollResponse(MATRIX_ROOM_ID, eventId, waitMs)
+  if (!response) {
+    return `[HEDGEHOG] Command sent to Matrix room. JOE did not respond within ${waitMs / 1000}s.\nThe command was delivered — JOE may still process it.\nCheck Matrix room or run /matrix for homeserver status.`
+  }
+
+  return response
+}
+
+// ─── Route handler ───────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,7 +136,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Dev mode requires founder wallet
+    // ─── DEV MODE ──────────────────────────────────────────
     if (mode === "dev") {
       if (!wallet || wallet !== FOUNDER_WALLET) {
         return NextResponse.json(
@@ -65,75 +145,100 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Parse dev commands
       const trimmed = message.trim()
+
       if (trimmed.startsWith("/")) {
         const [cmd, ...rest] = trimmed.split(" ")
         const args = rest.join(" ")
 
         switch (cmd) {
-          case "/execute":
+          case "/execute": {
+            const response = await sendAndWait(
+              `/execute ${args || "echo 'no command specified'"}`,
+              15000
+            )
             return NextResponse.json({
-              response: `[HEDGEHOG] Queued for execution on Jetson via Tailscale mesh:\n\`\`\`\n${args || "no command specified"}\n\`\`\`\nTarget: jettoptx-joe (100.85.183.16)\nStatus: QUEUED — routing through HEDGEHOG MCP :5555`,
+              response: `[HEDGEHOG → JETSON]\n${response}`,
               type: "code",
-              metadata: { command: cmd, target: "jetson", status: "queued" },
+              metadata: { command: cmd, target: "jetson", transport: "matrix" },
             })
+          }
 
-          case "/code":
+          case "/code": {
+            const response = await sendAndWait(
+              `/code ${args || "# no input"}`,
+              15000
+            )
             return NextResponse.json({
-              response: `[HEDGEHOG] Code analysis request received:\n\`\`\`\n${args || "no input"}\n\`\`\`\nJOE brain will process via SpacetimeDB reducer \`skill_modules.invoke_skill\`.\nStatus: ACKNOWLEDGED — Jetson proxy active`,
+              response: `[HEDGEHOG → BRAIN]\n${response}`,
               type: "code",
-              metadata: { command: cmd, reducer: "skill_modules", status: "acknowledged" },
+              metadata: { command: cmd, reducer: "skill_modules", transport: "matrix" },
             })
+          }
 
-          case "/browse":
+          case "/browse": {
+            const response = await sendAndWait(
+              `/browse ${args || "https://jettoptics.ai"}`,
+              20000 // Browsing takes longer
+            )
             return NextResponse.json({
-              response: `[HEDGEHOG] Browse request: ${args || "no URL"}\nRouting through Perplexity SONAR + Grok xBridge MCP.\nStatus: QUEUED — xBridge chain active`,
+              response: `[HEDGEHOG → PERPLEXITY]\n${response}`,
               type: "text",
-              metadata: { command: cmd, target: "perplexity", status: "queued" },
+              metadata: { command: cmd, target: "perplexity", transport: "matrix" },
             })
+          }
 
-          case "/status":
-            // Try to ping the actual Jetson/Conduit homeserver
-            let matrixStatus = "UNREACHABLE"
-            try {
-              const pingRes = await fetch(`${MATRIX_HOMESERVER}/_matrix/client/versions`, {
-                signal: AbortSignal.timeout(5000),
-              })
-              if (pingRes.ok) {
-                const versions = await pingRes.json()
-                matrixStatus = `ONLINE (${versions.versions?.[versions.versions.length - 1] || "active"})`
-              }
-            } catch {
-              matrixStatus = "UNREACHABLE (Tailscale VPN required)"
-            }
-
+          case "/status": {
+            const response = await sendAndWait("/status", 10000)
             return NextResponse.json({
-              response: `[HEDGEHOG] System Status Report\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nJOE Core:      ONLINE (brain.py)\nSpacetimeDB:   48 tables / 16 reducers\nTailscale:     mesh v2.9 (5 nodes)\nJetson Orin:   ARM64 CUDA ready\nConduit:       ${matrixStatus}\nMatrix User:   ${MATRIX_BOT_USER}\nHomeserver:    ${MATRIX_HOMESERVER}\nxBridge MCP:   19 tools loaded\nNemoClaw:      OpenClaw harness active\nAARON Router:  port :8888 listening\nModel:         grok-4.20 (xAI)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+              response: response,
               type: "system",
-              metadata: { command: cmd, status: "online", matrixStatus },
+              metadata: { command: cmd, transport: "matrix" },
             })
+          }
 
-          case "/brain":
+          case "/brain": {
+            const response = await sendAndWait("/brain", 10000)
             return NextResponse.json({
-              response: `[SpacetimeDB BRAIN]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nReducer Modules: 16\nTables:          48+\nRuntime:         WASM Compiled\nSubscriptions:   Real-Time Active\nACID:            Per Reducer\n\nModules:\n  Identity & Auth   → agent_identity, auth_gaze_tensors, key_registry\n  Skills & Tools    → tool_registry, skill_modules, nemoclaw_policies\n  Memory & Context  → conversations, local_rag, perplexity_calls\n  Inference         → grok_calls, routing_state, audit_log\n  Tasks & Chain     → task_queue, wallet_state, player_state, poi_state\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+              response: response,
               type: "system",
-              metadata: { command: cmd, reducers: 16, tables: 48 },
+              metadata: { command: cmd, transport: "matrix" },
             })
+          }
 
           case "/matrix": {
-            // Query Matrix/Conduit homeserver status
+            // Direct Conduit health check — doesn't go through the bot
             let info = "Unable to reach Conduit homeserver"
             try {
-              const versionsRes = await fetch(`${MATRIX_HOMESERVER}/_matrix/client/versions`, {
-                signal: AbortSignal.timeout(5000),
-              })
+              const versionsRes = await fetch(
+                `${MATRIX_HOMESERVER}/_matrix/client/versions`,
+                { signal: AbortSignal.timeout(5000) }
+              )
               if (versionsRes.ok) {
                 const versions = await versionsRes.json()
-                info = `[CONDUIT HOMESERVER]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nServer:     ${MATRIX_HOMESERVER}\nServer Name: jettoptx-joe\nBot User:   ${MATRIX_BOT_USER}\nAdmin:      @jett:jettoptx-joe\nVersions:   ${versions.versions?.join(", ") || "unknown"}\nStatus:     ONLINE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nUse the terminal to send messages through Matrix.`
+
+                // Also check room state
+                let roomName = "unknown"
+                try {
+                  const stateRes = await fetch(
+                    `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(MATRIX_ROOM_ID)}/state/m.room.name/`,
+                    {
+                      headers: { Authorization: `Bearer ${MATRIX_ACCESS_TOKEN}` },
+                      signal: AbortSignal.timeout(5000),
+                    }
+                  )
+                  if (stateRes.ok) {
+                    const stateData = await stateRes.json()
+                    roomName = stateData.name || "OPTX Command"
+                  }
+                } catch {
+                  roomName = "OPTX Command (state fetch failed)"
+                }
+
+                info = `[CONDUIT HOMESERVER — LIVE]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nServer:      ${MATRIX_HOMESERVER}\nServer Name: jettoptx-joe\nBot User:    ${MATRIX_BOT_USER}\nAdmin:       @jett:jettoptx-joe\nRoom:        ${roomName}\nRoom ID:     ${MATRIX_ROOM_ID}\nVersions:    ${versions.versions?.join(", ") || "unknown"}\nTransport:   Tailscale Funnel → Conduit\nStatus:      ✓ ONLINE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
               }
             } catch {
-              info = `[CONDUIT HOMESERVER]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nServer:     ${MATRIX_HOMESERVER}\nServer Name: jettoptx-joe\nBot User:   ${MATRIX_BOT_USER}\nStatus:     OFFLINE (Tailscale VPN required)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEnsure Vercel can reach the Tailscale mesh, or\nuse the Jetson-side WebSocket bridge (:8765) as fallback.`
+              info = `[CONDUIT HOMESERVER — OFFLINE]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nServer:      ${MATRIX_HOMESERVER}\nBot User:    ${MATRIX_BOT_USER}\nStatus:      ✗ UNREACHABLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEnsure Tailscale Funnel is running on the Jetson:\n  sudo tailscale serve --bg 6167\n  sudo tailscale funnel --bg 443`
             }
             return NextResponse.json({
               response: info,
@@ -151,32 +256,31 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Non-command dev message — forward to JOE via Matrix (when wired)
-      // For now, acknowledge with routing info
+      // Non-command dev message — send directly to Matrix room as chat
+      const response = await sendAndWait(trimmed, 15000)
       return NextResponse.json({
-        response: `[DEV → HEDGEHOG] Message routed to JOE.\nInput: "${message.slice(0, 200)}"\n${attachments?.length ? `Attachments: ${attachments.length} file(s)\n` : ""}Target: ${MATRIX_BOT_USER} via Conduit\nTransport: Matrix Client-Server API → ${MATRIX_HOMESERVER}\nStatus: ACKNOWLEDGED`,
+        response: `[JOE]\n${response}`,
         type: "text",
-        metadata: { mode: "dev", status: "acknowledged", transport: "matrix" },
+        metadata: {
+          mode: "dev",
+          transport: "matrix",
+          attachments: attachments?.length || 0,
+        },
       })
     }
 
-    // Public mode — basic JOE response (Grok/xBridge integration pending)
-    const publicResponses = [
-      `Hey there! I'm JOE — the orchestrator behind OPTX. I run on a SpacetimeDB brain with 48+ tables and 16 Rust reducer modules. What would you like to know about the system?`,
-      `Good question! The OPTX architecture has 6 layers — from the user cloud interface (L0) down to the Hyperspace Proof-of-Intelligence network (L5). I coordinate across all of them via Tailscale mesh.`,
-      `I'm JOE, powered by Grok 4.20 via xBridge MCP. I manage the NemoClaw harness, AARON Router, and the full agentic OS stack. Ask me about any layer!`,
-      `The Jett Optics patent (US20250392457A1) covers adaptive gaze-driven security — that's the cryptographic backbone of everything I do. AGTs (Adaptive Gaze Tensors) bound to Markov chains create the spatial encryption layer.`,
-      `My brain lives in SpacetimeDB — a game-engine database running WASM-compiled Rust reducers. Real-time subscriptions, ACID per reducer, in-memory + persistent. It's how I keep state across the entire OPTX mesh.`,
-    ]
-
-    const response = publicResponses[Math.floor(Math.random() * publicResponses.length)]
+    // ─── PUBLIC MODE ───────────────────────────────────────
+    // Public users also talk to JOE via Matrix, but with a prefix
+    const publicMessage = `[PUBLIC] ${message.slice(0, 500)}`
+    const response = await sendAndWait(publicMessage, 12000)
 
     return NextResponse.json({
-      response,
+      response: response,
       type: "text" as const,
-      metadata: { mode: "public", model: "grok-4.20" },
+      metadata: { mode: "public", model: "grok-4.20", transport: "matrix" },
     })
-  } catch {
+  } catch (e) {
+    console.error("[astrojoe] error:", e)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
