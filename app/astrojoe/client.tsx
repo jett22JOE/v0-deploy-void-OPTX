@@ -462,7 +462,7 @@ function WalletConnectButton({
         {isFounder ? (
           <>
             <Lock className="w-2.5 h-2.5 mr-1" />
-            FOUNDER
+            DEV
           </>
         ) : (
           <>
@@ -634,7 +634,7 @@ function TerminalPanel() {
     {
       id: "boot",
       sender: "SYSTEM",
-      content: `JOEclaw Terminal v2.9 — ${mode === "dev" ? "DEV MODE [FOUNDER ACCESS]" : "PUBLIC MODE"}\nMatrix: @joe:jettoptx-joe via Conduit (100.85.183.16:6167)\nType a message to chat with JOE. ${mode === "dev" ? "Commands: /execute, /code, /browse, /status, /brain, /matrix" : ""}`,
+      content: `JOEclaw Terminal v2.9 — ${mode === "dev" ? "DEV MODE" : "PUBLIC MODE"}\nMatrix: @joe:jettoptx-joe via Conduit\nType a message to chat with JOE. ${mode === "dev" ? "Commands: /execute, /code, /browse, /status, /brain, /matrix" : ""}`,
       type: "system",
       timestamp: Date.now() - 100000,
     },
@@ -913,37 +913,49 @@ function WalletGateScreen() {
   const phantomDeepLink = `https://phantom.app/ul/browse/${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "https://jettoptics.ai/astrojoe")}?ref=${encodeURIComponent("https://jettoptics.ai")}`
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="max-w-md mx-4 w-full">
-        <Card className="bg-zinc-900/80 border-zinc-800 backdrop-blur">
-          <CardHeader className="text-center pb-4">
-            <div className="flex justify-center mb-4">
+    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
+      {/* Subtle radial gradient background */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(6,182,212,0.06)_0%,_transparent_70%)]" />
+      <div className="absolute inset-0" style={{
+        backgroundImage: 'linear-gradient(rgba(6,182,212,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.015) 1px, transparent 1px)',
+        backgroundSize: '48px 48px',
+      }} />
+
+      <div className="max-w-md mx-4 w-full relative z-10">
+        <Card className="bg-zinc-900/90 border-zinc-800/80 backdrop-blur-xl shadow-2xl shadow-cyan-500/5">
+          <CardHeader className="text-center pb-2">
+            {/* AstroKnots Icon */}
+            <div className="flex justify-center mb-5">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
-                  <Terminal className="w-8 h-8 text-cyan-400" />
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-cyan-500/30 shadow-lg shadow-cyan-500/10">
+                  <img
+                    src="/astroknots-icon.jpg"
+                    alt="AstroKnots"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-black border border-zinc-700 flex items-center justify-center">
-                  <Wallet className="w-3 h-3 text-cyan-400" />
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-zinc-900 border-2 border-cyan-500/40 flex items-center justify-center shadow-lg">
+                  <Terminal className="w-3.5 h-3.5 text-cyan-400" />
                 </div>
               </div>
             </div>
-            <CardTitle className="font-orbitron text-cyan-400 text-lg tracking-wider">
+            <CardTitle className="font-orbitron text-cyan-400 text-xl tracking-[0.15em]">
               ASTROJOE
             </CardTitle>
-            <p className="text-xs font-mono text-zinc-500 mt-1">
+            <p className="text-xs font-mono text-zinc-500 mt-1.5">
               JOEclaw Terminal — OPTX Agentic OS
             </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-zinc-400 text-center">
+          <CardContent className="space-y-5 pt-2">
+            <p className="text-sm text-zinc-400 text-center leading-relaxed">
               Connect your Solana wallet to access the terminal.
-              Dev mode requires the FEU founder wallet.
+              <span className="block text-zinc-600 text-xs mt-1">Dev access requires authorized wallet.</span>
             </p>
 
             {/* Wallet Connect */}
             <div className="space-y-3">
               {connected && publicKey ? (
-                <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                <div className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-green-500/10 border border-green-500/20">
                   <CheckCircle2 className="w-4 h-4 text-green-400" />
                   <span className="font-mono text-sm text-green-400">
                     {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
@@ -952,10 +964,11 @@ function WalletGateScreen() {
               ) : isMobile ? (
                 <a
                   href={phantomDeepLink}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-sm border border-cyan-500/30 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-mono text-sm border border-cyan-400/30 transition-all shadow-lg shadow-cyan-500/20"
                 >
-                  <Wallet className="w-4 h-4" />
-                  Open in Phantom App
+                  {/* Phantom icon */}
+                  <svg width="18" height="18" viewBox="0 0 128 128" fill="currentColor"><path d="M110.6 57.4C110.6 30.4 88.1 8.4 61 8.4c-24.9 0-45.7 18.4-49.2 42.4-.3 2-.4 4.1-.4 6.2 0 3.5.4 6.9 1 10.2C16.7 92.8 36.7 112 61 112c2.6 0 5.1-.2 7.5-.6-.2-1.5-.3-3-.3-4.5 0-17.6 13.9-32 31.3-33.4 7.1-.6 11.1-6.2 11.1-12.3v-3.8z"/><circle cx="44" cy="55" r="8"/><circle cx="72" cy="55" r="8"/></svg>
+                  Open in Phantom
                   <ExternalLink className="w-3.5 h-3.5 opacity-60" />
                 </a>
               ) : (
@@ -964,19 +977,22 @@ function WalletGateScreen() {
                     .astrojoe-gate-wallet .wallet-adapter-button {
                       width: 100% !important;
                       justify-content: center !important;
-                      background-color: #0891b2 !important;
+                      background: linear-gradient(135deg, #0891b2, #06b6d4) !important;
                       border: 1px solid rgba(6, 182, 212, 0.4) !important;
                       border-radius: 0.75rem !important;
                       font-family: "Geist Mono", ui-monospace, monospace !important;
                       font-size: 0.875rem !important;
                       font-weight: 600 !important;
-                      padding: 0.75rem 1rem !important;
+                      padding: 0.875rem 1rem !important;
                       height: auto !important;
                       letter-spacing: 0.05em !important;
-                      transition: background-color 0.2s !important;
+                      transition: all 0.2s !important;
+                      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2) !important;
                     }
                     .astrojoe-gate-wallet .wallet-adapter-button:hover {
-                      background-color: #06b6d4 !important;
+                      background: linear-gradient(135deg, #06b6d4, #22d3ee) !important;
+                      box-shadow: 0 4px 24px rgba(6, 182, 212, 0.35) !important;
+                      transform: translateY(-1px) !important;
                     }
                     .astrojoe-gate-wallet .wallet-adapter-button-start-icon {
                       width: 20px !important;
@@ -991,35 +1007,73 @@ function WalletGateScreen() {
 
             {/* Divider */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent" />
               <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">or</span>
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent" />
             </div>
 
             {/* Clerk sign-in fallback */}
             <Link href="/optx-login" className="block">
               <Button
                 variant="outline"
-                className="w-full border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 font-mono text-sm"
+                className="w-full border-zinc-700/60 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 font-mono text-sm h-11 transition-all"
               >
                 Sign in with OPTX Account
               </Button>
             </Link>
 
-            {/* Supported wallets */}
-            <div className="flex flex-wrap justify-center gap-2 pt-2">
-              <Badge className="bg-zinc-800/50 text-zinc-600 border-zinc-700/50 text-[9px] font-mono">
-                Phantom
-              </Badge>
-              <Badge className="bg-zinc-800/50 text-zinc-600 border-zinc-700/50 text-[9px] font-mono">
-                Solflare
-              </Badge>
-              <Badge className="bg-zinc-800/50 text-zinc-600 border-zinc-700/50 text-[9px] font-mono">
-                Backpack
-              </Badge>
+            {/* Supported wallets with brand icons */}
+            <div className="flex items-center justify-center gap-5 pt-3 pb-1">
+              {/* Phantom */}
+              <div className="flex flex-col items-center gap-1.5 group cursor-default">
+                <div className="w-9 h-9 rounded-xl bg-zinc-800/60 border border-zinc-700/40 flex items-center justify-center group-hover:border-purple-500/40 group-hover:bg-purple-500/5 transition-all">
+                  <svg width="18" height="18" viewBox="0 0 128 128" className="text-zinc-500 group-hover:text-purple-400 transition-colors">
+                    <path d="M110.6 57.4C110.6 30.4 88.1 8.4 61 8.4c-24.9 0-45.7 18.4-49.2 42.4-.3 2-.4 4.1-.4 6.2 0 3.5.4 6.9 1 10.2C16.7 92.8 36.7 112 61 112c2.6 0 5.1-.2 7.5-.6-.2-1.5-.3-3-.3-4.5 0-17.6 13.9-32 31.3-33.4 7.1-.6 11.1-6.2 11.1-12.3v-3.8z" fill="currentColor"/>
+                    <circle cx="44" cy="55" r="7" fill="currentColor" opacity="0.3"/>
+                    <circle cx="72" cy="55" r="7" fill="currentColor" opacity="0.3"/>
+                  </svg>
+                </div>
+                <span className="text-[9px] font-mono text-zinc-600 group-hover:text-zinc-400 transition-colors">Phantom</span>
+              </div>
+
+              {/* Solflare */}
+              <div className="flex flex-col items-center gap-1.5 group cursor-default">
+                <div className="w-9 h-9 rounded-xl bg-zinc-800/60 border border-zinc-700/40 flex items-center justify-center group-hover:border-orange-500/40 group-hover:bg-orange-500/5 transition-all">
+                  <svg width="18" height="18" viewBox="0 0 24 24" className="text-zinc-500 group-hover:text-orange-400 transition-colors">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="text-[9px] font-mono text-zinc-600 group-hover:text-zinc-400 transition-colors">Solflare</span>
+              </div>
+
+              {/* Backpack */}
+              <div className="flex flex-col items-center gap-1.5 group cursor-default">
+                <div className="w-9 h-9 rounded-xl bg-zinc-800/60 border border-zinc-700/40 flex items-center justify-center group-hover:border-red-500/40 group-hover:bg-red-500/5 transition-all">
+                  <svg width="16" height="16" viewBox="0 0 24 24" className="text-zinc-500 group-hover:text-red-400 transition-colors">
+                    <rect x="4" y="8" width="16" height="13" rx="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <path d="M8 8V6a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                    <line x1="4" y1="14" x2="20" y2="14" stroke="currentColor" strokeWidth="1.5"/>
+                    <circle cx="12" cy="14" r="1.5" fill="currentColor"/>
+                  </svg>
+                </div>
+                <span className="text-[9px] font-mono text-zinc-600 group-hover:text-zinc-400 transition-colors">Backpack</span>
+              </div>
+
+              {/* OKX */}
+              <div className="flex flex-col items-center gap-1.5 group cursor-default">
+                <div className="w-9 h-9 rounded-xl bg-zinc-800/60 border border-zinc-700/40 flex items-center justify-center group-hover:border-zinc-400/40 group-hover:bg-zinc-500/5 transition-all">
+                  <span className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 transition-colors tracking-tight">OKX</span>
+                </div>
+                <span className="text-[9px] font-mono text-zinc-600 group-hover:text-zinc-400 transition-colors">OKX</span>
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Powered by line */}
+        <p className="text-center text-[9px] font-mono text-zinc-700 mt-4">
+          Powered by Jett Optics · SpacetimeDB · Grok 4.20
+        </p>
       </div>
     </div>
   )
