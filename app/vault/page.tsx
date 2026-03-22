@@ -152,6 +152,9 @@ export default function VaultPage() {
   const [marketCap, setMarketCap] = useState<string>("33.7M")
   const [holders, setHolders] = useState<number>(11)
   const [solRaised, setSolRaised] = useState(0)
+  const [donorCount, setDonorCount] = useState(0)
+  const [topDonors, setTopDonors] = useState<{ wallet: string; amount: number; donatedAt: number }[]>([])
+  const [recentDonors, setRecentDonors] = useState<{ wallet: string; amount: number; donatedAt: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [copiedMint, setCopiedMint] = useState(false)
   const [donateAmount, setDonateAmount] = useState("")
@@ -165,6 +168,7 @@ export default function VaultPage() {
   const [txPending, setTxPending] = useState(false)
   const [txSig, setTxSig] = useState<string | null>(null)
   const [txError, setTxError] = useState<string | null>(null)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const pctRaised = solRaised > 0 ? (solRaised / SOL_GOAL) * 100 : 0
   const dollarRaised = solRaised * SOL_PRICE_EST
@@ -183,6 +187,51 @@ export default function VaultPage() {
       const conn = new Connection(SOLANA_RPC, "confirmed")
       const supply = await conn.getTokenSupply(new PublicKey(JTX_MINT))
       setTotalSupply(supply.value.uiAmount || 0)
+
+      // Read VaultConfig PDA for raised_lamports and donor_count
+      const vaultPda = getVaultPda()
+      const vaultInfo = await conn.getAccountInfo(vaultPda)
+      if (vaultInfo && vaultInfo.data.length >= 68) {
+        const data = vaultInfo.data
+        const dv = new DataView(data.buffer, data.byteOffset, data.byteLength)
+        // offset 48: raised_lamports (u64 LE)
+        const raisedLamports = dv.getBigUint64(48, true)
+        setSolRaised(Number(raisedLamports) / LAMPORTS_PER_SOL)
+        // offset 64: donor_count (u32 LE)
+        const dCount = dv.getUint32(64, true)
+        setDonorCount(dCount)
+      }
+
+      // Fetch Donor PDAs for Mission Leaders / Mission Log
+      // Donor discriminator: sha256("account:Donor") first 8 bytes = [43,66,58,146,38,217,15,26]
+      const DONOR_DISC_BASE58 = "8EfVUpKRnSV"
+      try {
+        const donorAccounts = await conn.getProgramAccounts(VAULT_PROGRAM_ID, {
+          filters: [
+            { memcmp: { offset: 0, bytes: DONOR_DISC_BASE58 } },
+          ],
+        })
+        const donors = donorAccounts.map(({ account }) => {
+          const d = account.data
+          const v = new DataView(d.buffer, d.byteOffset, d.byteLength)
+          // offset 8: wallet (32 bytes)
+          const walletBytes = d.slice(8, 40)
+          const walletPk = new PublicKey(walletBytes).toBase58()
+          // offset 40: amount_lamports (u64 LE)
+          const amountLamports = v.getBigUint64(40, true)
+          // offset 48: donated_at (i64 LE)
+          const donatedAt = Number(v.getBigInt64(48, true))
+          return { wallet: walletPk, amount: Number(amountLamports) / LAMPORTS_PER_SOL, donatedAt }
+        })
+        // Top 5 by amount
+        const sorted = [...donors].sort((a, b) => b.amount - a.amount)
+        setTopDonors(sorted.slice(0, 5))
+        // Last 10 by donated_at
+        const recent = [...donors].sort((a, b) => b.donatedAt - a.donatedAt)
+        setRecentDonors(recent.slice(0, 10))
+      } catch (err) {
+        console.error("Donor fetch error:", err)
+      }
     } catch (err) {
       console.error("Fetch error:", err)
     } finally {
@@ -313,6 +362,7 @@ export default function VaultPage() {
       const signed = await wallet.adapter.sendTransaction(tx, conn)
       setTxSig(signed)
       setDonated(true)
+      setShowSuccessModal(true)
 
       // Refresh data after a short delay
       setTimeout(() => fetchData(), 3000)
@@ -679,6 +729,12 @@ export default function VaultPage() {
             <span>~${dollarRaised.toLocaleString()} raised of ${DOLLAR_GOAL.toLocaleString()} goal</span>
             <span>Est. at ${SOL_PRICE_EST}/SOL</span>
           </div>
+          {donorCount > 0 && (
+            <div className={`mt-3 pt-3 border-t ${darkMode ? "border-white/5" : "border-orange-100"} flex items-center justify-center gap-2 text-xs ${textSecondary}`}>
+              <Wallet className="w-3 h-3 text-orange-400" />
+              <span><span className={`font-bold ${accentOrange}`}>{donorCount}</span> donor{donorCount !== 1 ? "s" : ""} so far</span>
+            </div>
+          )}
         </section>
 
         {/* ═══ JTX Token Info ═══ */}
@@ -973,27 +1029,57 @@ export default function VaultPage() {
         {/* ═══ Mission Leaders + Mission Log ═══ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"}`}>
-            <button className={`w-full mb-3 py-2 rounded-lg font-bold text-sm tracking-widest ${btnOrange} flex items-center justify-center gap-2`}
+            <div className={`w-full mb-3 py-2 rounded-lg font-bold text-sm tracking-widest ${btnOrange} flex items-center justify-center gap-2`}
               style={{ fontFamily: "var(--font-orbitron)" }}>
               <Trophy className="w-4 h-4" /> MISSION LEADERS
-            </button>
-            <p className={`text-[10px] uppercase ${textMuted} mb-4`}>Ranked by total SOL contributed - Click header for full stats</p>
-            <div className="flex flex-col items-center justify-center py-8">
-              <Trophy className={`w-8 h-8 ${textMuted} mb-2`} />
-              <p className={`text-sm ${textSecondary}`}>No contributors yet. Be the first!</p>
             </div>
+            <p className={`text-[10px] uppercase ${textMuted} mb-4`}>Ranked by total SOL contributed</p>
+            {topDonors.length > 0 ? (
+              <div className="space-y-2">
+                {topDonors.map((d, i) => (
+                  <div key={d.wallet} className={`flex items-center gap-2 p-2 rounded-lg border ${cardBgAlt}`}>
+                    <span className={`text-xs font-bold w-5 text-center ${i === 0 ? "text-yellow-400" : i === 1 ? "text-gray-300" : i === 2 ? "text-orange-600" : textMuted}`}>
+                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-mono text-xs truncate ${textPrimary}`}>{d.wallet.slice(0, 4)}...{d.wallet.slice(-4)}</p>
+                    </div>
+                    <span className={`font-mono text-xs font-bold ${accentOrange}`}>{d.amount.toFixed(2)} SOL</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Trophy className={`w-8 h-8 ${textMuted} mb-2`} />
+                <p className={`text-sm ${textSecondary}`}>No contributors yet. Be the first!</p>
+              </div>
+            )}
           </section>
 
           <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"}`}>
-            <button className={`w-full mb-3 py-2 rounded-lg font-bold text-sm tracking-widest ${btnOrange} flex items-center justify-center gap-2`}
+            <div className={`w-full mb-3 py-2 rounded-lg font-bold text-sm tracking-widest ${btnOrange} flex items-center justify-center gap-2`}
               style={{ fontFamily: "var(--font-orbitron)" }}>
               <Clock className="w-4 h-4" /> MISSION LOG
-            </button>
-            <p className={`text-[10px] uppercase ${textMuted} mb-4`}>Latest contributions - Click header for full stats</p>
-            <div className="flex flex-col items-center justify-center py-8">
-              <Clock className={`w-8 h-8 ${textMuted} mb-2`} />
-              <p className={`text-sm ${textSecondary}`}>No contributions yet. Be the first!</p>
             </div>
+            <p className={`text-[10px] uppercase ${textMuted} mb-4`}>Latest contributions</p>
+            {recentDonors.length > 0 ? (
+              <div className="space-y-2">
+                {recentDonors.map((d) => (
+                  <div key={`${d.wallet}-${d.donatedAt}`} className={`flex items-center gap-2 p-2 rounded-lg border ${cardBgAlt}`}>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-mono text-xs truncate ${textPrimary}`}>{d.wallet.slice(0, 4)}...{d.wallet.slice(-4)}</p>
+                      <p className={`font-mono text-[10px] ${textMuted}`}>{new Date(d.donatedAt * 1000).toLocaleDateString()}</p>
+                    </div>
+                    <span className={`font-mono text-xs font-bold ${accentOrange}`}>{d.amount.toFixed(2)} SOL</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Clock className={`w-8 h-8 ${textMuted} mb-2`} />
+                <p className={`text-sm ${textSecondary}`}>No contributions yet. Be the first!</p>
+              </div>
+            )}
           </section>
         </div>
 
@@ -1274,6 +1360,148 @@ export default function VaultPage() {
           </div>
         </section>
       </main>
+
+      {/* ═══ Post-Donation Success Modal ═══ */}
+      {showSuccessModal && txSig && (
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          style={{ animation: "fadeIn 300ms ease-out" }}
+        >
+          <style>{`
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+            @keyframes confetti-fall {
+              0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+              100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+            }
+          `}</style>
+          {/* Confetti particles */}
+          {Array.from({ length: 35 }, (_, i) => (
+            <div
+              key={`confetti-${i}`}
+              className="fixed pointer-events-none"
+              style={{
+                left: `${((i * 37 + 13) % 100)}%`,
+                top: "-2%",
+                width: `${6 + (i % 4) * 2}px`,
+                height: `${6 + (i % 3) * 2}px`,
+                backgroundColor: ["#f97316", "#fbbf24", "#ffffff", "#fb923c", "#fcd34d"][ i % 5 ],
+                borderRadius: i % 3 === 0 ? "50%" : "2px",
+                animation: `confetti-fall ${2.5 + (i % 20) / 10}s linear ${(i * 7) % 30 / 10}s infinite`,
+                opacity: 0.9,
+              }}
+            />
+          ))}
+          {/* Modal card */}
+          <div
+            className={`relative max-w-md w-full mx-4 rounded-2xl border p-6 shadow-2xl overflow-y-auto max-h-[90vh] ${
+              darkMode ? "bg-[#111118] border-orange-500/30 shadow-orange-500/10" : "bg-white border-orange-200"
+            }`}
+            style={{ animation: "modalIn 300ms ease-out" }}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                darkMode ? "hover:bg-white/10 text-white/40 hover:text-white" : "hover:bg-gray-100 text-gray-400 hover:text-gray-700"
+              }`}
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <div className="text-center mb-5">
+              <div className="text-4xl mb-2">🚀</div>
+              <h3 className="font-bold text-xl tracking-widest" style={{ fontFamily: "var(--font-orbitron)" }}>
+                MISSION ACCOMPLISHED
+              </h3>
+              <p className={`text-sm font-mono mt-2 ${textSecondary}`}>
+                Your donation of <span className={`font-bold ${accentOrange}`}>{donateAmount} {contributeType}</span> was received
+              </p>
+            </div>
+
+            {/* NFT Receipt Preview */}
+            <div className={`rounded-xl p-4 border mb-4 ${darkMode ? "border-purple-500/30 bg-purple-500/5" : "border-purple-200 bg-purple-50"}`}>
+              <p className={`text-[10px] uppercase tracking-widest font-bold mb-2 ${darkMode ? "text-purple-400" : "text-purple-600"}`} style={{ fontFamily: "var(--font-orbitron)" }}>
+                NFT Receipt Preview
+              </p>
+              <p className={`text-sm font-mono ${textPrimary}`}>
+                You are entitled to{" "}
+                <span className={`font-bold ${accentOrange}`}>
+                  {contributeType === "SOL"
+                    ? ((parseFloat(donateAmount || "0") * SOL_PRICE_EST / 8) * 2).toFixed(1)
+                    : parseFloat(donateAmount || "0").toFixed(1)
+                  } JTX
+                </span>{" "}
+                tokens at $8/token
+              </p>
+              <p className={`text-xs mt-1 ${darkMode ? "text-purple-400" : "text-purple-600"}`}>(Phase 1: 2x OPTX Multiplier)</p>
+              <p className={`text-[10px] mt-2 ${textMuted}`}>Your NFT receipt will be minted and claimable after vault close</p>
+            </div>
+
+            {/* Solscan link */}
+            <a
+              href={`https://solscan.io/tx/${txSig}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`w-full py-2.5 rounded-xl font-bold text-xs tracking-widest flex items-center justify-center gap-2 border mb-3 transition-colors ${
+                darkMode ? "border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20" : "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
+              }`}
+            >
+              <ExternalLink className="w-3.5 h-3.5" /> VIEW ON SOLSCAN
+            </a>
+
+            {/* Share on X */}
+            <button
+              onClick={() => shareOnX(donateAmount || "0")}
+              className={`w-full py-2.5 rounded-xl font-bold text-xs tracking-widest flex items-center justify-center gap-2 border mb-3 transition-colors ${
+                darkMode ? "border-white/20 bg-white/5 hover:bg-white/10 text-white" : "border-gray-300 bg-gray-50 hover:bg-gray-100 text-black"
+              }`}
+              style={{ fontFamily: "var(--font-orbitron)" }}
+            >
+              <XIcon className="w-4 h-4" /> SHARE OPT𝕏
+            </button>
+
+            {/* CTA 1: Stake */}
+            <Link
+              href="/stake"
+              className={`w-full py-2.5 rounded-xl font-bold text-xs tracking-widest flex items-center justify-center gap-2 mb-3 transition-all ${btnOrange}`}
+              style={{ fontFamily: "var(--font-orbitron)" }}
+            >
+              <Zap className="w-3.5 h-3.5" /> STAKE JTX FOR MOJO BETA ACCESS
+            </Link>
+
+            {/* CTA 2: Download MOJO App */}
+            <div className={`rounded-xl border p-3 ${cardBgAlt}`}>
+              <p className={`text-[10px] uppercase tracking-widest font-bold mb-2 text-center ${textMuted}`} style={{ fontFamily: "var(--font-orbitron)" }}>
+                Download MOJO App
+              </p>
+              <div className="flex gap-2">
+                <a
+                  href="https://testflight.apple.com/join/JettOptx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-colors ${
+                    darkMode ? "bg-white/5 hover:bg-white/10 text-white/80" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" /> TestFlight
+                </a>
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.jettoptics.mojo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-colors ${
+                    darkMode ? "bg-white/5 hover:bg-white/10 text-white/80" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" /> Google Play
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ Devnet Notice Modal ═══ */}
       {showDevnetModal && (

@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react"
 import {
   Eye, Shield, Zap, Layers, Copy, Check, ExternalLink, Sun, Moon,
   Terminal, Globe, Fingerprint, Code2, ChevronRight, Cpu,
-  PanelLeftClose, PanelLeft, BookOpen, ArrowRight
+  PanelLeftClose, PanelLeft, BookOpen, ArrowRight,
+  DollarSign, Box, GitBranch
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -608,9 +609,37 @@ export default function AaronDocsPage() {
                 {
                   key: "x402 Payments",
                   icon: Zap,
-                  title: "3. x402 Unlocks Action",
+                  title: "3a. x402 Unlocks Action",
                   desc: "Payment attestation triggers domain registration, NFT mint, or agent delegation via micropayment. The x402 protocol settles OPTX payments atomically alongside the biometric proof.",
                   color: "yellow",
+                },
+                {
+                  key: "MPP Payments",
+                  icon: DollarSign,
+                  title: "3b. Machine-to-Machine Payments (MPP)",
+                  desc: "The MPP protocol enables autonomous agents to pay for AARON attestation services using USDC. Agent wallets (like JOE) submit x402 micropayments that are atomically settled alongside proof verification. Each agent payment creates an AgentAcquisition PDA on-chain, linking the payment to the authenticated user. Program: JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7.",
+                  color: "cyan",
+                },
+                {
+                  key: "USDC Bridge (XRP ↔ SOL)",
+                  icon: ArrowRight,
+                  title: "3c. USDC Bridge: XRP ↔ Solana",
+                  desc: "Cross-chain settlement bridges USDC between XRP Ledger (via Xahau hooks) and Solana. Agent payments originating on XRP are bridged to SOL-side USDC and deposited into the vault program's donate_usdc_agent instruction. The bridge uses Wormhole/DeBridge for trustless cross-chain transfers, with Xahau hooks triggering automatic settlement.",
+                  color: "blue",
+                },
+                {
+                  key: "Vault NFT Receipts",
+                  icon: Box,
+                  title: "3d. Vault NFT Receipts",
+                  desc: "Every donation (SOL or USDC) generates an on-chain DonorReceipt PDA. The receipt records: donation amount, JTX tokens entitled at $8/token, OPTX multiplier (2x in Phase 1), payment method, and claim status. These receipts serve as NFT claim tickets for the OPTX airdrop. Vault PDA: CQmBrff4a9MouY4eQTAPKXKprtvfHZDNSkNCQhRR38tP.",
+                  color: "yellow",
+                },
+                {
+                  key: "Xahau Hooks",
+                  icon: GitBranch,
+                  title: "3e. Xahau Hooks (XRP Settlement)",
+                  desc: "Xahau hooks on the XRP Ledger enable programmable settlement for cross-chain payments. When an agent or user initiates a payment on XRP, the hook automatically: (1) validates the payment amount against USDC rates, (2) triggers the bridge to Solana, (3) calls donate_usdc_agent on the vault program. This enables XRP-native users and XRP liquidity pools (XAH/mXRP/MAG/RLUSD) to participate in the vault.",
+                  color: "purple",
                 },
                 {
                   key: "Staked Tiers",
@@ -771,14 +800,19 @@ print(proof.tx_signature)  # Solana transaction hash`}
 │  └── x402 Payment Attestation                           │
 ├─────────────────────────────────────────────────────────┤
 │  JETT AUTH (Joule Encryption Temporal Template)          │
-│  ├── Agentive Gaze Tensor (AGT: COG/EMO/ENV)         │
+│  ├── Agentive Gaze Tensor (AGT: COG/EMO/ENV)           │
 │  ├── Biometric identity capture on-device               │
-│  └── Generates JOULE template (knot encoding)     │
+│  └── Generates JOULE template (knot encoding)           │
 ├─────────────────────────────────────────────────────────┤
 │  AARON EDGE ROUTER (Astro Knots Router)                 │
 │  ├── Gaze verification + audit logging                  │
 │  ├── x402 micropayment settlement                       │
 │  └── IP protocol filter + rate limiting                 │
+├─────────────────────────────────────────────────────────┤
+│  USDC BRIDGE + XAHAU HOOKS                              │
+│  ├── XRP → USDC via Xahau programmable hooks            │
+│  ├── Wormhole/DeBridge cross-chain transfer              │
+│  └── MPP agent payments (donate_usdc_agent)              │
 ├─────────────────────────────────────────────────────────┤
 │  OPTx (Optical Program Technologic Xtension)            │
 │  ├── Verification hash → 32-byte opaque proof           │
@@ -789,8 +823,37 @@ print(proof.tx_signature)  # Solana transaction hash`}
 │  ├── CSTB Trust DePIN Program (Anchor)                  │
 │  ├── $OPTX Token (Token-2022 SPL)                       │
 │  ├── $JTX Governance Token                              │
-│  └── Attestation PDA stored on-chain                    │
+│  ├── Vault Program (JTX5...YA7)                         │
+│  └── Attestation + DonorReceipt PDAs on-chain           │
 └─────────────────────────────────────────────────────────┘`} />
+              </div>
+
+              {/* Bridge Flow */}
+              <div data-section="Bridge Flow" className="scroll-mt-4">
+                <h3 className={`font-mono text-sm mb-3 ${isDark ? "text-orange-300" : "text-orange-700"}`}>Bridge Flow: XRP → Solana USDC</h3>
+                <CodeBlock theme={theme} language="text" code={`XRP User / Agent
+      │
+      ▼
+┌──────────────┐     ┌──────────────────┐
+│  Xahau Hook  │────▶│  USDC Bridge     │
+│  (XRP Ledger)│     │  (Wormhole /     │
+│              │     │   DeBridge)      │
+└──────────────┘     └───────┬──────────┘
+                             │
+                     USDC on Solana
+                             │
+                             ▼
+                  ┌─────────────────────┐
+                  │  Vault Program      │
+                  │  donate_usdc_agent  │
+                  │  (JTX5...YA7)       │
+                  └──────────┬──────────┘
+                             │
+                     ┌───────┴───────┐
+                     │               │
+                     ▼               ▼
+              DonorReceipt     VaultConfig
+              PDA created      raised_usdc++`} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
