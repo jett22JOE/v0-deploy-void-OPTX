@@ -274,7 +274,7 @@ export default function VaultPage() {
               solPriceUsdc: Number(rData.readBigUInt64LE(88)),
               jtxEntitled: Number(rData.readBigUInt64LE(96)),
               jtxPriceUsdc: Number(rData.readBigUInt64LE(104)),
-              multiplierBps: rData.readUInt16LE(112),
+              multiplierBps: rData.readUInt16LE(112) || 100, // default 1x if 0
               mintedAt: Number(rData.readBigInt64LE(114)),
               claimed: rData[122] === 1,
               paymentMethod: rData[123],
@@ -287,7 +287,9 @@ export default function VaultPage() {
               const lamports = Number(dData.readBigUInt64LE(40))
               const usdcValue = (lamports / 1e9) * SOL_PRICE_EST * 1e6
               const jtxEntitled = ((usdcValue / 1e6) / 8) * 1e9
-              const multiplier = dData.readUInt16LE(92)
+              const rawMultiplier = dData.readUInt16LE(92)
+              // Default to 100 (1x) if on-chain multiplier is 0 (pre-upgrade donations)
+              const multiplier = rawMultiplier === 0 ? 100 : rawMultiplier
               const jtxWithMultiplier = (jtxEntitled * multiplier) / 100
               setDonorReceipt({
                 donationLamports: lamports,
@@ -1701,16 +1703,22 @@ export default function VaultPage() {
             {/* Holographic NFT Card */}
             <div className="relative rounded-xl p-[2px] mb-4" style={{ background: "conic-gradient(from 0deg, #f97316, #06b6d4, #a855f7, #f97316)" }}>
               <div className={`rounded-[10px] p-5 ${darkMode ? "bg-[#0d0d14]" : "bg-white"}`}>
-                {/* Callsign + Wallet */}
-                <div className="mb-4">
-                  {callsignMap[publicKey.toBase58()] && (
-                    <p className={`text-sm font-bold ${accentOrange}`} style={{ fontFamily: "var(--font-orbitron)" }}>
-                      @{callsignMap[publicKey.toBase58()]}
+                {/* NFT Image + Callsign/Wallet */}
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border border-orange-500/30">
+                    <Image src="/images/jtx-vault-nft.jpg" alt="JTX Vault NFT" fill className="object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {callsignMap[publicKey.toBase58()] && (
+                      <p className={`text-sm font-bold ${accentOrange}`} style={{ fontFamily: "var(--font-orbitron)" }}>
+                        @{callsignMap[publicKey.toBase58()]}
+                      </p>
+                    )}
+                    <p className={`font-mono text-[11px] ${textSecondary}`}>
+                      {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
                     </p>
-                  )}
-                  <p className={`font-mono text-[11px] ${textSecondary}`}>
-                    {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
-                  </p>
+                    <p className={`text-[9px] mt-1 ${textMuted}`}>JTX Community Vault — Donor Receipt</p>
+                  </div>
                 </div>
 
                 {/* Stats Grid */}
