@@ -55,10 +55,10 @@ const LAYERS = [
   },
   {
     id: "L2",
-    name: "PRIVATE LAYER (HEDGEHOG SPACETIME)",
+    name: "PRIVATE LAYER (ASTROJOE BRAIN)",
     color: "#f97316",
     nodes: [
-      { name: "HEDGEHOG MCP", tags: ["port :5555", "Grok 4.1", "xBridge", "DEFENSE"] },
+      { name: "AstroJOE Brain", tags: ["port :5555", "CorsairOne", "Docker", "DEFENSE"] },
       { name: "Private Knot-Engine", tags: ["AstroKnots theory", "Rust", "QUANTUM"] },
       { name: "SpacetimeDB", tags: ["Rust Reducers", "systemd", "WASM"] },
       { name: "AGTs (Gaze Tensors)", tags: ["Patent US20250392457A1", "Markov"] },
@@ -162,7 +162,7 @@ function TopologySVG() {
     // Brain
     { id: "brain", label: "SpacetimeDB", x: 320, y: 180, color: "#ec4899" },
     // L2
-    { id: "hedgehog", label: "HEDGEHOG", x: 200, y: 250, color: "#f97316" },
+    { id: "hedgehog", label: "AstroJOE Brain", x: 200, y: 250, color: "#f97316" },
     { id: "knot", label: "Knot-Engine", x: 440, y: 250, color: "#f97316" },
     // L3
     { id: "jetson", label: "JETSON JOE", x: 320, y: 320, color: "#22c55e" },
@@ -545,14 +545,8 @@ function WalletConnectButton({
 }
 
 // ─── Edge Nodes Panel ─────────────────────────────────────
-function EdgeNodesPanel({ statusData }: {
-  statusData: {
-    conduit?: { online: boolean; latencyMs?: number; version?: string; roomAccessible?: boolean };
-    hedgehog?: { online: boolean; latencyMs?: number; host?: string };
-    mesh?: { nodes?: { name: string; role: string; ip: string; type: string; online: boolean }[] };
-    services?: { name: string; status: string; latencyMs?: number; host?: string; port?: number | null }[];
-  }
-}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function EdgeNodesPanel({ statusData }: { statusData: Record<string, any> }) {
   const [expanded, setExpanded] = useState(false)
   const nodes = statusData.mesh?.nodes ?? []
   const services = statusData.services ?? []
@@ -708,12 +702,8 @@ function TerminalPanel() {
   const [joeOnline, setJoeOnline] = useState(true)
   const [conduitOnline, setConduitOnline] = useState(false)
   const [hedgehogOnline, setHedgehogOnline] = useState(false)
-  const [statusData, setStatusData] = useState<{
-    conduit?: { online: boolean; latencyMs?: number; version?: string; roomAccessible?: boolean };
-    hedgehog?: { online: boolean; latencyMs?: number; host?: string };
-    mesh?: { nodes?: { name: string; role: string; ip: string; type: string; online: boolean }[] };
-    services?: { name: string; status: string; latencyMs?: number; host?: string; port?: number | null }[];
-  } | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [statusData, setStatusData] = useState<Record<string, any> | null>(null)
   const [codeMode, setCodeMode] = useState(false)
   const [sending, setSending] = useState(false)
   const [attachedImages, setAttachedImages] = useState<{ name: string; data: string; preview: string }[]>([])
@@ -768,7 +758,7 @@ function TerminalPanel() {
         const data = await res.json()
         setJoeOnline(data.online)
         setConduitOnline(data.conduit?.online ?? false)
-        setHedgehogOnline(data.hedgehog?.online ?? false)
+        setHedgehogOnline(data.brain?.online ?? data.hedgehog?.online ?? false)
         setStatusData(data)
       } catch {
         setJoeOnline(false)
@@ -788,7 +778,7 @@ function TerminalPanel() {
     {
       id: "boot",
       sender: "SYSTEM",
-      content: `JOEclaw Terminal v2.9 — ${mode === "dev" ? "DEV MODE" : "PUBLIC MODE"}\nMatrix: @joe:jettoptx-joe via Conduit\nType a message to chat with JOE. ${mode === "dev" ? "Commands: /execute, /code, /browse, /status, /brain, /matrix" : ""}`,
+      content: `AstroJOE CLI v4 — ${mode === "dev" ? "COMMAND MODE" : "CHAT MODE"}\nOrchestrator: @joe:jettoptx-joe via Conduit\nBrain: CorsairOne :5555\n${mode === "dev" ? "Commands: /execute, /code, /browse, /brain, /status, /sandbox, /search, /research" : "Chat with JOE — powered by Grok 4.20"}`,
       type: "system",
       timestamp: Date.now() - 100000,
     },
@@ -920,7 +910,7 @@ function TerminalPanel() {
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-green-400" />
           <h2 className="font-orbitron text-sm font-bold tracking-wider text-green-400">
-            JOEclaw CLI
+            AstroJOE CLI
           </h2>
           {/* Mode toggle — only founder can switch to COMMAND */}
           {isFounder ? (
@@ -957,17 +947,17 @@ function TerminalPanel() {
         <div className="flex items-center gap-2">
           {/* Status indicators */}
           <div className="flex items-center gap-1">
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="API">
-              <Circle className={`w-1.5 h-1.5 ${joeOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`} />
-              <span className="text-[8px] font-mono text-zinc-500">API</span>
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="JOE Orchestrator (Jetson)">
+              <Circle className={`w-1.5 h-1.5 ${conduitOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`} />
+              <span className="text-[8px] font-mono text-zinc-500">ORCH</span>
             </div>
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="Conduit Matrix">
-              <Circle className={`w-1.5 h-1.5 ${conduitOnline ? "text-green-400 fill-green-400" : "text-yellow-400 fill-yellow-400"}`} />
-              <span className="text-[8px] font-mono text-zinc-500">CONDUIT</span>
-            </div>
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="HEDGEHOG MCP on CorsairOne">
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="AstroJOE Brain (CorsairOne :5555)">
               <Circle className={`w-1.5 h-1.5 ${hedgehogOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`} />
-              <span className="text-[8px] font-mono text-zinc-500">HEDGEHOG</span>
+              <span className="text-[8px] font-mono text-zinc-500">BRAIN</span>
+            </div>
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="Matrix Conduit">
+              <Circle className={`w-1.5 h-1.5 ${conduitOnline ? "text-green-400 fill-green-400" : "text-yellow-400 fill-yellow-400"}`} />
+              <span className="text-[8px] font-mono text-zinc-500">MATRIX</span>
             </div>
           </div>
           {/* Wallet connect — full WalletMultiButton */}
@@ -1130,7 +1120,7 @@ function TerminalPanel() {
           <>
             <div className="w-px h-4 bg-zinc-800 mx-1" />
             <Badge className="bg-green-500/10 text-green-400/60 border-green-500/20 text-[8px] select-none">
-              /execute /code /browse /status /brain /matrix
+              /execute /code /browse /brain /status /sandbox /search /research
             </Badge>
           </>
         )}
