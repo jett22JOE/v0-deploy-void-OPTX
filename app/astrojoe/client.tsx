@@ -608,8 +608,10 @@ function TerminalPanel() {
 
   const walletAddress = publicKey?.toBase58() ?? null
   const isFounder = walletAddress === FOUNDER_WALLET
-  const mode = isFounder ? "dev" : "public"
-  const channelName = isFounder ? "astrojoe-dev" : "astrojoe"
+  const [commandMode, setCommandMode] = useState(false)
+  // Only founder can activate dev mode via toggle
+  const mode = (isFounder && commandMode) ? "dev" : "public"
+  const channelName = (isFounder && commandMode) ? "astrojoe-dev" : "astrojoe"
 
   // Convex channel setup — uses existing messages API (already deployed)
   const channels = useQuery(api.messages.listChannels)
@@ -829,9 +831,35 @@ function TerminalPanel() {
           <h2 className="font-orbitron text-sm font-bold tracking-wider text-green-400">
             JOEclaw CLI
           </h2>
-          {mode === "dev" && (
-            <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px]">
-              DEV MODE
+          {/* Mode toggle — only founder can switch to COMMAND */}
+          {isFounder ? (
+            <button
+              onClick={() => setCommandMode(!commandMode)}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all cursor-pointer select-none"
+              style={{
+                borderColor: commandMode ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.3)',
+                background: commandMode ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.05)',
+              }}
+              title={commandMode ? 'Switch to Chat mode' : 'Switch to Command mode (dev only)'}
+            >
+              <div
+                className="relative w-6 h-3.5 rounded-full transition-colors"
+                style={{ background: commandMode ? '#ef4444' : '#22c55e' }}
+              >
+                <div
+                  className="absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white shadow transition-all"
+                  style={{ left: commandMode ? '12px' : '2px' }}
+                />
+              </div>
+              <span className={`text-[9px] font-mono font-bold tracking-wider ${
+                commandMode ? 'text-red-400' : 'text-green-400'
+              }`}>
+                {commandMode ? 'COMMAND' : 'CHAT'}
+              </span>
+            </button>
+          ) : (
+            <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[9px]">
+              CHAT
             </Badge>
           )}
         </div>
@@ -889,11 +917,13 @@ function TerminalPanel() {
               <span className="text-[9px] font-mono text-zinc-600">grok-4.20</span>
             </div>
           </div>
-          {!isFounder && (
-            <Badge className="bg-zinc-800/60 text-zinc-500 border-zinc-700/40 text-[8px] flex-shrink-0">
-              Chat Only
-            </Badge>
-          )}
+          <Badge className={`text-[8px] flex-shrink-0 ${
+            mode === "dev"
+              ? "bg-red-500/15 text-red-400 border-red-500/30"
+              : "bg-zinc-800/60 text-zinc-500 border-zinc-700/40"
+          }`}>
+            {mode === "dev" ? "Command Mode" : "Chat Only"}
+          </Badge>
         </div>
       </div>
 
