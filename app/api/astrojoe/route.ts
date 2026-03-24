@@ -271,9 +271,10 @@ export async function POST(request: NextRequest) {
     }
 
     // ─── PUBLIC MODE ───────────────────────────────────────
-    // Public users also talk to JOE via Matrix, but with a prefix
-    const publicMessage = `[PUBLIC] ${message.slice(0, 500)}`
-    const response = await sendAndWait(publicMessage, 12000)
+    // Send the raw message to Matrix — the bot handles all routing
+    // Slash commands go through as-is so the bot can parse them
+    const trimmedPublic = message.trim().slice(0, 500)
+    const response = await sendAndWait(trimmedPublic, 12000)
 
     return NextResponse.json({
       response: response,

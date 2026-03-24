@@ -452,25 +452,51 @@ function WalletConnectButton({
 
   if (connected && walletAddress) {
     return (
-      <Badge
-        className={`text-[9px] font-mono cursor-pointer ${
-          isFounder
-            ? "bg-red-500/20 text-red-400 border-red-500/30"
-            : "bg-zinc-700/30 text-zinc-400 border-zinc-600/30"
-        }`}
-      >
-        {isFounder ? (
-          <>
-            <Lock className="w-2.5 h-2.5 mr-1" />
-            DEV
-          </>
-        ) : (
-          <>
-            <CheckCircle2 className="w-2.5 h-2.5 mr-1 text-green-400" />
-            {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
-          </>
-        )}
-      </Badge>
+      <div className="flex items-center gap-1.5">
+        <Badge
+          className={`text-[9px] font-mono ${
+            isFounder
+              ? "bg-red-500/20 text-red-400 border-red-500/30"
+              : "bg-zinc-700/30 text-zinc-400 border-zinc-600/30"
+          }`}
+        >
+          {isFounder ? (
+            <>
+              <Lock className="w-2.5 h-2.5 mr-1" />
+              DEV
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="w-2.5 h-2.5 mr-1 text-green-400" />
+              {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
+            </>
+          )}
+        </Badge>
+        {/* Disconnect / switch wallet */}
+        <div className="astrojoe-wallet-sm">
+          <style jsx global>{`
+            .astrojoe-wallet-sm .wallet-adapter-button {
+              background: transparent !important;
+              border: 1px solid rgba(113,113,122,0.3) !important;
+              border-radius: 0.375rem !important;
+              font-family: "Geist Mono", monospace !important;
+              font-size: 0.55rem !important;
+              padding: 0.15rem 0.5rem !important;
+              height: 22px !important;
+              color: #a1a1aa !important;
+              line-height: 1 !important;
+            }
+            .astrojoe-wallet-sm .wallet-adapter-button:hover {
+              border-color: rgba(161,161,170,0.5) !important;
+              color: #e4e4e7 !important;
+            }
+            .astrojoe-wallet-sm .wallet-adapter-button-start-icon {
+              display: none !important;
+            }
+          `}</style>
+          <WalletMultiButton />
+        </div>
+      </div>
     )
   }
 
