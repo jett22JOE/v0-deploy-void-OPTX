@@ -26,9 +26,10 @@ async function ping(url: string, timeoutMs = 5000): Promise<{ ok: boolean; ms: n
 
 export async function GET() {
   // Parallel health checks across the mesh
-  const [conduitPing, brainPing, roomCheck] = await Promise.all([
+  const [conduitPing, brainPing, brainStatePing, roomCheck] = await Promise.all([
     ping(`${MATRIX_HOMESERVER}/_matrix/client/versions`),
     ping(`${ASTROJOE_BRAIN_URL}/health`).then(async (r) => r.ok ? r : ping(ASTROJOE_BRAIN_URL)),
+    ping(`${ASTROJOE_BRAIN_URL}/brain`),  // Full brain state
     (async () => {
       if (!MATRIX_ACCESS_TOKEN) return false
       try {
@@ -46,6 +47,11 @@ export async function GET() {
   const conduitOnline = conduitPing.ok
   const brainOnline = brainPing.ok
   const roomJoined = roomCheck as boolean
+
+  // Extract brain state (AGT, memory, skills) from /brain endpoint
+  const brainState = brainStatePing.ok && brainStatePing.data ? brainStatePing.data as Record<string, unknown> : null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const brainHealth = brainPing.ok && brainPing.data ? brainPing.data as Record<string, any> : null
 
   let conduitVersion = "unknown"
   if (conduitPing.data && typeof conduitPing.data === "object") {
@@ -92,13 +98,19 @@ export async function GET() {
       tokenConfigured: !!MATRIX_ACCESS_TOKEN,
     },
 
-    // SpacetimeDB (accessed via AstroJOE Brain)
-    spacetimedb: {
-      tables: 48,
-      reducers: 16,
-      runtime: "WASM",
-      accessVia: "AstroJOE Brain",
-    },
+    // SpacetimeDB Brain State (from /brain endpoint)
+    spacetimedb: brainState
+      ? (brainState as Record<string, unknown>).spacetimedb ?? { tables: 48, reducers: 16, runtime: "WASM" }
+      : { tables: 48, reducers: 16, runtime: "WASM", status: "unreachable" },
+
+    // AGT Tensor State
+    agt: brainHealth?.agt ?? brainState ? (brainState as Record<string, unknown>).agt : null,
+
+    // Memory state
+    memory: brainState ? (brainState as Record<string, unknown>).memory : null,
+
+    // Skills
+    skills: brainState ? (brainState as Record<string, unknown>).skills : null,
 
     // Tailscale mesh nodes
     mesh: {
