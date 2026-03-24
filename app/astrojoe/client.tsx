@@ -59,8 +59,10 @@ const LAYERS = [
     color: "#f97316",
     nodes: [
       { name: "AstroJOE Brain", tags: ["port :5555", "CorsairOne", "Docker", "DEFENSE"] },
+      { name: "SpacetimeDB Brain", tags: ["52 tables", "22 reducers", "WASM", "Rust"] },
+      { name: "OpenGauss Engine", tags: ["Lean4", "prove", "formalize", "SYMBOLIC"] },
+      { name: "Wolfram MCP", tags: ["SecretiveShell", "port :8787", "COMPUTE"] },
       { name: "Private Knot-Engine", tags: ["AstroKnots theory", "Rust", "QUANTUM"] },
-      { name: "SpacetimeDB", tags: ["Rust Reducers", "systemd", "WASM"] },
       { name: "AGTs (Gaze Tensors)", tags: ["Patent US20250392457A1", "Markov"] },
       { name: "Xaman Wallet", tags: ["XRPL", "Xahau", "HOOKS"] },
       { name: "ERC-8004 Agent Wallet", tags: ["ERC-8004", "READ-ONLY"] },
@@ -145,6 +147,15 @@ const BRAIN_MODULES = [
       { table: "poi_state", reducers: ["commit_experiment", "log_adoption"] },
     ],
   },
+  {
+    category: "Computational Intelligence",
+    modules: [
+      { table: "wolfram_results", reducers: ["store_wolfram_result", "cache_query"] },
+      { table: "gauss_proofs", reducers: ["store_gauss_result", "verify_proof"] },
+      { table: "compute_routing_log", reducers: ["log_compute_routing", "classify_query"] },
+      { table: "symbolic_cache", reducers: ["cache_symbolic_result", "check_cache"] },
+    ],
+  },
 ]
 
 // ─── Topology SVG ───────────────────────────────────────────
@@ -162,8 +173,10 @@ function TopologySVG() {
     // Brain
     { id: "brain", label: "SpacetimeDB", x: 320, y: 180, color: "#ec4899" },
     // L2
-    { id: "hedgehog", label: "AstroJOE Brain", x: 200, y: 250, color: "#f97316" },
-    { id: "knot", label: "Knot-Engine", x: 440, y: 250, color: "#f97316" },
+    { id: "hedgehog", label: "AstroJOE Brain", x: 120, y: 250, color: "#f97316" },
+    { id: "wolfram", label: "Wolfram MCP", x: 280, y: 250, color: "#8b5cf6" },
+    { id: "gauss", label: "OpenGauss", x: 440, y: 250, color: "#10b981" },
+    { id: "knot", label: "Knot-Engine", x: 580, y: 250, color: "#f97316" },
     // L3
     { id: "jetson", label: "JETSON JOE", x: 320, y: 320, color: "#22c55e" },
     // L4
@@ -180,7 +193,11 @@ function TopologySVG() {
     { from: "joe", to: "nemoclaw" }, { from: "joe", to: "aaron" },
     { from: "joe", to: "brain" },
     { from: "brain", to: "hedgehog" }, { from: "brain", to: "knot" },
+    { from: "brain", to: "wolfram" },
+    { from: "brain", to: "gauss" },
     { from: "hedgehog", to: "jetson" }, { from: "knot", to: "jetson" },
+    { from: "wolfram", to: "jetson" },
+    { from: "gauss", to: "jetson" },
     { from: "jetson", to: "solana" }, { from: "jetson", to: "xrpl" },
     { from: "jetson", to: "evm" },
     { from: "solana", to: "poi" }, { from: "xrpl", to: "poi" },
@@ -190,7 +207,7 @@ function TopologySVG() {
   const nodeMap = Object.fromEntries(nodes.map((n) => [n.id, n]))
 
   return (
-    <svg viewBox="0 0 660 500" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 680 500" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter id="glow">
           <feGaussianBlur stdDeviation="2" result="blur" />
@@ -219,9 +236,9 @@ function TopologySVG() {
       {nodes.map((n) => (
         <g key={n.id} filter="url(#glow)">
           <rect
-            x={n.x - 50}
+            x={n.x - 55}
             y={n.y - 12}
-            width="100"
+            width="110"
             height="24"
             rx="4"
             fill="rgba(0,0,0,0.6)"
@@ -234,7 +251,7 @@ function TopologySVG() {
             y={n.y + 4}
             textAnchor="middle"
             fill={n.color}
-            fontSize="10"
+            fontSize="9"
             fontFamily="var(--font-geist-mono), monospace"
           >
             {n.label}
@@ -286,6 +303,14 @@ function ArchitecturePanel() {
         <span className="text-[10px] font-mono flex items-center gap-1 text-pink-400">
           <span className="w-2 h-2 rounded-full inline-block bg-pink-400" />
           Brain
+        </span>
+        <span className="text-[10px] font-mono flex items-center gap-1 text-violet-400">
+          <span className="w-2 h-2 rounded-full inline-block bg-violet-400" />
+          Wolfram
+        </span>
+        <span className="text-[10px] font-mono flex items-center gap-1 text-emerald-400">
+          <span className="w-2 h-2 rounded-full inline-block bg-emerald-400" />
+          Gauss
         </span>
       </div>
 
