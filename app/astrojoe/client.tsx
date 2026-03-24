@@ -861,6 +861,42 @@ function TerminalPanel() {
         </div>
       </div>
 
+      {/* JOE Identity Card */}
+      <div className="px-3 py-2.5 border-b border-zinc-800/50 bg-zinc-900/30">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden border border-cyan-500/30 flex-shrink-0">
+            <img src="/astroknots-icon.jpg" alt="JOE" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-orbitron text-[11px] font-bold text-cyan-400 tracking-wider">JOE</span>
+              <span className="text-[8px] font-mono text-zinc-600">Jett Optical Encryption Agent</span>
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <a
+                href="https://solscan.io/account/EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[9px] font-mono text-zinc-500 hover:text-cyan-400 transition-colors"
+                title="JOE Agent Wallet on Solscan"
+              >
+                <Wallet className="w-2.5 h-2.5 inline mr-0.5 -mt-px" />
+                EFvg...ZRGk
+              </a>
+              <span className="text-zinc-700">·</span>
+              <span className="text-[9px] font-mono text-zinc-600">@joe:jettoptx-joe</span>
+              <span className="text-zinc-700">·</span>
+              <span className="text-[9px] font-mono text-zinc-600">grok-4.20</span>
+            </div>
+          </div>
+          {!isFounder && (
+            <Badge className="bg-zinc-800/60 text-zinc-500 border-zinc-700/40 text-[8px] flex-shrink-0">
+              Chat Only
+            </Badge>
+          )}
+        </div>
+      </div>
+
       {/* Messages */}
       <div
         ref={scrollRef}
