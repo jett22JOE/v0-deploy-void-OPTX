@@ -544,6 +544,86 @@ function WalletConnectButton({
   )
 }
 
+// ─── Edge Nodes Panel ─────────────────────────────────────
+function EdgeNodesPanel({ statusData }: {
+  statusData: {
+    conduit?: { online: boolean; latencyMs?: number; version?: string; roomAccessible?: boolean };
+    hedgehog?: { online: boolean; latencyMs?: number; host?: string };
+    mesh?: { nodes?: { name: string; role: string; ip: string; type: string; online: boolean }[] };
+    services?: { name: string; status: string; latencyMs?: number; host?: string; port?: number | null }[];
+  }
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const nodes = statusData.mesh?.nodes ?? []
+  const services = statusData.services ?? []
+  const onlineCount = nodes.filter(n => n.online).length
+
+  return (
+    <div className="border-b border-zinc-800/50">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-zinc-800/30 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Network className="w-3 h-3 text-orange-400" />
+          <span className="text-[10px] font-orbitron font-bold text-orange-400 tracking-wider">EDGE NODES</span>
+          <span className="text-[9px] font-mono text-zinc-600">
+            {onlineCount}/{nodes.length} online
+          </span>
+        </div>
+        <ChevronDown className={`w-3 h-3 text-zinc-600 transition-transform ${expanded ? '' : '-rotate-90'}`} />
+      </button>
+
+      {expanded && (
+        <div className="px-3 pb-2 space-y-1.5">
+          {/* Nodes */}
+          {nodes.map((node, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-zinc-900/60 border border-zinc-800/40"
+            >
+              <Circle className={`w-2 h-2 flex-shrink-0 ${node.online ? 'text-green-400 fill-green-400' : 'text-red-400 fill-red-400'}`} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-zinc-300 font-semibold">{node.name}</span>
+                  <span className="text-[8px] font-mono text-orange-400/70">{node.role}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[8px] font-mono text-zinc-600">{node.type}</span>
+                  <span className="text-[8px] font-mono text-zinc-700">{node.ip}</span>
+                </div>
+              </div>
+              <span className={`text-[8px] font-mono ${node.online ? 'text-green-400' : 'text-red-400'}`}>
+                {node.online ? 'ONLINE' : 'DOWN'}
+              </span>
+            </div>
+          ))}
+
+          {/* Services mini-grid */}
+          <div className="pt-1">
+            <span className="text-[8px] font-orbitron text-zinc-600 tracking-widest uppercase">Services</span>
+            <div className="grid grid-cols-2 gap-1 mt-1">
+              {services.map((svc, i) => (
+                <div key={i} className="flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-900/40 border border-zinc-800/30">
+                  <Circle className={`w-1.5 h-1.5 flex-shrink-0 ${
+                    svc.status === 'online' || svc.status === 'joined' ? 'text-green-400 fill-green-400'
+                    : svc.status === 'unknown' ? 'text-yellow-400 fill-yellow-400'
+                    : 'text-red-400 fill-red-400'
+                  }`} />
+                  <span className="text-[8px] font-mono text-zinc-500 truncate">{svc.name}</span>
+                  {svc.latencyMs !== undefined && svc.latencyMs > 0 && (
+                    <span className="text-[7px] font-mono text-zinc-700 ml-auto flex-shrink-0">{svc.latencyMs}ms</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Terminal Message ───────────────────────────────────────
 interface TerminalMessage {
   id: string
@@ -627,6 +707,13 @@ function TerminalPanel() {
   const [localMessages, setLocalMessages] = useState<TerminalMessage[]>([])
   const [joeOnline, setJoeOnline] = useState(true)
   const [conduitOnline, setConduitOnline] = useState(false)
+  const [hedgehogOnline, setHedgehogOnline] = useState(false)
+  const [statusData, setStatusData] = useState<{
+    conduit?: { online: boolean; latencyMs?: number; version?: string; roomAccessible?: boolean };
+    hedgehog?: { online: boolean; latencyMs?: number; host?: string };
+    mesh?: { nodes?: { name: string; role: string; ip: string; type: string; online: boolean }[] };
+    services?: { name: string; status: string; latencyMs?: number; host?: string; port?: number | null }[];
+  } | null>(null)
   const [codeMode, setCodeMode] = useState(false)
   const [sending, setSending] = useState(false)
   const [attachedImages, setAttachedImages] = useState<{ name: string; data: string; preview: string }[]>([])
@@ -681,9 +768,13 @@ function TerminalPanel() {
         const data = await res.json()
         setJoeOnline(data.online)
         setConduitOnline(data.conduit?.online ?? false)
+        setHedgehogOnline(data.hedgehog?.online ?? false)
+        setStatusData(data)
       } catch {
         setJoeOnline(false)
         setConduitOnline(false)
+        setHedgehogOnline(false)
+        setStatusData(null)
       }
     }
     check()
@@ -864,20 +955,20 @@ function TerminalPanel() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          {/* Status indicator */}
-          <div className="flex items-center gap-1.5">
-            <Circle
-              className={`w-2 h-2 ${joeOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`}
-            />
-            <span className="text-[10px] font-mono text-zinc-500">
-              {joeOnline ? "API ON" : "OFFLINE"}
-            </span>
-            <Circle
-              className={`w-2 h-2 ${conduitOnline ? "text-green-400 fill-green-400" : "text-yellow-400 fill-yellow-400"}`}
-            />
-            <span className="text-[10px] font-mono text-zinc-500">
-              {conduitOnline ? "CONDUIT" : "NO MESH"}
-            </span>
+          {/* Status indicators */}
+          <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="API">
+              <Circle className={`w-1.5 h-1.5 ${joeOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`} />
+              <span className="text-[8px] font-mono text-zinc-500">API</span>
+            </div>
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="Conduit Matrix">
+              <Circle className={`w-1.5 h-1.5 ${conduitOnline ? "text-green-400 fill-green-400" : "text-yellow-400 fill-yellow-400"}`} />
+              <span className="text-[8px] font-mono text-zinc-500">CONDUIT</span>
+            </div>
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="HEDGEHOG MCP on CorsairOne">
+              <Circle className={`w-1.5 h-1.5 ${hedgehogOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`} />
+              <span className="text-[8px] font-mono text-zinc-500">HEDGEHOG</span>
+            </div>
           </div>
           {/* Wallet connect — full WalletMultiButton */}
           <WalletConnectButton
@@ -926,6 +1017,11 @@ function TerminalPanel() {
           </Badge>
         </div>
       </div>
+
+      {/* Edge Nodes Panel (collapsible) */}
+      {statusData && (
+        <EdgeNodesPanel statusData={statusData} />
+      )}
 
       {/* Messages */}
       <div
