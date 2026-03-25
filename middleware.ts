@@ -17,7 +17,6 @@ const isPublicRoute = createRouteMatcher([
   "/optx-login(.*)",
   "/gaze-verify(.*)",
   "/aaron(.*)",
-  "/aaron-docs(.*)",
   "/aaron-status(.*)",
   "/bridge(.*)",
   "/security(.*)",
@@ -43,11 +42,11 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.redirect(`https://astroknots.space${url.pathname === "/vault" ? "" : url.pathname.replace(/^\/vault/, "")}`, 301)
   }
 
-  // Primary vault domain: astroknots.space → /vault (and /docs → /aaron-docs)
+  // Primary vault domain: astroknots.space → /vault (and /docs → /aaron)
   if (hostname === "astroknots.space" || hostname === "www.astroknots.space") {
     // /docs on astroknots.space → public AARON docs
     if (url.pathname === "/docs" || url.pathname.startsWith("/docs/")) {
-      url.pathname = url.pathname.replace(/^\/docs/, "/aaron-docs")
+      url.pathname = url.pathname.replace(/^\/docs/, "/aaron")
       return NextResponse.rewrite(url)
     }
     // /status on astroknots.space → public status page
