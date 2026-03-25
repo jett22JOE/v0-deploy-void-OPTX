@@ -1272,14 +1272,14 @@ function ChatPanel() {
     // Allow wallet-only users (no Clerk user required)
     if (!user && !connected) return
 
-    // Don't wrap slash commands in code blocks — they need to be parsed raw
-    const isSlashCommand = trimmed.startsWith("/")
-
-    // Gate slash commands behind JTX token holding (>= 1 JTX)
-    if (isSlashCommand && !hasJTX) {
+    // Hard gate: block ALL messages for wallets with < 1 JTX (founder exempt)
+    if (!hasJTX) {
       setShowVaultModal(true)
       return
     }
+
+    // Don't wrap slash commands in code blocks — they need to be parsed raw
+    const isSlashCommand = trimmed.startsWith("/")
     const baseContent = (codeMode && !isSlashCommand) ? "```\n" + trimmed + "\n```" : trimmed
     // Show attachment names in the local message display
     const attachmentLabel = attachments.length > 0
@@ -1474,6 +1474,25 @@ function ChatPanel() {
         </div>
       </div>
 
+      {/* ── JTX Gate Banner (0 JTX users) ── */}
+      {connected && !hasJTX && (
+        <div
+          className="mx-4 mt-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-center cursor-pointer"
+          onClick={() => setShowVaultModal(true)}
+        >
+          <p className="text-sm text-red-400 font-medium">
+            You need at least 1 JTX token to use AstroJOE.
+          </p>
+          <p className="text-xs text-red-400/70 mt-1">
+            Visit{" "}
+            <a href="https://astroknots.space" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-300">
+              astroknots.space
+            </a>{" "}
+            to get JTX.
+          </p>
+        </div>
+      )}
+
       {/* ── Message Thread ── */}
       <div
         ref={scrollRef}
@@ -1609,27 +1628,36 @@ function ChatPanel() {
         <div className="flex items-end gap-2 px-4 py-3">
           {/* Attach button */}
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => {
+              if (!hasJTX && connected) { setShowVaultModal(true); return }
+              fileInputRef.current?.click()
+            }}
+            disabled={!hasJTX && connected}
             className={`flex-shrink-0 p-2 rounded-full transition-colors ${
-              attachments.length > 0 ? "text-cyan-400 bg-cyan-500/10" : "text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800/50"
+              !hasJTX && connected
+                ? "text-zinc-700 cursor-not-allowed opacity-50"
+                : attachments.length > 0 ? "text-cyan-400 bg-cyan-500/10" : "text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800/50"
             }`}
-            title="Attach file (images, .md, .txt)"
+            title={!hasJTX && connected ? "Requires 1+ $JTX" : "Attach file (images, .md, .txt)"}
           >
             <PaperclipSVG className="w-5 h-5" />
           </button>
 
           {/* Textarea */}
-          <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-2.5 focus-within:border-zinc-700 transition-colors">
+          <div
+            className={`flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-2.5 transition-colors ${!hasJTX && connected ? "cursor-pointer opacity-60" : "focus-within:border-zinc-700"}`}
+            onClick={() => { if (!hasJTX && connected) setShowVaultModal(true) }}
+          >
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
-              placeholder="Ask JOE..."
+              placeholder={!hasJTX && connected ? "Hold at least 1 JTX to chat \u2014 Visit astroknots.space" : "Ask JOE..."}
               className="w-full bg-transparent text-[15px] text-zinc-200 placeholder:text-zinc-600 outline-none caret-cyan-400 resize-none leading-relaxed"
               rows={1}
-              disabled={!user && !connected}
+              disabled={(!user && !connected) || (!hasJTX && connected)}
               style={{ minHeight: "24px", maxHeight: "200px", overflow: "hidden" }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement
@@ -1642,7 +1670,7 @@ function ChatPanel() {
           {/* Send button */}
           <button
             onClick={handleSend}
-            disabled={(!input.trim() && attachments.length === 0) || sending || (!user && !connected)}
+            disabled={(!input.trim() && attachments.length === 0) || sending || (!user && !connected) || (!hasJTX && connected)}
             className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all animate-send-press ${
               input.trim() || attachments.length > 0
                 ? "bg-cyan-500 text-white hover:bg-cyan-400 shadow-lg shadow-cyan-500/20"

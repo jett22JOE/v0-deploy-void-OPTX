@@ -347,15 +347,21 @@ export async function POST(request: NextRequest) {
     // ─── PUBLIC MODE ───────────────────────────────────────
     const trimmedPublic = message.trim().slice(0, 500)
 
-    // Server-side JTX gate: slash commands require >= 1 JTX token
-    if (trimmedPublic.startsWith("/") && wallet && wallet !== FOUNDER_WALLET) {
+    // Server-side JTX gate: ALL messages require >= 1 JTX token (hard gate)
+    if (wallet && wallet !== FOUNDER_WALLET) {
       const balance = await getJTXBalance(wallet)
       if (balance < JTX_MIN_BALANCE) {
         return NextResponse.json(
-          { error: "Insufficient $JTX. You need at least 1 $JTX token to use commands. Visit astroknots.space to get $JTX." },
+          { error: "Requires at least 1 JTX token" },
           { status: 403 }
         )
       }
+    } else if (!wallet) {
+      // No wallet provided at all — reject
+      return NextResponse.json(
+        { error: "Wallet required" },
+        { status: 403 }
+      )
     }
 
     // Send the enriched message to Matrix — the bot handles all routing
