@@ -146,7 +146,7 @@ export default function OptxLoginPage() {
       {showJettModal && <JettAuthModal onDismiss={() => setShowJettModal(false)} />}
 
       {/* Header bar — logo + wallet status badge only */}
-      <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 bg-black/60 backdrop-blur-sm">
+      <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 bg-black">
         <Link href="/" className="group flex items-center gap-2 shrink-0">
           <div className="relative w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center">
             <span className="relative flex h-full w-full">
