@@ -61,7 +61,7 @@ const LAYERS = [
       { name: "AstroJOE Brain", tags: ["port :5555", "CorsairOne", "Docker", "DEFENSE"] },
       { name: "SpacetimeDB Brain", tags: ["52 tables", "22 reducers", "WASM", "Rust"] },
       { name: "OpenGauss Engine", tags: ["Lean4", "prove", "formalize", "SYMBOLIC"] },
-      { name: "Wolfram MCP", tags: ["SecretiveShell", "port :8787", "COMPUTE"] },
+      { name: "OpenShell Sandbox", tags: ["NemoClaw", "policy-enforced", "SANDBOX"] },
       { name: "Private Knot-Engine", tags: ["AstroKnots theory", "Rust", "QUANTUM"] },
       { name: "AGTs (Gaze Tensors)", tags: ["Patent US20250392457A1", "Markov"] },
       { name: "Xaman Wallet", tags: ["XRPL", "Xahau", "HOOKS"] },
@@ -150,7 +150,7 @@ const BRAIN_MODULES = [
   {
     category: "Computational Intelligence",
     modules: [
-      { table: "wolfram_results", reducers: ["store_wolfram_result", "cache_query"] },
+      { table: "openshell_executions", reducers: ["store_openshell_result", "exec_sandboxed"] },
       { table: "gauss_proofs", reducers: ["store_gauss_result", "verify_proof"] },
       { table: "compute_routing_log", reducers: ["log_compute_routing", "classify_query"] },
       { table: "symbolic_cache", reducers: ["cache_symbolic_result", "check_cache"] },
@@ -174,7 +174,7 @@ function TopologySVG() {
     { id: "brain", label: "SpacetimeDB", x: 320, y: 180, color: "#ec4899" },
     // L2
     { id: "hedgehog", label: "AstroJOE Brain", x: 120, y: 250, color: "#f97316" },
-    { id: "wolfram", label: "Wolfram MCP", x: 280, y: 250, color: "#8b5cf6" },
+    { id: "openshell", label: "OpenShell", x: 280, y: 250, color: "#8b5cf6" },
     { id: "gauss", label: "OpenGauss", x: 440, y: 250, color: "#10b981" },
     { id: "knot", label: "Knot-Engine", x: 580, y: 250, color: "#f97316" },
     // L3
@@ -193,10 +193,10 @@ function TopologySVG() {
     { from: "joe", to: "nemoclaw" }, { from: "joe", to: "aaron" },
     { from: "joe", to: "brain" },
     { from: "brain", to: "hedgehog" }, { from: "brain", to: "knot" },
-    { from: "brain", to: "wolfram" },
+    { from: "brain", to: "openshell" },
     { from: "brain", to: "gauss" },
     { from: "hedgehog", to: "jetson" }, { from: "knot", to: "jetson" },
-    { from: "wolfram", to: "jetson" },
+    { from: "openshell", to: "jetson" },
     { from: "gauss", to: "jetson" },
     { from: "jetson", to: "solana" }, { from: "jetson", to: "xrpl" },
     { from: "jetson", to: "evm" },
@@ -306,7 +306,7 @@ function ArchitecturePanel() {
         </span>
         <span className="text-[10px] font-mono flex items-center gap-1 text-violet-400">
           <span className="w-2 h-2 rounded-full inline-block bg-violet-400" />
-          Wolfram
+          Shell
         </span>
         <span className="text-[10px] font-mono flex items-center gap-1 text-emerald-400">
           <span className="w-2 h-2 rounded-full inline-block bg-emerald-400" />
