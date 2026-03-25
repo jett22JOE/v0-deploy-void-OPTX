@@ -180,12 +180,33 @@ export async function POST(request: NextRequest) {
       message: string
       mode: "public" | "dev"
       wallet?: string
-      attachments?: { type: string; data: string; name?: string }[]
+      attachments?: { type: string; content: string; name?: string }[]
     }
 
-    if (!message || !mode) {
+    // Build enriched message with attachment context
+    let enrichedMessage = message
+    if (attachments && attachments.length > 0) {
+      const textAttachments = attachments.filter((a) => a.type === "text")
+      const imageAttachments = attachments.filter((a) => a.type === "image")
+
+      if (textAttachments.length > 0) {
+        const attachmentContext = textAttachments
+          .map((a) => `--- Attached file: ${a.name || "untitled.txt"} ---\n${a.content}\n--- End of ${a.name || "untitled.txt"} ---`)
+          .join("\n\n")
+        enrichedMessage = `${attachmentContext}\n\nUser message: ${message}`
+      }
+
+      if (imageAttachments.length > 0) {
+        const imageNote = imageAttachments
+          .map((a) => `[Image attached: ${a.name || "image"}]`)
+          .join(" ")
+        enrichedMessage = `${enrichedMessage}\n${imageNote}`
+      }
+    }
+
+    if ((!message && (!attachments || attachments.length === 0)) || !mode) {
       return NextResponse.json(
-        { error: "Missing required fields: message, mode" },
+        { error: "Missing required fields: message (or attachments), mode" },
         { status: 400 }
       )
     }
@@ -311,7 +332,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Non-command dev message — send directly to Matrix room as chat
-      const response = await sendAndWait(trimmed, 15000)
+      const response = await sendAndWait(enrichedMessage.trim(), 15000)
       return NextResponse.json({
         response: `[JOE]\n${response}`,
         type: "text",
@@ -337,9 +358,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send the raw message to Matrix — the bot handles all routing
+    // Send the enriched message to Matrix — the bot handles all routing
     // Slash commands go through as-is so the bot can parse them
-    const response = await sendAndWait(trimmedPublic, 12000)
+    // Text file contents are prepended as context; image attachments are noted
+    const messageToSend = enrichedMessage.trim().slice(0, 4000) || trimmedPublic
+    const response = await sendAndWait(messageToSend, 12000)
 
     return NextResponse.json({
       response: response,

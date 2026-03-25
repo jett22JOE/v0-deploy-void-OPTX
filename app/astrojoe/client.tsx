@@ -13,7 +13,7 @@ import {
   Send, Terminal, ChevronDown, ChevronRight, Image, Code2,
   Globe, Brain, Circle, Cpu, Database, Layers, Shield, Wallet,
   Zap, Network, Hash, Activity, Lock, Unlock, Server,
-  ArrowLeft, ExternalLink, CheckCircle2,
+  ArrowLeft, ExternalLink, CheckCircle2, Paperclip, FileText, X,
 } from "lucide-react"
 import Link from "next/link"
 import nextDynamic from "next/dynamic"
@@ -807,25 +807,41 @@ function TerminalPanel() {
   const [statusData, setStatusData] = useState<Record<string, any> | null>(null)
   const [codeMode, setCodeMode] = useState(false)
   const [sending, setSending] = useState(false)
-  const [attachedImages, setAttachedImages] = useState<{ name: string; data: string; preview: string }[]>([])
+  const [attachments, setAttachments] = useState<{ name: string; type: string; content: string; preview?: string }[]>([])
+  const [isDragOver, setIsDragOver] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const channelCreated = useRef(false)
 
-  // Handle file selection (from picker or paste)
+  // Handle file selection (from picker, paste, or drag-and-drop)
   const handleFiles = useCallback((files: FileList | File[]) => {
     Array.from(files).forEach((file) => {
-      if (!file.type.startsWith("image/")) return
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const data = e.target?.result as string
-        setAttachedImages((prev) => [
-          ...prev,
-          { name: file.name, data, preview: data },
-        ])
+      const isImage = file.type.startsWith("image/")
+      const isText = file.name.endsWith(".md") || file.name.endsWith(".markdown") || file.name.endsWith(".txt") || file.type === "text/plain" || file.type === "text/markdown"
+      if (!isImage && !isText) return
+
+      if (isImage) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const data = e.target?.result as string
+          setAttachments((prev) => [
+            ...prev,
+            { name: file.name, type: "image", content: data, preview: data },
+          ])
+        }
+        reader.readAsDataURL(file)
+      } else {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const text = e.target?.result as string
+          setAttachments((prev) => [
+            ...prev,
+            { name: file.name, type: "text", content: text },
+          ])
+        }
+        reader.readAsText(file)
       }
-      reader.readAsDataURL(file)
     })
   }, [])
 
@@ -833,16 +849,38 @@ function TerminalPanel() {
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items
     if (!items) return
-    const imageFiles: File[] = []
+    const pasteFiles: File[] = []
     for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith("image/")) {
+      if (items[i].type.startsWith("image/") || items[i].type === "text/plain" || items[i].type === "text/markdown") {
         const file = items[i].getAsFile()
-        if (file) imageFiles.push(file)
+        if (file) pasteFiles.push(file)
       }
     }
-    if (imageFiles.length > 0) {
+    if (pasteFiles.length > 0) {
       e.preventDefault()
-      handleFiles(imageFiles)
+      handleFiles(pasteFiles)
+    }
+  }, [handleFiles])
+
+  // Drag-and-drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files)
     }
   }, [handleFiles])
 
@@ -905,7 +943,7 @@ function TerminalPanel() {
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim()
-    if (!trimmed || sending) return
+    if ((!trimmed && attachments.length === 0) || sending) return
     // Allow wallet-only users (no Clerk user required)
     if (!user && !connected) return
 
@@ -917,20 +955,29 @@ function TerminalPanel() {
       setShowVaultModal(true)
       return
     }
-    const content = (codeMode && !isSlashCommand) ? "```\n" + trimmed + "\n```" : trimmed
+    const baseContent = (codeMode && !isSlashCommand) ? "```\n" + trimmed + "\n```" : trimmed
+    // Show attachment names in the local message display
+    const attachmentLabel = attachments.length > 0
+      ? `${attachments.map((a) => `[${a.type === "image" ? "🖼" : "📄"} ${a.name}]`).join(" ")}${trimmed ? "\n" : ""}`
+      : ""
+    const content = attachmentLabel + baseContent
     const now = Date.now()
 
     // Add user message locally
     const userMsg: TerminalMessage = {
       id: `local-${now}`,
       sender: user?.firstName || user?.username || (walletAddress ? `${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}` : "user"),
-      content,
+      content: content || "[attachments]",
       type: mode === "dev" ? "dev" : "chat",
       timestamp: now,
     }
     setLocalMessages((prev) => [...prev, userMsg])
     setInput("")
     setSending(true)
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto'
+    }
 
     try {
       // Save to Convex if channel exists
@@ -954,10 +1001,10 @@ function TerminalPanel() {
           message: trimmed,
           mode,
           wallet: walletAddress,
-          attachments: attachedImages.map((img) => ({
-            type: "image",
-            data: img.data,
-            name: img.name,
+          attachments: attachments.map((att) => ({
+            type: att.type,
+            content: att.content,
+            name: att.name,
           })),
         }),
       })
@@ -997,9 +1044,9 @@ function TerminalPanel() {
       ])
     } finally {
       setSending(false)
-      setAttachedImages([])
+      setAttachments([])
     }
-  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress, connected, attachedImages, hasJTX])
+  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress, connected, attachments, hasJTX])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -1011,7 +1058,22 @@ function TerminalPanel() {
   const prompt = mode === "dev" ? "astrojoe@hedgehog:~# " : "astrojoe@hedgehog:~$ "
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 border-l border-zinc-800 lg:border-l">
+    <div
+      className={`flex flex-col h-full bg-zinc-950 border-l border-zinc-800 lg:border-l relative ${isDragOver ? "ring-2 ring-inset ring-cyan-500/50" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-40 bg-cyan-500/5 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center gap-2 text-cyan-400">
+            <Paperclip className="w-8 h-8 animate-pulse" />
+            <span className="text-sm font-mono">Drop files here</span>
+            <span className="text-[10px] font-mono text-zinc-500">Images, .md, .txt</span>
+          </div>
+        </div>
+      )}
       {/* Terminal Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50">
         <div className="flex items-center gap-2">
@@ -1156,29 +1218,38 @@ function TerminalPanel() {
         )}
       </div>
 
-      {/* Image preview strip */}
-      {attachedImages.length > 0 && (
-        <div className="flex items-center gap-2 px-3 py-2 border-t border-zinc-800/50 bg-zinc-900/30 overflow-x-auto">
-          {attachedImages.map((img, i) => (
+      {/* Attachment preview strip */}
+      {attachments.length > 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 border-t border-zinc-800/50 bg-zinc-900/40 overflow-x-auto">
+          {attachments.map((att, i) => (
             <div key={i} className="relative flex-shrink-0 group">
-              <img
-                src={img.preview}
-                alt={img.name}
-                className="w-12 h-12 rounded-md object-cover border border-zinc-700"
-              />
+              {att.type === "image" && att.preview ? (
+                <img
+                  src={att.preview}
+                  alt={att.name}
+                  className="w-12 h-12 rounded-md object-cover border border-zinc-700"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-md border border-zinc-700 bg-zinc-800/60 flex flex-col items-center justify-center gap-0.5">
+                  <FileText className="w-4 h-4 text-green-400/80" />
+                  <span className="text-[7px] font-mono text-zinc-500 uppercase">
+                    {att.name.split(".").pop()}
+                  </span>
+                </div>
+              )}
               <button
-                onClick={() => setAttachedImages((prev) => prev.filter((_, idx) => idx !== i))}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => setAttachments((prev) => prev.filter((_, idx) => idx !== i))}
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-400"
               >
-                ×
+                <X className="w-2.5 h-2.5" />
               </button>
-              <span className="block text-[7px] font-mono text-zinc-600 mt-0.5 max-w-[48px] truncate">
-                {img.name}
+              <span className="block text-[7px] font-mono text-zinc-500 mt-0.5 max-w-[48px] truncate text-center">
+                {att.name}
               </span>
             </div>
           ))}
-          <span className="text-[9px] font-mono text-zinc-600">
-            {attachedImages.length} image{attachedImages.length > 1 ? "s" : ""}
+          <span className="text-[9px] font-mono text-zinc-500 ml-1">
+            {attachments.length} file{attachments.length > 1 ? "s" : ""}
           </span>
         </div>
       )}
@@ -1189,7 +1260,7 @@ function TerminalPanel() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.md,.txt,.markdown"
           multiple
           className="hidden"
           onChange={(e) => {
@@ -1200,11 +1271,11 @@ function TerminalPanel() {
         <Button
           variant="ghost"
           size="sm"
-          className={`h-6 w-6 p-0 ${attachedImages.length > 0 ? "text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
-          title="Attach image"
+          className={`h-6 w-6 p-0 ${attachments.length > 0 ? "text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
+          title="Attach file (images, .md, .txt)"
           onClick={() => fileInputRef.current?.click()}
         >
-          <Image className="w-3.5 h-3.5" />
+          <Paperclip className="w-3.5 h-3.5" />
         </Button>
         <Button
           variant="ghost"
@@ -1255,27 +1326,33 @@ function TerminalPanel() {
       </div>
 
       {/* Input */}
-      <div className="flex items-center gap-2 px-3 py-2 border-t border-zinc-800 bg-black">
-        <span className="text-xs font-mono text-green-400 flex-shrink-0 select-none">
+      <div className="flex items-end gap-2 px-3 py-2 border-t border-zinc-800 bg-black">
+        <span className="text-xs font-mono text-green-400 flex-shrink-0 select-none pt-1">
           {prompt}
         </span>
-        <input
+        <textarea
           ref={inputRef}
-          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder={mode === "dev" ? "Enter command or message... (paste images here)" : "Chat with JOE... (paste images here)"}
-          className="flex-1 bg-transparent text-xs font-mono text-zinc-200 placeholder:text-zinc-600 outline-none caret-green-400"
+          placeholder={mode === "dev" ? "Enter command or message... (drop/paste files)" : "Chat with JOE... (drop/paste files)"}
+          className="flex-1 bg-transparent text-xs font-mono text-zinc-200 placeholder:text-zinc-600 outline-none caret-green-400 resize-none min-h-[24px] max-h-[120px] py-1"
+          rows={1}
           disabled={!user && !connected}
+          style={{ height: 'auto', overflow: 'hidden' }}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement
+            target.style.height = 'auto'
+            target.style.height = Math.min(target.scrollHeight, 120) + 'px'
+          }}
         />
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 text-green-400 hover:text-green-300 disabled:text-zinc-700"
+          className="h-6 w-6 p-0 text-green-400 hover:text-green-300 disabled:text-zinc-700 flex-shrink-0"
           onClick={handleSend}
-          disabled={!input.trim() || sending || (!user && !connected)}
+          disabled={(!input.trim() && attachments.length === 0) || sending || (!user && !connected)}
         >
           <Send className="w-3.5 h-3.5" />
         </Button>
