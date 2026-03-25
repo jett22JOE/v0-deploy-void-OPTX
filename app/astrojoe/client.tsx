@@ -26,6 +26,58 @@ const WalletMultiButton = nextDynamic(
 
 // ─── Constants ──────────────────────────────────────────────
 const FOUNDER_WALLET = "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"
+const JTX_MINT = "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+const JTX_DECIMALS = 9
+const JTX_MIN_BALANCE = 1 // Minimum 1 full JTX token required for tool access
+const TOKEN_2022_PROGRAM_ID = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+
+// Solana RPC endpoint (same config as solana-provider)
+const _heliusKey = process.env.NEXT_PUBLIC_HELIUS_API_KEY || ""
+const _network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || "mainnet-beta"
+const _isMainnet = _network.includes("mainnet")
+const SOLANA_RPC = process.env.NEXT_PUBLIC_HELIUS_RPC_URL
+  || (_heliusKey ? `https://${_isMainnet ? "mainnet" : "devnet"}.helius-rpc.com/?api-key=${_heliusKey}` : "")
+  || (_isMainnet ? "https://api.mainnet-beta.solana.com" : "https://api.devnet.solana.com")
+
+// ─── JTX Balance Helper ─────────────────────────────────────
+async function getJTXBalance(wallet: string): Promise<number> {
+  try {
+    // Try standard SPL Token program first
+    const res = await fetch(SOLANA_RPC, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 1, method: "getTokenAccountsByOwner",
+        params: [wallet, { mint: JTX_MINT }, { encoding: "jsonParsed" }],
+      }),
+    })
+    const data = await res.json()
+    const accounts = data.result?.value || []
+    if (accounts.length > 0) {
+      const amount = accounts[0].account.data.parsed.info.tokenAmount.amount
+      return Number(amount) / Math.pow(10, JTX_DECIMALS)
+    }
+
+    // Fallback: try Token-2022 program ID (JTX may use Token-2022)
+    const res2 = await fetch(SOLANA_RPC, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 1, method: "getTokenAccountsByOwner",
+        params: [wallet, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: "jsonParsed" }],
+      }),
+    })
+    const data2 = await res2.json()
+    const accounts2 = data2.result?.value || []
+    for (const acc of accounts2) {
+      if (acc.account.data.parsed.info.mint === JTX_MINT) {
+        const amount = acc.account.data.parsed.info.tokenAmount.amount
+        return Number(amount) / Math.pow(10, JTX_DECIMALS)
+      }
+    }
+    return 0
+  } catch { return 0 }
+}
 
 // ─── Architecture Data ──────────────────────────────────────
 const LAYERS = [
@@ -708,6 +760,30 @@ function TerminalPanel() {
   const walletAddress = publicKey?.toBase58() ?? null
   const isFounder = walletAddress === FOUNDER_WALLET
   const [commandMode, setCommandMode] = useState(false)
+  const [jtxBalance, setJtxBalance] = useState<number | null>(null)
+  const [jtxLoading, setJtxLoading] = useState(false)
+  const [showVaultModal, setShowVaultModal] = useState(false)
+
+  // Check JTX balance when wallet connects
+  useEffect(() => {
+    if (!walletAddress || isFounder) {
+      setJtxBalance(isFounder ? Infinity : null)
+      return
+    }
+    let cancelled = false
+    setJtxLoading(true)
+    getJTXBalance(walletAddress).then((bal) => {
+      if (!cancelled) {
+        setJtxBalance(bal)
+        setJtxLoading(false)
+      }
+    })
+    return () => { cancelled = true }
+  }, [walletAddress, isFounder])
+
+  // Access tier: founder > holder (>= 1 JTX) > non-holder
+  const hasJTX = isFounder || (jtxBalance !== null && jtxBalance >= JTX_MIN_BALANCE)
+
   // Only founder can activate dev mode via toggle
   const mode = (isFounder && commandMode) ? "dev" : "public"
   const channelName = (isFounder && commandMode) ? "astrojoe-dev" : "astrojoe"
@@ -835,6 +911,12 @@ function TerminalPanel() {
 
     // Don't wrap slash commands in code blocks — they need to be parsed raw
     const isSlashCommand = trimmed.startsWith("/")
+
+    // Gate slash commands behind JTX token holding (>= 1 JTX)
+    if (isSlashCommand && !hasJTX) {
+      setShowVaultModal(true)
+      return
+    }
     const content = (codeMode && !isSlashCommand) ? "```\n" + trimmed + "\n```" : trimmed
     const now = Date.now()
 
@@ -917,7 +999,7 @@ function TerminalPanel() {
       setSending(false)
       setAttachedImages([])
     }
-  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress, connected, attachedImages])
+  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress, connected, attachedImages, hasJTX])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -985,6 +1067,25 @@ function TerminalPanel() {
               <span className="text-[8px] font-mono text-zinc-500">MATRIX</span>
             </div>
           </div>
+          {/* JTX balance indicator */}
+          {connected && !isFounder && (
+            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${
+              hasJTX ? "bg-cyan-500/10 border border-cyan-500/20" : "bg-red-500/10 border border-red-500/20"
+            }`} title={jtxLoading ? "Checking $JTX balance..." : hasJTX ? `${jtxBalance?.toFixed(2)} $JTX` : "No $JTX — tools locked"}>
+              {jtxLoading ? (
+                <Activity className="w-2.5 h-2.5 text-zinc-500 animate-pulse" />
+              ) : hasJTX ? (
+                <Unlock className="w-2.5 h-2.5 text-cyan-400" />
+              ) : (
+                <Lock className="w-2.5 h-2.5 text-red-400" />
+              )}
+              <span className={`text-[8px] font-mono ${
+                jtxLoading ? "text-zinc-500" : hasJTX ? "text-cyan-400" : "text-red-400"
+              }`}>
+                {jtxLoading ? "..." : hasJTX ? "$JTX" : "NO $JTX"}
+              </span>
+            </div>
+          )}
           {/* Wallet connect — full WalletMultiButton */}
           <WalletConnectButton
             connected={connected}
@@ -1117,9 +1218,10 @@ function TerminalPanel() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
-          title="Browse URL"
+          className={`h-6 w-6 p-0 ${hasJTX ? "text-zinc-500 hover:text-zinc-300" : "text-zinc-700 hover:text-zinc-500"}`}
+          title={hasJTX ? "Browse URL" : "Requires 1+ $JTX to use tools"}
           onClick={() => {
+            if (!hasJTX) { setShowVaultModal(true); return }
             const url = window.prompt("Enter URL for JOE to browse:")
             if (url) {
               setInput(`/browse ${url}`)
@@ -1127,19 +1229,20 @@ function TerminalPanel() {
             }
           }}
         >
-          <Globe className="w-3.5 h-3.5" />
+          {hasJTX ? <Globe className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
-          title="SpacetimeDB Brain"
+          className={`h-6 w-6 p-0 ${hasJTX ? "text-zinc-500 hover:text-zinc-300" : "text-zinc-700 hover:text-zinc-500"}`}
+          title={hasJTX ? "SpacetimeDB Brain" : "Requires 1+ $JTX to use tools"}
           onClick={() => {
+            if (!hasJTX) { setShowVaultModal(true); return }
             setInput("/brain")
             inputRef.current?.focus()
           }}
         >
-          <Brain className="w-3.5 h-3.5" />
+          {hasJTX ? <Brain className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
         </Button>
         {mode === "dev" && (
           <>
@@ -1177,6 +1280,51 @@ function TerminalPanel() {
           <Send className="w-3.5 h-3.5" />
         </Button>
       </div>
+
+      {/* Vault Donation Modal — shown when non-holder clicks gated tools */}
+      {showVaultModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowVaultModal(false)}>
+          <div className="relative w-full max-w-sm mx-4 bg-zinc-900 border border-cyan-500/30 rounded-2xl p-6 shadow-2xl shadow-cyan-500/10" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowVaultModal(false)}
+              className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition-colors text-lg leading-none"
+            >
+              ×
+            </button>
+            <div className="text-center space-y-4">
+              <div className="w-14 h-14 mx-auto rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+                <Shield className="w-7 h-7 text-cyan-400" />
+              </div>
+              <h3 className="font-orbitron text-lg font-bold text-cyan-400 tracking-wider">
+                $JTX Required
+              </h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                You need at least <span className="text-cyan-300 font-bold">1 $JTX</span> token to unlock tools, commands, and advanced features.
+              </p>
+              <div className="bg-zinc-800/50 rounded-xl p-3 border border-zinc-700/40">
+                <p className="text-[10px] font-mono text-zinc-500 mb-1">Your balance</p>
+                <p className="text-lg font-mono font-bold text-red-400">
+                  {jtxBalance !== null ? `${jtxBalance.toFixed(4)} JTX` : "0 JTX"}
+                </p>
+                <p className="text-[10px] font-mono text-zinc-600 mt-1">Minimum required: 1.0000 JTX</p>
+              </div>
+              <a
+                href="https://astroknots.space"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-mono text-sm font-semibold border border-cyan-400/30 transition-all shadow-lg shadow-cyan-500/20"
+              >
+                <Wallet className="w-4 h-4" />
+                Get $JTX at Astro Knots Vault
+                <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+              </a>
+              <p className="text-[9px] font-mono text-zinc-600">
+                $JTX powers the OPTX ecosystem · Buy on Jupiter, Raydium, or Orca
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

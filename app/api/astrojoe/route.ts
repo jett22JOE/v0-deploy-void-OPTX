@@ -1,6 +1,59 @@
 import { NextRequest, NextResponse } from "next/server"
 
 const FOUNDER_WALLET = "FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H"
+const JTX_MINT = "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+const JTX_DECIMALS = 9
+const JTX_MIN_BALANCE = 1 // Minimum 1 full JTX token
+const TOKEN_2022_PROGRAM_ID = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+
+// Solana RPC for server-side balance checks
+const HELIUS_KEY = process.env.HELIUS_API_KEY || process.env.NEXT_PUBLIC_HELIUS_API_KEY || ""
+const SOLANA_RPC = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC_URL
+  || (HELIUS_KEY ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_KEY}` : "")
+  || "https://api.mainnet-beta.solana.com"
+
+// ─── Server-side JTX balance check ─────────────────────────
+async function getJTXBalance(wallet: string): Promise<number> {
+  try {
+    // Try standard SPL Token program
+    const res = await fetch(SOLANA_RPC, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 1, method: "getTokenAccountsByOwner",
+        params: [wallet, { mint: JTX_MINT }, { encoding: "jsonParsed" }],
+      }),
+    })
+    const data = await res.json()
+    const accounts = data.result?.value || []
+    if (accounts.length > 0) {
+      const amount = accounts[0].account.data.parsed.info.tokenAmount.amount
+      return Number(amount) / Math.pow(10, JTX_DECIMALS)
+    }
+
+    // Fallback: Token-2022 program
+    const res2 = await fetch(SOLANA_RPC, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 1, method: "getTokenAccountsByOwner",
+        params: [wallet, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: "jsonParsed" }],
+      }),
+    })
+    const data2 = await res2.json()
+    const accounts2 = data2.result?.value || []
+    for (const acc of accounts2) {
+      if (acc.account.data.parsed.info.mint === JTX_MINT) {
+        const amount = acc.account.data.parsed.info.tokenAmount.amount
+        return Number(amount) / Math.pow(10, JTX_DECIMALS)
+      }
+    }
+    return 0
+  } catch {
+    console.error("[astrojoe] JTX balance check failed for", wallet)
+    return 0
+  }
+}
 
 // Matrix/Conduit homeserver — exposed via Tailscale Funnel
 // Vercel env: MATRIX_HOMESERVER
@@ -271,9 +324,21 @@ export async function POST(request: NextRequest) {
     }
 
     // ─── PUBLIC MODE ───────────────────────────────────────
+    const trimmedPublic = message.trim().slice(0, 500)
+
+    // Server-side JTX gate: slash commands require >= 1 JTX token
+    if (trimmedPublic.startsWith("/") && wallet && wallet !== FOUNDER_WALLET) {
+      const balance = await getJTXBalance(wallet)
+      if (balance < JTX_MIN_BALANCE) {
+        return NextResponse.json(
+          { error: "Insufficient $JTX. You need at least 1 $JTX token to use commands. Visit astroknots.space to get $JTX." },
+          { status: 403 }
+        )
+      }
+    }
+
     // Send the raw message to Matrix — the bot handles all routing
     // Slash commands go through as-is so the bot can parse them
-    const trimmedPublic = message.trim().slice(0, 500)
     const response = await sendAndWait(trimmedPublic, 12000)
 
     return NextResponse.json({
