@@ -10,10 +10,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-  Send, Terminal, ChevronDown, ChevronRight, Image, Code2,
+  Terminal, ChevronDown, ChevronRight,
   Globe, Brain, Circle, Cpu, Database, Layers, Shield, Wallet,
-  Zap, Network, Hash, Activity, Lock, Unlock, Server,
-  ArrowLeft, ExternalLink, CheckCircle2, Paperclip, FileText, X,
+  Zap, Network, Hash, Lock, Server,
+  ExternalLink, CheckCircle2, FileText, X,
 } from "lucide-react"
 import Link from "next/link"
 import nextDynamic from "next/dynamic"
@@ -77,6 +77,392 @@ async function getJTXBalance(wallet: string): Promise<number> {
     }
     return 0
   } catch { return 0 }
+}
+
+// ─── Inline SVG Icons (no new dependencies) ─────────────────
+
+function ThinkingDots() {
+  return (
+    <span className="inline-flex items-center gap-1">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="w-1.5 h-1.5 rounded-full bg-zinc-400"
+          style={{
+            animation: "thinkingPulse 1.2s ease-in-out infinite",
+            animationDelay: `${i * 0.2}s`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes thinkingPulse {
+          0%, 100% { opacity: 0.3; transform: scale(0.85); }
+          50% { opacity: 1; transform: scale(1.1); }
+        }
+      `}</style>
+    </span>
+  )
+}
+
+function SpinnerSVG({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.5" strokeOpacity="0.2" />
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function GlobeSVG({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.2" />
+      <ellipse cx="8" cy="8" rx="3" ry="6.5" stroke="currentColor" strokeWidth="1.2" />
+      <line x1="1.5" y1="8" x2="14.5" y2="8" stroke="currentColor" strokeWidth="1.2" />
+    </svg>
+  )
+}
+
+function BrainSVG({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 14V8m0 0C8 5.5 6.5 3 4.5 2.5S1 3.5 1.5 5.5c.3 1.2 1.2 2 2 2.5M8 8c0-2.5 1.5-5 3.5-5.5S15 3.5 14.5 5.5c-.3 1.2-1.2 2-2 2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3.5 8c-.8.5-1.5 1.5-1.2 2.8.3 1.5 2 2.2 3.2 2.2H8m4.5-5c.8.5 1.5 1.5 1.2 2.8-.3 1.5-2 2.2-3.2 2.2H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function ChevronSVG({ className, expanded }: { className?: string; expanded: boolean }) {
+  return (
+    <svg
+      className={`${className || ""} transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function LockSVG({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function PaperclipSVG({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.5 7.5l-5.8 5.8a3.2 3.2 0 0 1-4.5-4.5l5.8-5.8a2 2 0 0 1 2.8 2.8L6 11.6a.8.8 0 0 1-1.1-1.1l5-5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function SendSVG({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 12V4m0 0L4.5 7.5M8 4l3.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function CodeBlockSVG({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 4L1.5 8 5 12M11 4l3.5 4L11 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// ─── Animation Styles (injected once) ────────────────────────
+function AnimationStyles() {
+  return (
+    <style>{`
+      @keyframes messageAppear {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-message-appear {
+        animation: messageAppear 200ms ease-out forwards;
+      }
+      @keyframes sendPress {
+        0% { transform: scale(1); }
+        50% { transform: scale(0.92); }
+        100% { transform: scale(1); }
+      }
+      .animate-send-press:active {
+        animation: sendPress 150ms ease-out;
+      }
+    `}</style>
+  )
+}
+
+// ─── Action Block (Perplexity-style collapsible) ─────────────
+function ActionBlock({ actions, isLoading }: { actions: string[]; isLoading: boolean }) {
+  const [expanded, setExpanded] = useState(true)
+
+  return (
+    <div className="border border-zinc-800 rounded-lg overflow-hidden my-2">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-800/50 transition-colors"
+      >
+        <ChevronSVG className="w-3.5 h-3.5 text-zinc-500" expanded={expanded} />
+        {isLoading && <SpinnerSVG className="w-4 h-4 animate-spin text-cyan-500" />}
+        <span className="text-xs">
+          {isLoading ? "Running tasks in parallel" : `Completed ${actions.length} task${actions.length !== 1 ? "s" : ""}`}
+        </span>
+      </button>
+      {expanded && (
+        <div className="px-3 py-2 border-t border-zinc-800 space-y-1.5">
+          {actions.map((action, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs text-zinc-500">
+              {action.toLowerCase().includes("brain") || action.toLowerCase().includes("query") ? (
+                <BrainSVG className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+              ) : (
+                <GlobeSVG className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+              )}
+              <span>{action}</span>
+              {!isLoading && (
+                <CheckCircle2 className="w-3 h-3 text-green-500/70 ml-auto flex-shrink-0" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Code Block with syntax coloring + copy ──────────────────
+function CodeBlock({ code, language }: { code: string; language: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="bg-[#0c0c0f] border border-zinc-800 rounded-lg overflow-hidden my-2">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800/70">
+        <div className="flex items-center gap-2">
+          <CodeBlockSVG className="w-3.5 h-3.5 text-zinc-500" />
+          <span className="text-[11px] font-mono text-zinc-500">{language || "code"}</span>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="text-[11px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-0.5 rounded hover:bg-zinc-800/60"
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+      <pre className="px-3 py-3 overflow-x-auto text-[13px] leading-relaxed font-mono text-zinc-300">
+        <code>{code}</code>
+      </pre>
+    </div>
+  )
+}
+
+// ─── Parse markdown-like content in JOE messages ─────────────
+function parseMessageContent(content: string) {
+  const parts: React.ReactNode[] = []
+  const lines = content.split("\n")
+  let i = 0
+
+  while (i < lines.length) {
+    // Detect code blocks
+    if (lines[i].startsWith("```")) {
+      const lang = lines[i].slice(3).trim()
+      const codeLines: string[] = []
+      i++
+      while (i < lines.length && !lines[i].startsWith("```")) {
+        codeLines.push(lines[i])
+        i++
+      }
+      if (i < lines.length) i++ // skip closing ```
+      parts.push(
+        <CodeBlock key={`code-${parts.length}`} code={codeLines.join("\n")} language={lang} />
+      )
+    } else {
+      // Regular text line — render with basic markdown
+      const line = lines[i]
+      if (line.trim() === "") {
+        parts.push(<div key={`br-${i}`} className="h-2" />)
+      } else {
+        parts.push(
+          <p key={`p-${i}`} className="text-[15px] leading-relaxed break-words whitespace-pre-wrap">
+            {renderInlineMarkdown(line)}
+          </p>
+        )
+      }
+      i++
+    }
+  }
+  return parts
+}
+
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = []
+  // Split on **bold**, `code`, and regular text
+  const regex = /(\*\*[^*]+\*\*|`[^`]+`)/g
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = regex.exec(text)) !== null) {
+    // Text before match
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index))
+    }
+    const token = match[0]
+    if (token.startsWith("**") && token.endsWith("**")) {
+      nodes.push(
+        <strong key={`b-${match.index}`} className="font-semibold text-zinc-100">
+          {token.slice(2, -2)}
+        </strong>
+      )
+    } else if (token.startsWith("`") && token.endsWith("`")) {
+      nodes.push(
+        <code key={`c-${match.index}`} className="px-1.5 py-0.5 rounded bg-zinc-800 text-cyan-300 text-[13px] font-mono">
+          {token.slice(1, -1)}
+        </code>
+      )
+    }
+    lastIndex = match.index + token.length
+  }
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex))
+  }
+  return nodes
+}
+
+// ─── Detect action lines in JOE responses ────────────────────
+function extractActions(content: string): { actions: string[]; cleanContent: string } {
+  const actionPatterns = [
+    /^(?:→|↗|▸|>)\s*(.+)$/,
+    /^(?:Querying|Searching|Running|Executing|Loading|Connecting|Processing|Analyzing)\s+.+/i,
+  ]
+  const lines = content.split("\n")
+  const actions: string[] = []
+  const cleanLines: string[] = []
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    let isAction = false
+    for (const pattern of actionPatterns) {
+      const m = trimmed.match(pattern)
+      if (m) {
+        actions.push(m[1] || trimmed)
+        isAction = true
+        break
+      }
+    }
+    if (!isAction) {
+      cleanLines.push(line)
+    }
+  }
+
+  return { actions, cleanContent: cleanLines.join("\n").trim() }
+}
+
+// ─── Chat Message Bubble ─────────────────────────────────────
+interface ChatMessage {
+  id: string
+  sender: string
+  content: string
+  type: "chat" | "joe" | "system" | "dev" | "error"
+  timestamp: number
+}
+
+function ChatBubble({ msg }: { msg: ChatMessage }) {
+  const isUser = msg.type === "chat" || msg.type === "dev"
+  const isJoe = msg.type === "joe"
+  const isSystem = msg.type === "system"
+  const isError = msg.type === "error"
+
+  if (isSystem) {
+    return (
+      <div className="flex justify-center my-3 animate-message-appear">
+        <div className="text-[11px] font-mono text-zinc-600 bg-zinc-900/50 border border-zinc-800/50 rounded-full px-3 py-1 max-w-[90%] text-center">
+          {msg.content.split("\n")[0]}
+        </div>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex justify-center my-2 animate-message-appear">
+        <div className="text-[12px] font-mono text-red-400/80 bg-red-950/20 border border-red-900/30 rounded-lg px-3 py-1.5 max-w-[85%] text-center">
+          {msg.content}
+        </div>
+      </div>
+    )
+  }
+
+  // Extract actions from JOE messages
+  const { actions, cleanContent } = isJoe ? extractActions(msg.content) : { actions: [], cleanContent: msg.content }
+
+  if (isUser) {
+    return (
+      <div className="flex justify-end mb-3 px-4 animate-message-appear">
+        <div className="max-w-[85%] sm:max-w-[70%]">
+          <div className="bg-cyan-950/30 border border-cyan-900/50 rounded-2xl rounded-br-sm px-4 py-3">
+            <p className="text-[15px] leading-relaxed text-zinc-200 break-words whitespace-pre-wrap">
+              {msg.content}
+            </p>
+          </div>
+          <div className="flex justify-end mt-1 pr-1">
+            <span className="text-[10px] text-zinc-600 font-mono">
+              {new Date(msg.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // JOE message
+  return (
+    <div className="flex justify-start mb-3 px-4 animate-message-appear">
+      <div className="max-w-[90%] sm:max-w-[75%]">
+        <div className="flex items-start gap-2.5">
+          {/* JOE avatar */}
+          <div className="w-7 h-7 rounded-full overflow-hidden border border-cyan-500/30 flex-shrink-0 mt-1">
+            <img src="/astroknots-icon.jpg" alt="JOE" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-bl-sm px-4 py-3">
+              {/* Action block if present */}
+              {actions.length > 0 && (
+                <ActionBlock actions={actions} isLoading={false} />
+              )}
+              {/* Message content */}
+              <div className="text-zinc-200">
+                {parseMessageContent(cleanContent)}
+              </div>
+            </div>
+            <div className="flex mt-1 pl-1">
+              <span className="text-[10px] text-zinc-600 font-mono">
+                {new Date(msg.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ─── Architecture Data ──────────────────────────────────────
@@ -627,7 +1013,7 @@ function EdgeNodesPanel({ statusData }: { statusData: Record<string, any> }) {
   const [expanded, setExpanded] = useState(false)
   const nodes = statusData.mesh?.nodes ?? []
   const services = statusData.services ?? []
-  const onlineCount = nodes.filter(n => n.online).length
+  const onlineCount = nodes.filter((n: { online: boolean }) => n.online).length
 
   return (
     <div className="border-b border-zinc-800/50">
@@ -648,7 +1034,7 @@ function EdgeNodesPanel({ statusData }: { statusData: Record<string, any> }) {
       {expanded && (
         <div className="px-3 pb-2 space-y-1.5">
           {/* Nodes */}
-          {nodes.map((node, i) => (
+          {nodes.map((node: { online: boolean; name: string; role: string; type: string; ip: string }, i: number) => (
             <div
               key={i}
               className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-zinc-900/60 border border-zinc-800/40"
@@ -674,7 +1060,7 @@ function EdgeNodesPanel({ statusData }: { statusData: Record<string, any> }) {
           <div className="pt-1">
             <span className="text-[8px] font-orbitron text-zinc-600 tracking-widest uppercase">Services</span>
             <div className="grid grid-cols-2 gap-1 mt-1">
-              {services.map((svc, i) => (
+              {services.map((svc: { status: string; name: string; latencyMs?: number }, i: number) => (
                 <div key={i} className="flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-900/40 border border-zinc-800/30">
                   <Circle className={`w-1.5 h-1.5 flex-shrink-0 ${
                     svc.status === 'online' || svc.status === 'joined' ? 'text-green-400 fill-green-400'
@@ -695,64 +1081,8 @@ function EdgeNodesPanel({ statusData }: { statusData: Record<string, any> }) {
   )
 }
 
-// ─── Terminal Message ───────────────────────────────────────
-interface TerminalMessage {
-  id: string
-  sender: string
-  content: string
-  type: "chat" | "joe" | "system" | "dev" | "error"
-  timestamp: number
-}
-
-function TerminalLine({ msg }: { msg: TerminalMessage }) {
-  const colorMap: Record<string, string> = {
-    chat: "text-zinc-300",
-    joe: "text-cyan-400",
-    system: "text-yellow-400",
-    dev: "text-green-400",
-    error: "text-red-400",
-  }
-
-  const prefixMap: Record<string, string> = {
-    chat: "user",
-    joe: "JOE",
-    system: "SYS",
-    dev: "DEV",
-    error: "ERR",
-  }
-
-  const time = new Date(msg.timestamp).toLocaleTimeString("en-US", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-
-  return (
-    <div className="group px-3 py-0.5 hover:bg-zinc-800/30">
-      <div className="flex items-start gap-2 text-xs font-mono">
-        <span className="text-zinc-600 flex-shrink-0 select-none">{time}</span>
-        <span className={`flex-shrink-0 ${colorMap[msg.type]}`}>
-          [{prefixMap[msg.type]}]
-        </span>
-        {msg.type === "chat" && (
-          <span className="text-zinc-500 flex-shrink-0">{msg.sender}:</span>
-        )}
-        <span
-          className={`break-words whitespace-pre-wrap ${
-            msg.type === "joe" || msg.type === "dev"
-              ? colorMap[msg.type]
-              : "text-zinc-300"
-          }`}
-        >
-          {msg.content}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-// ─── JOEclaw Terminal Panel ─────────────────────────────────
-function TerminalPanel() {
+// ─── Chat Panel (Modern UI — replaces TerminalPanel) ────────
+function ChatPanel() {
   const { user } = useUser()
   const { publicKey, connected } = useWallet()
   const { setVisible: setWalletModalVisible } = useWalletModal()
@@ -799,7 +1129,7 @@ function TerminalPanel() {
 
   // Local state
   const [input, setInput] = useState("")
-  const [localMessages, setLocalMessages] = useState<TerminalMessage[]>([])
+  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([])
   const [joeOnline, setJoeOnline] = useState(true)
   const [conduitOnline, setConduitOnline] = useState(false)
   const [hedgehogOnline, setHedgehogOnline] = useState(false)
@@ -884,11 +1214,6 @@ function TerminalPanel() {
     }
   }, [handleFiles])
 
-  // Channel is found from the existing channels list above.
-  // If it doesn't exist yet, the first sendMessage will work
-  // once a channel is manually created in Convex dashboard.
-  // No auto-create needed — messages go to Matrix directly via API route.
-
   // Check JOE status
   useEffect(() => {
     const check = async () => {
@@ -912,12 +1237,12 @@ function TerminalPanel() {
   }, [])
 
   // Build message list from Convex + local
-  const messages: TerminalMessage[] = [
+  const messages: ChatMessage[] = [
     // System boot message
     {
       id: "boot",
       sender: "SYSTEM",
-      content: `AstroJOE CLI v4 — ${mode === "dev" ? "COMMAND MODE" : "CHAT MODE"}\nOrchestrator: @joe:jettoptx-joe via Conduit\nBrain: CorsairOne :5555\n${mode === "dev" ? "Commands: /execute, /code, /browse, /brain, /status, /sandbox, /search, /research" : "Chat with JOE — powered by Grok 4.20"}`,
+      content: `AstroJOE v4 — ${mode === "dev" ? "COMMAND MODE" : "CHAT MODE"} · Grok 4.20`,
       type: "system",
       timestamp: Date.now() - 100000,
     },
@@ -927,7 +1252,7 @@ function TerminalPanel() {
       id: m._id,
       sender: m.displayName,
       content: m.content,
-      type: m.messageType as TerminalMessage["type"],
+      type: m.messageType as ChatMessage["type"],
       timestamp: m.createdAt,
     })),
     // Local messages (pending / JOE responses not yet in Convex)
@@ -964,7 +1289,7 @@ function TerminalPanel() {
     const now = Date.now()
 
     // Add user message locally
-    const userMsg: TerminalMessage = {
+    const userMsg: ChatMessage = {
       id: `local-${now}`,
       sender: user?.firstName || user?.username || (walletAddress ? `${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}` : "user"),
       content: content || "[attachments]",
@@ -1011,7 +1336,7 @@ function TerminalPanel() {
       const data = await res.json()
 
       if (data.response) {
-        const joeMsg: TerminalMessage = {
+        const joeMsg: ChatMessage = {
           id: `joe-${Date.now()}`,
           sender: "JOE",
           content: data.response,
@@ -1055,100 +1380,91 @@ function TerminalPanel() {
     }
   }
 
-  const prompt = mode === "dev" ? "astrojoe@hedgehog:~# " : "astrojoe@hedgehog:~$ "
-
   return (
     <div
-      className={`flex flex-col h-full bg-zinc-950 border-l border-zinc-800 lg:border-l relative ${isDragOver ? "ring-2 ring-inset ring-cyan-500/50" : ""}`}
+      className={`flex flex-col h-full bg-zinc-950 relative ${isDragOver ? "ring-2 ring-inset ring-cyan-500/50" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      <AnimationStyles />
+
       {/* Drag overlay */}
       {isDragOver && (
         <div className="absolute inset-0 z-40 bg-cyan-500/5 backdrop-blur-sm flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-2 text-cyan-400">
-            <Paperclip className="w-8 h-8 animate-pulse" />
-            <span className="text-sm font-mono">Drop files here</span>
-            <span className="text-[10px] font-mono text-zinc-500">Images, .md, .txt</span>
+            <PaperclipSVG className="w-8 h-8 animate-pulse" />
+            <span className="text-sm">Drop files here</span>
+            <span className="text-[10px] text-zinc-500">Images, .md, .txt</span>
           </div>
         </div>
       )}
-      {/* Terminal Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50">
-        <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-green-400" />
-          <h2 className="font-orbitron text-sm font-bold tracking-wider text-green-400">
-            AstroJOE CLI
-          </h2>
-          {/* Mode toggle — only founder can switch to COMMAND */}
+
+      {/* ── Header (48px, sticky top) ── */}
+      <div className="flex items-center justify-between px-4 h-12 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-lg flex-shrink-0">
+        <div className="flex items-center gap-3">
+          {/* JOE avatar + name */}
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full overflow-hidden border border-cyan-500/30 flex-shrink-0">
+              <img src="/astroknots-icon.jpg" alt="JOE" className="w-full h-full object-cover" />
+            </div>
+            <span className="text-sm font-medium text-zinc-100">JOE</span>
+            {/* Online dot */}
+            <div className={`w-1.5 h-1.5 rounded-full ${joeOnline ? "bg-green-400" : "bg-red-400"}`} />
+          </div>
+
+          {/* CHAT / COMMAND pill toggle */}
           {isFounder ? (
-            <button
-              onClick={() => setCommandMode(!commandMode)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all cursor-pointer select-none"
-              style={{
-                borderColor: commandMode ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.3)',
-                background: commandMode ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.05)',
-              }}
-              title={commandMode ? 'Switch to Chat mode' : 'Switch to Command mode (dev only)'}
-            >
-              <div
-                className="relative w-6 h-3.5 rounded-full transition-colors"
-                style={{ background: commandMode ? '#ef4444' : '#22c55e' }}
+            <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-full p-0.5">
+              <button
+                onClick={() => setCommandMode(false)}
+                className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all ${
+                  !commandMode
+                    ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                    : "text-zinc-500 border border-transparent"
+                }`}
               >
-                <div
-                  className="absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white shadow transition-all"
-                  style={{ left: commandMode ? '12px' : '2px' }}
-                />
-              </div>
-              <span className={`text-[9px] font-mono font-bold tracking-wider ${
-                commandMode ? 'text-red-400' : 'text-green-400'
-              }`}>
-                {commandMode ? 'COMMAND' : 'CHAT'}
-              </span>
-            </button>
+                CHAT
+              </button>
+              <button
+                onClick={() => setCommandMode(true)}
+                className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all ${
+                  commandMode
+                    ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                    : "text-zinc-500 border border-transparent"
+                }`}
+              >
+                CMD
+              </button>
+            </div>
           ) : (
-            <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[9px]">
-              CHAT
-            </Badge>
+            <span className="text-[10px] text-zinc-500 font-medium bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1">CHAT</span>
           )}
         </div>
+
         <div className="flex items-center gap-2">
-          {/* Status indicators */}
-          <div className="flex items-center gap-1">
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="JOE Orchestrator (Jetson)">
-              <Circle className={`w-1.5 h-1.5 ${conduitOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`} />
-              <span className="text-[8px] font-mono text-zinc-500">ORCH</span>
-            </div>
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="AstroJOE Brain (CorsairOne :5555)">
-              <Circle className={`w-1.5 h-1.5 ${hedgehogOnline ? "text-green-400 fill-green-400" : "text-red-400 fill-red-400"}`} />
-              <span className="text-[8px] font-mono text-zinc-500">BRAIN</span>
-            </div>
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-800/50" title="Matrix Conduit">
-              <Circle className={`w-1.5 h-1.5 ${conduitOnline ? "text-green-400 fill-green-400" : "text-yellow-400 fill-yellow-400"}`} />
-              <span className="text-[8px] font-mono text-zinc-500">MATRIX</span>
-            </div>
-          </div>
-          {/* JTX balance indicator */}
+          {/* JTX balance badge */}
           {connected && !isFounder && (
-            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${
-              hasJTX ? "bg-cyan-500/10 border border-cyan-500/20" : "bg-red-500/10 border border-red-500/20"
-            }`} title={jtxLoading ? "Checking $JTX balance..." : hasJTX ? `${jtxBalance?.toFixed(2)} $JTX` : "No $JTX — tools locked"}>
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-mono ${
+              jtxLoading
+                ? "bg-zinc-800 text-zinc-500"
+                : hasJTX
+                  ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                  : "bg-red-500/10 text-red-400 border border-red-500/20"
+            }`}>
               {jtxLoading ? (
-                <Activity className="w-2.5 h-2.5 text-zinc-500 animate-pulse" />
+                <SpinnerSVG className="w-3 h-3 animate-spin" />
               ) : hasJTX ? (
-                <Unlock className="w-2.5 h-2.5 text-cyan-400" />
+                <span>{jtxBalance === Infinity ? "∞" : jtxBalance?.toFixed(1)} JTX</span>
               ) : (
-                <Lock className="w-2.5 h-2.5 text-red-400" />
+                <>
+                  <LockSVG className="w-3 h-3" />
+                  <span>0 JTX</span>
+                </>
               )}
-              <span className={`text-[8px] font-mono ${
-                jtxLoading ? "text-zinc-500" : hasJTX ? "text-cyan-400" : "text-red-400"
-              }`}>
-                {jtxLoading ? "..." : hasJTX ? "$JTX" : "NO $JTX"}
-              </span>
             </div>
           )}
-          {/* Wallet connect — full WalletMultiButton */}
+          {/* Wallet connect */}
           <WalletConnectButton
             connected={connected}
             isFounder={isFounder}
@@ -1158,104 +1474,78 @@ function TerminalPanel() {
         </div>
       </div>
 
-      {/* JOE Identity Card */}
-      <div className="px-3 py-2.5 border-b border-zinc-800/50 bg-zinc-900/30">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden border border-cyan-500/30 flex-shrink-0">
-            <img src="/astroknots-icon.jpg" alt="JOE" className="w-full h-full object-cover" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-orbitron text-[11px] font-bold text-cyan-400 tracking-wider">JOE</span>
-              <span className="text-[8px] font-mono text-zinc-600">Jett Optical Encryption Agent</span>
-            </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <a
-                href="https://solscan.io/account/EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[9px] font-mono text-zinc-500 hover:text-cyan-400 transition-colors"
-                title="JOE Agent Wallet on Solscan"
-              >
-                <Wallet className="w-2.5 h-2.5 inline mr-0.5 -mt-px" />
-                EFvg...ZRGk
-              </a>
-              <span className="text-zinc-700">·</span>
-              <span className="text-[9px] font-mono text-zinc-600">@joe:jettoptx-joe</span>
-              <span className="text-zinc-700">·</span>
-              <span className="text-[9px] font-mono text-zinc-600">grok-4.20</span>
-            </div>
-          </div>
-          <Badge className={`text-[8px] flex-shrink-0 ${
-            mode === "dev"
-              ? "bg-red-500/15 text-red-400 border-red-500/30"
-              : "bg-zinc-800/60 text-zinc-500 border-zinc-700/40"
-          }`}>
-            {mode === "dev" ? "Command Mode" : "Chat Only"}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Edge Nodes Panel (collapsible) */}
-      {statusData && (
-        <EdgeNodesPanel statusData={statusData} />
-      )}
-
-      {/* Messages */}
+      {/* ── Message Thread ── */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto py-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
+        className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
       >
         {messages.map((msg) => (
-          <TerminalLine key={msg.id} msg={msg} />
+          <ChatBubble key={msg.id} msg={msg} />
         ))}
+        {/* Thinking indicator */}
         {sending && (
-          <div className="px-3 py-0.5">
-            <span className="text-xs font-mono text-cyan-400/60 animate-pulse">
-              JOE is thinking...
-            </span>
+          <div className="flex justify-start mb-3 px-4 animate-message-appear">
+            <div className="flex items-start gap-2.5">
+              <div className="w-7 h-7 rounded-full overflow-hidden border border-cyan-500/30 flex-shrink-0 mt-1">
+                <img src="/astroknots-icon.jpg" alt="JOE" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-bl-sm px-4 py-3">
+                  {/* Thinking dots */}
+                  <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                    <ThinkingDots />
+                    <span className="text-xs text-zinc-500">Thinking...</span>
+                  </div>
+                  {/* Action block spinner */}
+                  <ActionBlock
+                    actions={[
+                      "Querying AstroJOE Brain v5.1",
+                      "Processing with Grok 4.20",
+                    ]}
+                    isLoading={true}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Attachment preview strip */}
+      {/* ── Attachment Strip (horizontal scroll) ── */}
       {attachments.length > 0 && (
-        <div className="flex items-center gap-2 px-3 py-2 border-t border-zinc-800/50 bg-zinc-900/40 overflow-x-auto">
+        <div className="flex items-center gap-2 px-4 py-2 border-t border-zinc-800 bg-zinc-900/40 overflow-x-auto flex-shrink-0">
           {attachments.map((att, i) => (
             <div key={i} className="relative flex-shrink-0 group">
               {att.type === "image" && att.preview ? (
                 <img
                   src={att.preview}
                   alt={att.name}
-                  className="w-12 h-12 rounded-md object-cover border border-zinc-700"
+                  className="w-10 h-10 rounded-lg object-cover border border-zinc-700"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-md border border-zinc-700 bg-zinc-800/60 flex flex-col items-center justify-center gap-0.5">
-                  <FileText className="w-4 h-4 text-green-400/80" />
-                  <span className="text-[7px] font-mono text-zinc-500 uppercase">
+                <div className="w-10 h-10 rounded-lg border border-zinc-700 bg-zinc-800/60 flex flex-col items-center justify-center gap-0.5">
+                  <FileText className="w-3.5 h-3.5 text-green-400/80" />
+                  <span className="text-[6px] font-mono text-zinc-500 uppercase">
                     {att.name.split(".").pop()}
                   </span>
                 </div>
               )}
               <button
                 onClick={() => setAttachments((prev) => prev.filter((_, idx) => idx !== i))}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-400"
+                className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-zinc-700 text-zinc-300 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
               >
                 <X className="w-2.5 h-2.5" />
               </button>
-              <span className="block text-[7px] font-mono text-zinc-500 mt-0.5 max-w-[48px] truncate text-center">
+              <span className="block text-[7px] font-mono text-zinc-600 mt-0.5 max-w-[40px] truncate text-center">
                 {att.name}
               </span>
             </div>
           ))}
-          <span className="text-[9px] font-mono text-zinc-500 ml-1">
-            {attachments.length} file{attachments.length > 1 ? "s" : ""}
-          </span>
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="flex items-center gap-1 px-3 py-1.5 border-t border-zinc-800/50 bg-zinc-900/30">
+      {/* ── Input Area (sticky bottom, safe-area) ── */}
+      <div className="flex-shrink-0 border-t border-zinc-800 bg-zinc-950" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -1268,117 +1558,123 @@ function TerminalPanel() {
             e.target.value = "" // reset so same file can be re-selected
           }}
         />
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`h-6 w-6 p-0 ${attachments.length > 0 ? "text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
-          title="Attach file (images, .md, .txt)"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Paperclip className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`h-6 w-6 p-0 ${codeMode ? "text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
-          title="Toggle code mode"
-          onClick={() => setCodeMode(!codeMode)}
-        >
-          <Code2 className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`h-6 w-6 p-0 ${hasJTX ? "text-zinc-500 hover:text-zinc-300" : "text-zinc-700 hover:text-zinc-500"}`}
-          title={hasJTX ? "Browse URL" : "Requires 1+ $JTX to use tools"}
-          onClick={() => {
-            if (!hasJTX) { setShowVaultModal(true); return }
-            const url = window.prompt("Enter URL for JOE to browse:")
-            if (url) {
-              setInput(`/browse ${url}`)
-              inputRef.current?.focus()
-            }
-          }}
-        >
-          {hasJTX ? <Globe className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`h-6 w-6 p-0 ${hasJTX ? "text-zinc-500 hover:text-zinc-300" : "text-zinc-700 hover:text-zinc-500"}`}
-          title={hasJTX ? "SpacetimeDB Brain" : "Requires 1+ $JTX to use tools"}
-          onClick={() => {
-            if (!hasJTX) { setShowVaultModal(true); return }
-            setInput("/brain")
-            inputRef.current?.focus()
-          }}
-        >
-          {hasJTX ? <Brain className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-        </Button>
+
+        {/* Tool buttons row (code mode, browse, brain) — shown for dev mode */}
         {mode === "dev" && (
-          <>
-            <div className="w-px h-4 bg-zinc-800 mx-1" />
-            <Badge className="bg-green-500/10 text-green-400/60 border-green-500/20 text-[8px] select-none">
+          <div className="flex items-center gap-1 px-4 py-1.5 border-b border-zinc-800/50">
+            <button
+              className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-mono transition-colors ${
+                codeMode ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+              }`}
+              onClick={() => setCodeMode(!codeMode)}
+              title="Toggle code mode"
+            >
+              <CodeBlockSVG className="w-3 h-3" />
+              Code
+            </button>
+            <button
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-mono text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors"
+              onClick={() => {
+                if (!hasJTX) { setShowVaultModal(true); return }
+                const url = window.prompt("Enter URL for JOE to browse:")
+                if (url) {
+                  setInput(`/browse ${url}`)
+                  inputRef.current?.focus()
+                }
+              }}
+              title={hasJTX ? "Browse URL" : "Requires 1+ $JTX"}
+            >
+              {hasJTX ? <GlobeSVG className="w-3 h-3" /> : <LockSVG className="w-3 h-3" />}
+              Browse
+            </button>
+            <button
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-mono text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors"
+              onClick={() => {
+                if (!hasJTX) { setShowVaultModal(true); return }
+                setInput("/brain")
+                inputRef.current?.focus()
+              }}
+              title={hasJTX ? "SpacetimeDB Brain" : "Requires 1+ $JTX"}
+            >
+              {hasJTX ? <BrainSVG className="w-3 h-3" /> : <LockSVG className="w-3 h-3" />}
+              Brain
+            </button>
+            <span className="text-[9px] font-mono text-zinc-600 ml-auto hidden sm:inline">
               /execute /code /browse /brain /status /sandbox /search /research
-            </Badge>
-          </>
+            </span>
+          </div>
         )}
+
+        {/* Main input row */}
+        <div className="flex items-end gap-2 px-4 py-3">
+          {/* Attach button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className={`flex-shrink-0 p-2 rounded-full transition-colors ${
+              attachments.length > 0 ? "text-cyan-400 bg-cyan-500/10" : "text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800/50"
+            }`}
+            title="Attach file (images, .md, .txt)"
+          >
+            <PaperclipSVG className="w-5 h-5" />
+          </button>
+
+          {/* Textarea */}
+          <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-2.5 focus-within:border-zinc-700 transition-colors">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              placeholder="Ask JOE..."
+              className="w-full bg-transparent text-[15px] text-zinc-200 placeholder:text-zinc-600 outline-none caret-cyan-400 resize-none leading-relaxed"
+              rows={1}
+              disabled={!user && !connected}
+              style={{ minHeight: "24px", maxHeight: "200px", overflow: "hidden" }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement
+                target.style.height = "auto"
+                target.style.height = Math.min(target.scrollHeight, 200) + "px"
+              }}
+            />
+          </div>
+
+          {/* Send button */}
+          <button
+            onClick={handleSend}
+            disabled={(!input.trim() && attachments.length === 0) || sending || (!user && !connected)}
+            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all animate-send-press ${
+              input.trim() || attachments.length > 0
+                ? "bg-cyan-500 text-white hover:bg-cyan-400 shadow-lg shadow-cyan-500/20"
+                : "bg-zinc-800 text-zinc-600"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            <SendSVG className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
-      {/* Input */}
-      <div className="flex items-end gap-2 px-3 py-2 border-t border-zinc-800 bg-black">
-        <span className="text-xs font-mono text-green-400 flex-shrink-0 select-none pt-1">
-          {prompt}
-        </span>
-        <textarea
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          placeholder={mode === "dev" ? "Enter command or message... (drop/paste files)" : "Chat with JOE... (drop/paste files)"}
-          className="flex-1 bg-transparent text-xs font-mono text-zinc-200 placeholder:text-zinc-600 outline-none caret-green-400 resize-none min-h-[24px] max-h-[120px] py-1"
-          rows={1}
-          disabled={!user && !connected}
-          style={{ height: 'auto', overflow: 'hidden' }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement
-            target.style.height = 'auto'
-            target.style.height = Math.min(target.scrollHeight, 120) + 'px'
-          }}
-        />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 w-6 p-0 text-green-400 hover:text-green-300 disabled:text-zinc-700 flex-shrink-0"
-          onClick={handleSend}
-          disabled={(!input.trim() && attachments.length === 0) || sending || (!user && !connected)}
-        >
-          <Send className="w-3.5 h-3.5" />
-        </Button>
-      </div>
-
-      {/* Vault Donation Modal — shown when non-holder clicks gated tools */}
+      {/* ── Vault Donation Modal ── */}
       {showVaultModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowVaultModal(false)}>
-          <div className="relative w-full max-w-sm mx-4 bg-zinc-900 border border-cyan-500/30 rounded-2xl p-6 shadow-2xl shadow-cyan-500/10" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-sm mx-4 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setShowVaultModal(false)}
-              className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition-colors text-lg leading-none"
+              className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition-colors"
             >
-              ×
+              <X className="w-5 h-5" />
             </button>
             <div className="text-center space-y-4">
               <div className="w-14 h-14 mx-auto rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
-                <Shield className="w-7 h-7 text-cyan-400" />
+                <LockSVG className="w-7 h-7 text-cyan-400" />
               </div>
-              <h3 className="font-orbitron text-lg font-bold text-cyan-400 tracking-wider">
+              <h3 className="text-lg font-semibold text-zinc-100">
                 $JTX Required
               </h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                You need at least <span className="text-cyan-300 font-bold">1 $JTX</span> token to unlock tools, commands, and advanced features.
+                You need at least <span className="text-cyan-300 font-semibold">1 $JTX</span> token to unlock tools, commands, and advanced features.
               </p>
-              <div className="bg-zinc-800/50 rounded-xl p-3 border border-zinc-700/40">
+              <div className="bg-zinc-800/50 rounded-xl p-3 border border-zinc-800">
                 <p className="text-[10px] font-mono text-zinc-500 mb-1">Your balance</p>
                 <p className="text-lg font-mono font-bold text-red-400">
                   {jtxBalance !== null ? `${jtxBalance.toFixed(4)} JTX` : "0 JTX"}
@@ -1389,7 +1685,7 @@ function TerminalPanel() {
                 href="https://astroknots.space"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-mono text-sm font-semibold border border-cyan-400/30 transition-all shadow-lg shadow-cyan-500/20"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold border border-cyan-400/30 transition-all shadow-lg shadow-cyan-500/20"
               >
                 <Wallet className="w-4 h-4" />
                 Get $JTX at Astro Knots Vault
@@ -1592,10 +1888,10 @@ export default function AstroJoeClient() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
-          <Activity className="w-8 h-8 text-cyan-400 animate-pulse mx-auto mb-3" />
-          <p className="text-sm font-mono text-zinc-500">Initializing JOEclaw...</p>
+          <SpinnerSVG className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-zinc-500">Initializing...</p>
         </div>
       </div>
     )
@@ -1607,47 +1903,11 @@ export default function AstroJoeClient() {
     return <WalletGateScreen />
   }
 
-  const displayName = user?.firstName || user?.username || (publicKey ? `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}` : "anon")
-
   return (
-    <div className="min-h-screen bg-black text-zinc-200">
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-950">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <Network className="w-4 h-4 text-cyan-400" />
-            <h1 className="font-orbitron text-sm font-bold tracking-wider text-cyan-400">
-              ASTROJOE
-            </h1>
-          </div>
-          <Badge className="bg-zinc-800 text-zinc-500 border-zinc-700 text-[10px]">
-            OPTX Agentic OS
-          </Badge>
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-600">
-          <span>{displayName}</span>
-          <span>·</span>
-          <span>grok-4.20</span>
-        </div>
-      </div>
-
-      {/* Two-panel layout */}
-      <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 41px)" }}>
-        {/* Left: Architecture Viewer */}
-        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full border-b lg:border-b-0 border-zinc-800 bg-zinc-950">
-          <ArchitecturePanel />
-        </div>
-
-        {/* Right: Terminal */}
-        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full">
-          <TerminalPanel />
-        </div>
+    <div className="min-h-screen bg-zinc-950 text-zinc-200">
+      {/* Full-height chat layout — mobile-first, responsive centered on larger screens */}
+      <div className="h-screen max-w-3xl mx-auto flex flex-col sm:border-x sm:border-zinc-800/50">
+        <ChatPanel />
       </div>
     </div>
   )
