@@ -87,20 +87,15 @@ function useTheme() {
   const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
-    // Initialize from system preference
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-    setIsDark(prefersDark)
-    document.documentElement.classList.toggle("dark", prefersDark)
+    // Always keep global dark class so the rest of the site stays dark
+    document.documentElement.classList.add("dark")
   }, [])
 
   const toggleTheme = useCallback(() => {
-    setIsDark((prev) => {
-      const next = !prev
-      document.documentElement.classList.toggle("dark", next)
-      return next
-    })
+    setIsDark((prev) => !prev)
   }, [])
 
+  // isDark controls .astrojoe-light class on the local wrapper, NOT documentElement
   return { isDark, toggleTheme }
 }
 
@@ -2118,7 +2113,7 @@ export default function AstroJoeClient() {
   }
 
   return (
-    <div className="h-screen bg-[#0a0a0a] dark:bg-[#0a0a0a] text-[#ccc] dark:text-[#ccc] flex overflow-hidden">
+    <div className={`h-screen bg-[#0a0a0a] text-[#ccc] flex overflow-hidden ${!isDark ? "astrojoe-light" : ""}`}>
       <AnimationStyles />
 
       {/* Sidebar */}

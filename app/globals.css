@@ -75,8 +75,8 @@
   --color-orange-500: rgb(255, 105, 0);
 }
 
-/* ─── Light mode (AstroJOE theme toggle) ─── */
-:root:not(.dark) {
+/* ─── Light mode (AstroJOE only — scoped to .astrojoe-light) ─── */
+.astrojoe-light {
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
