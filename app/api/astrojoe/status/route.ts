@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 
-// ─── OPTX Agentic OS v5.1 — Endpoint Config ────────────────
-// AstroJOE Brain: Docker container on CorsairOne via Tailscale
-const ASTROJOE_BRAIN_URL = process.env.HEDGEHOG_URL || "http://100.105.218.115:5555"
+// ─── OPTX Agentic OS v5.2 — Endpoint Config ────────────────
+// AstroJOE Brain: Docker container on jettoptx-joe via Tailscale
+const ASTROJOE_BRAIN_URL = process.env.HEDGEHOG_URL || "http://127.0.0.1:5555"
 // Conduit Matrix homeserver: Jetson via Tailscale Funnel
 const MATRIX_HOMESERVER = process.env.MATRIX_HOMESERVER || "https://jettoptx-joe.taile11759.ts.net/conduit"
 const MATRIX_ACCESS_TOKEN = process.env.MATRIX_ACCESS_TOKEN || ""
@@ -80,13 +80,13 @@ export async function GET() {
       online: brainOnline,
       latencyMs: brainPing.ms,
       url: ASTROJOE_BRAIN_URL,
-      host: "corsairone",
+      host: "jettoptx-joe",
       ip: CORSAIR_IP,
       port: 5555,
       type: "CorsairOne (WSL2)",
       role: "AstroJOE Brain",
       runtime: "Docker (-p 5555:5555)",
-      version: brainHealth?.version ?? "5.1.0",
+      version: brainHealth?.version ?? "5.2.0",
     },
 
     conduit: {
@@ -140,11 +140,11 @@ export async function GET() {
 
     mesh: {
       protocol: "Tailscale Funnel",
-      version: "v5.1",
+      version: "v5.2",
       nodes: [
         { name: "jettoptx-joe", role: "JOE Orchestrator", ip: JETSON_IP, type: "Jetson Orin Nano", online: conduitOnline },
-        { name: "corsairone", role: "AstroJOE Brain", ip: CORSAIR_IP, type: "CorsairOne (WSL2)", online: brainOnline },
-        { name: "astrojoe-corsairone", role: "AstroJOE Sandbox", ip: CORSAIR_IP, type: "NemoClaw/OpenShell", online: brainOnline },
+        { name: "jettoptx-joe", role: "AstroJOE Brain", ip: CORSAIR_IP, type: "CorsairOne (WSL2)", online: brainOnline },
+        { name: "astrojoe-jettoptx-joe", role: "AstroJOE Sandbox", ip: CORSAIR_IP, type: "NemoClaw/OpenShell", online: brainOnline },
       ],
     },
 
@@ -153,11 +153,11 @@ export async function GET() {
 
     services: [
       { name: "JOE Orchestrator", port: 6167, host: "jettoptx-joe", status: conduitOnline ? "online" : "unreachable", latencyMs: conduitPing.ms },
-      { name: "AstroJOE Brain", port: 5555, host: "corsairone", status: brainOnline ? "online" : "unreachable", latencyMs: brainPing.ms },
-      { name: "SpacetimeDB Brain", port: 3000, host: "corsairone", status: spacetimedbOnline ? "online" : brainOnline ? "pending" : "unreachable" },
-      { name: "OpenGauss Engine", port: null, host: "corsairone", status: gaussOnline ? "online" : brainOnline ? "pending" : "unreachable" },
-      { name: "OpenShell Sandbox", port: null, host: "corsairone", status: openshellOnline ? "online" : brainOnline ? "pending" : "unreachable" },
-      { name: "AstroJOE Sandbox", port: null, host: "corsairone", status: brainOnline ? "ready" : "unknown" },
+      { name: "AstroJOE Brain", port: 5555, host: "jettoptx-joe", status: brainOnline ? "online" : "unreachable", latencyMs: brainPing.ms },
+      { name: "SpacetimeDB Brain", port: 3000, host: "jettoptx-joe", status: spacetimedbOnline ? "online" : brainOnline ? "pending" : "unreachable" },
+      { name: "OpenGauss Engine", port: null, host: "jettoptx-joe", status: gaussOnline ? "online" : brainOnline ? "pending" : "unreachable" },
+      { name: "OpenShell Sandbox", port: null, host: "jettoptx-joe", status: openshellOnline ? "online" : brainOnline ? "pending" : "unreachable" },
+      { name: "AstroJOE Sandbox", port: null, host: "jettoptx-joe", status: brainOnline ? "ready" : "unknown" },
       { name: "OPTX Command Room", port: null, host: "conduit", status: roomJoined ? "joined" : "not accessible" },
       { name: "AARON Auditor", port: 8888, host: "jettoptx-joe", status: conduitOnline ? "online" : "unknown" },
     ],
