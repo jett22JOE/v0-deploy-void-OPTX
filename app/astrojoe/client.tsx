@@ -16,7 +16,7 @@ import {
   ExternalLink, CheckCircle2, FileText, X,
   Sun, Moon, MessageSquare, Activity, GitBranch,
   Menu, PanelLeftClose, Plus, ArrowUp, Copy, Check,
-  Paperclip, Code2, RefreshCw,
+  Paperclip, Code2, RefreshCw, Search,
 } from "lucide-react"
 import Link from "next/link"
 import nextDynamic from "next/dynamic"
@@ -1139,8 +1139,626 @@ function WalletConnectButton({
   )
 }
 
+// ─── Chat Session Types ─────────────────────────────────────
+interface ChatSession {
+  id: string
+  title: string
+  messages: ChatMessage[]
+  createdAt: Date
+}
+
+function getDateGroup(date: Date): string {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterday = new Date(today.getTime() - 86400000)
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  if (d.getTime() === today.getTime()) return "Today"
+  if (d.getTime() === yesterday.getTime()) return "Yesterday"
+  return "Earlier"
+}
+
+// ─── Knowledge Graph Data ────────────────────────────────────
+interface GraphNode {
+  id: string
+  label: string
+  category: string
+  isHub: boolean
+  x: number
+  y: number
+  vx: number
+  vy: number
+  radius: number
+  description: string
+}
+
+interface GraphEdge {
+  source: string
+  target: string
+}
+
+const VAULT_NODES_RAW: { id: string; label: string; category: string; isHub: boolean; description: string }[] = [
+  { id: "MOC", label: "MOC.md", category: "00-Index", isHub: true, description: "Master index — Map of Content linking all vault sections." },
+  { id: "AARON-Router", label: "AARON-Router.md", category: "01-Architecture", isHub: true, description: "Autonomous routing engine — x402 payment-gated API proxy on port :8888." },
+  { id: "AstroJOE-Harness", label: "AstroJOE-Harness.md", category: "01-Architecture", isHub: false, description: "Harness wiring JOE's brain to Matrix, AARON, and SpacetimeDB." },
+  { id: "Infrastructure-Topology", label: "Infrastructure-Topology.md", category: "01-Architecture", isHub: true, description: "Mesh topology: Jetson ↔ CorsairOne ↔ Tailscale overlay. Hub of infra notes." },
+  { id: "K3s-Cluster", label: "K3s-Cluster.md", category: "01-Architecture", isHub: false, description: "Lightweight Kubernetes cluster powering containerized subagents." },
+  { id: "Neuromorphic-Pipeline", label: "Neuromorphic-Pipeline.md", category: "01-Architecture", isHub: false, description: "INT8 quantized inference pipeline running on Jetson Orin Nano." },
+  { id: "AstroJOE-Brain", label: "AstroJOE-Brain.md", category: "02-Agents", isHub: false, description: "Brain API server (port :5555) — SpacetimeDB-backed cognition layer." },
+  { id: "HEDGEHOG-MCP", label: "HEDGEHOG-MCP.md", category: "02-Agents", isHub: false, description: "Model Context Protocol server exposing 19 tools to Grok/Claude." },
+  { id: "JOE-Orchestrator", label: "JOE-Orchestrator.md", category: "02-Agents", isHub: false, description: "Central orchestrator dispatching tasks to subagents via Matrix." },
+  { id: "NemoClaw-OpenClaw", label: "NemoClaw-OpenClaw.md", category: "02-Agents", isHub: false, description: "Sandboxed code execution harness with policy enforcement." },
+  { id: "DePIN-Protocol", label: "DePIN-Protocol.md", category: "03-Blockchain", isHub: false, description: "Decentralized Physical Infrastructure Network design for OPTX." },
+  { id: "Token-Addresses", label: "Token-Addresses.md", category: "03-Blockchain", isHub: false, description: "Registry of JTX, OPTX, SOL, XRP token mint addresses and pools." },
+  { id: "Patent-US20250392457A1", label: "US20250392457A1.md", category: "04-Patents", isHub: false, description: "Granted patent: AGT (Anticipatory Gaze Tensor) for attention prediction." },
+  { id: "Dev-Log-2026-03-25", label: "2026-03-25.md", category: "05-Dev-Log", isHub: false, description: "Dev log entry — brain API migration, Conduit restart, Jetson sync." },
+  { id: "astroknots-space", label: "astroknots-space.md", category: "06-Domains", isHub: false, description: "Astro Knots Vault landing domain — JTX token portal." },
+  { id: "jettoptics-ai", label: "jettoptics-ai.md", category: "06-Domains", isHub: false, description: "Jett Optics AI main web app — Next.js + Convex + Clerk." },
+  { id: "Conduit-Config", label: "Conduit-Config.md", category: "07-Matrix", isHub: false, description: "Conduit homeserver configuration — federation, rooms, ACLs." },
+  { id: "Funnel-Routes", label: "Funnel-Routes.md", category: "07-Matrix", isHub: false, description: "Matrix room funnel routing for user onboarding and escalation." },
+  { id: "Room-Topology", label: "Room-Topology.md", category: "07-Matrix", isHub: false, description: "Matrix room hierarchy — #astrojoe, #dev, #system, #alerts." },
+  { id: "recruiterJOE", label: "recruiterJOE/README.md", category: "08-Subagents", isHub: false, description: "Recruitment subagent — resume parsing, outreach drafts." },
+  { id: "researchJOE", label: "researchJOE/README.md", category: "08-Subagents", isHub: false, description: "Research subagent — Perplexity Sonar integration, RAG queries." },
+  { id: "twitterJOE", label: "twitterJOE/README.md", category: "08-Subagents", isHub: false, description: "Twitter subagent — automated posting, engagement tracking." },
+  { id: "agt-README", label: "agt/README.md", category: "09-Tensors", isHub: false, description: "Anticipatory Gaze Tensor — Markov-based attention prediction system." },
+  { id: "cog-README", label: "cog/README.md", category: "09-Tensors", isHub: false, description: "Cognitive tensor — reasoning load and task complexity metrics." },
+  { id: "emo-README", label: "emo/README.md", category: "09-Tensors", isHub: false, description: "Emotional tensor — sentiment and affective state tracking." },
+  { id: "env-README", label: "env/README.md", category: "09-Tensors", isHub: false, description: "Environmental tensor — system health, network, temperature." },
+  { id: "Vault-Sync", label: "README.md", category: "10-Vault-Sync", isHub: false, description: "Obsidian vault ↔ Git sync pipeline for knowledge persistence." },
+  { id: "template-architecture", label: "architecture-doc.md", category: "Templates", isHub: false, description: "Template for new architecture documentation notes." },
+  { id: "template-daily", label: "daily-log.md", category: "Templates", isHub: false, description: "Template for daily development log entries." },
+  { id: "seek-and-you-shall-find", label: "seek-and-you-shall-find.md", category: "00-Index", isHub: true, description: "Philosophical index — guiding principles, search-first epistemology." },
+]
+
+const VAULT_EDGES: GraphEdge[] = [
+  // MOC links to many
+  { source: "MOC", target: "AARON-Router" },
+  { source: "MOC", target: "Infrastructure-Topology" },
+  { source: "MOC", target: "AstroJOE-Brain" },
+  { source: "MOC", target: "HEDGEHOG-MCP" },
+  { source: "MOC", target: "Token-Addresses" },
+  { source: "MOC", target: "DePIN-Protocol" },
+  { source: "MOC", target: "agt-README" },
+  { source: "MOC", target: "Room-Topology" },
+  { source: "MOC", target: "seek-and-you-shall-find" },
+  { source: "MOC", target: "K3s-Cluster" },
+  { source: "MOC", target: "Patent-US20250392457A1" },
+  // seek-and-you-shall-find links
+  { source: "seek-and-you-shall-find", target: "AstroJOE-Harness" },
+  { source: "seek-and-you-shall-find", target: "researchJOE" },
+  { source: "seek-and-you-shall-find", target: "agt-README" },
+  // Infrastructure-Topology links
+  { source: "Infrastructure-Topology", target: "K3s-Cluster" },
+  { source: "Infrastructure-Topology", target: "Neuromorphic-Pipeline" },
+  { source: "Infrastructure-Topology", target: "Conduit-Config" },
+  { source: "Infrastructure-Topology", target: "jettoptics-ai" },
+  // AARON-Router links
+  { source: "AARON-Router", target: "AstroJOE-Harness" },
+  { source: "AARON-Router", target: "HEDGEHOG-MCP" },
+  { source: "AARON-Router", target: "Token-Addresses" },
+  { source: "AARON-Router", target: "NemoClaw-OpenClaw" },
+  // AstroJOE-Harness links
+  { source: "AstroJOE-Harness", target: "AstroJOE-Brain" },
+  { source: "AstroJOE-Harness", target: "JOE-Orchestrator" },
+  // HEDGEHOG-MCP links
+  { source: "HEDGEHOG-MCP", target: "recruiterJOE" },
+  { source: "HEDGEHOG-MCP", target: "twitterJOE" },
+  // Tensor links
+  { source: "agt-README", target: "cog-README" },
+  { source: "agt-README", target: "emo-README" },
+  { source: "agt-README", target: "env-README" },
+  { source: "Patent-US20250392457A1", target: "agt-README" },
+  // Matrix links
+  { source: "Room-Topology", target: "Funnel-Routes" },
+  { source: "Room-Topology", target: "Conduit-Config" },
+  // Blockchain links
+  { source: "DePIN-Protocol", target: "Token-Addresses" },
+  // Domain links
+  { source: "Neuromorphic-Pipeline", target: "Vault-Sync" },
+  { source: "astroknots-space", target: "Token-Addresses" },
+  { source: "Dev-Log-2026-03-25", target: "Infrastructure-Topology" },
+  { source: "template-architecture", target: "template-daily" },
+]
+
+const VAULT_CATEGORIES: { name: string; count: number }[] = [
+  { name: "Architecture", count: 5 },
+  { name: "Agents", count: 4 },
+  { name: "Blockchain", count: 2 },
+  { name: "Patents", count: 1 },
+  { name: "Dev-Log", count: 1 },
+  { name: "Domains", count: 2 },
+  { name: "Matrix", count: 3 },
+  { name: "Subagents", count: 3 },
+  { name: "Tensors", count: 4 },
+  { name: "Vault-Sync", count: 1 },
+]
+
+const CATEGORY_MAP: Record<string, string> = {
+  "00-Index": "Index",
+  "01-Architecture": "Architecture",
+  "02-Agents": "Agents",
+  "03-Blockchain": "Blockchain",
+  "04-Patents": "Patents",
+  "05-Dev-Log": "Dev-Log",
+  "06-Domains": "Domains",
+  "07-Matrix": "Matrix",
+  "08-Subagents": "Subagents",
+  "09-Tensors": "Tensors",
+  "10-Vault-Sync": "Vault-Sync",
+  "Templates": "Templates",
+}
+
+// ─── Knowledge Graph Component ───────────────────────────────
+function KnowledgeGraphPanel() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const nodesRef = useRef<GraphNode[]>([])
+  const edgesRef = useRef<GraphEdge[]>(VAULT_EDGES)
+  const animFrameRef = useRef<number>(0)
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
+  const [popupPos, setPopupPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [searchQuery, setSearchQuery] = useState("")
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+
+  // Camera state refs (no re-renders on pan/zoom)
+  const cameraRef = useRef({ x: 0, y: 0, zoom: 1 })
+  const dragRef = useRef<{ isDragging: boolean; startX: number; startY: number; nodeDrag: GraphNode | null; panStartCamX: number; panStartCamY: number }>({
+    isDragging: false, startX: 0, startY: 0, nodeDrag: null, panStartCamX: 0, panStartCamY: 0
+  })
+  const particlesRef = useRef<{ edge: number; t: number; speed: number }[]>([])
+  const alphaRef = useRef(1)
+  const tickRef = useRef(0)
+
+  // Initialize nodes with positions
+  useEffect(() => {
+    const nodes: GraphNode[] = VAULT_NODES_RAW.map((n, i) => {
+      const angle = (i / VAULT_NODES_RAW.length) * Math.PI * 2
+      const radius = n.isHub ? 80 + Math.random() * 40 : 150 + Math.random() * 200
+      return {
+        ...n,
+        x: Math.cos(angle) * radius + (Math.random() - 0.5) * 60,
+        y: Math.sin(angle) * radius + (Math.random() - 0.5) * 60,
+        vx: 0,
+        vy: 0,
+        radius: n.isHub ? 16 : 5,
+      }
+    })
+    nodesRef.current = nodes
+
+    // Init particles
+    const parts: { edge: number; t: number; speed: number }[] = []
+    for (let i = 0; i < VAULT_EDGES.length; i++) {
+      const count = 1 + Math.floor(Math.random() * 2)
+      for (let j = 0; j < count; j++) {
+        parts.push({ edge: i, t: Math.random(), speed: 0.001 + Math.random() * 0.002 })
+      }
+    }
+    particlesRef.current = parts
+    alphaRef.current = 1
+  }, [])
+
+  // Force simulation + render loop
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    function resize() {
+      if (!canvas) return
+      const rect = canvas.getBoundingClientRect()
+      canvas.width = rect.width * window.devicePixelRatio
+      canvas.height = rect.height * window.devicePixelRatio
+    }
+    resize()
+    window.addEventListener("resize", resize)
+
+    function simulateForces() {
+      const nodes = nodesRef.current
+      const edges = edgesRef.current
+      const alpha = alphaRef.current
+      if (alpha < 0.001) return
+
+      const nodeMap: Record<string, GraphNode> = {}
+      for (const n of nodes) nodeMap[n.id] = n
+
+      // Charge repulsion (simplified Barnes-Hut)
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j]
+          let dx = b.x - a.x, dy = b.y - a.y
+          let dist = Math.sqrt(dx * dx + dy * dy) || 1
+          if (dist < 1) dist = 1
+          const repulse = -600 * alpha / (dist * dist)
+          const fx = (dx / dist) * repulse
+          const fy = (dy / dist) * repulse
+          a.vx -= fx
+          a.vy -= fy
+          b.vx += fx
+          b.vy += fy
+        }
+      }
+
+      // Spring force on edges
+      for (const e of edges) {
+        const s = nodeMap[e.source], t = nodeMap[e.target]
+        if (!s || !t) continue
+        let dx = t.x - s.x, dy = t.y - s.y
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1
+        const targetLen = 120
+        const force = (dist - targetLen) * 0.03 * alpha
+        const fx = (dx / dist) * force
+        const fy = (dy / dist) * force
+        s.vx += fx
+        s.vy += fy
+        t.vx -= fx
+        t.vy -= fy
+      }
+
+      // Center gravity
+      for (const n of nodes) {
+        n.vx -= n.x * 0.005 * alpha
+        n.vy -= n.y * 0.005 * alpha
+      }
+
+      // Velocity damping + apply
+      for (const n of nodes) {
+        n.vx *= 0.6
+        n.vy *= 0.6
+        if (dragRef.current.nodeDrag?.id === n.id) continue
+        n.x += n.vx
+        n.y += n.vy
+      }
+
+      // Collision
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j]
+          const dx = b.x - a.x, dy = b.y - a.y
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1
+          const minDist = a.radius + b.radius + 8
+          if (dist < minDist) {
+            const push = (minDist - dist) / 2
+            const nx = dx / dist, ny = dy / dist
+            a.x -= nx * push
+            a.y -= ny * push
+            b.x += nx * push
+            b.y += ny * push
+          }
+        }
+      }
+
+      alphaRef.current *= 0.995
+    }
+
+    function render() {
+      if (!ctx || !canvas) return
+      const dpr = window.devicePixelRatio
+      const w = canvas.width / dpr
+      const h = canvas.height / dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+      // Dark background
+      ctx.fillStyle = "#0a0a0a"
+      ctx.fillRect(0, 0, w, h)
+
+      // Subtle radial glow at center
+      const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.5)
+      grad.addColorStop(0, "rgba(0, 212, 170, 0.015)")
+      grad.addColorStop(1, "transparent")
+      ctx.fillStyle = grad
+      ctx.fillRect(0, 0, w, h)
+
+      const cam = cameraRef.current
+      ctx.save()
+      ctx.translate(w / 2 + cam.x, h / 2 + cam.y)
+      ctx.scale(cam.zoom, cam.zoom)
+
+      const nodes = nodesRef.current
+      const edges = edgesRef.current
+      const nodeMap: Record<string, GraphNode> = {}
+      for (const n of nodes) nodeMap[n.id] = n
+
+      // Filter by active category
+      const visibleIds = new Set<string>()
+      if (activeCategory) {
+        for (const n of nodes) {
+          if (CATEGORY_MAP[n.category] === activeCategory || n.category === activeCategory) {
+            visibleIds.add(n.id)
+          }
+        }
+        // Also show connected nodes
+        for (const e of edges) {
+          if (visibleIds.has(e.source)) visibleIds.add(e.target)
+          if (visibleIds.has(e.target)) visibleIds.add(e.source)
+        }
+      } else {
+        for (const n of nodes) visibleIds.add(n.id)
+      }
+
+      // Search filter
+      const searchLower = searchQuery.toLowerCase()
+      const searchIds = searchLower
+        ? new Set(nodes.filter(n => n.label.toLowerCase().includes(searchLower) || n.description.toLowerCase().includes(searchLower)).map(n => n.id))
+        : null
+
+      // Edges
+      for (let i = 0; i < edges.length; i++) {
+        const e = edges[i]
+        const s = nodeMap[e.source], t = nodeMap[e.target]
+        if (!s || !t) continue
+        if (!visibleIds.has(s.id) && !visibleIds.has(t.id)) continue
+        const dimmed = searchIds && !searchIds.has(s.id) && !searchIds.has(t.id)
+        ctx.beginPath()
+        ctx.moveTo(s.x, s.y)
+        ctx.lineTo(t.x, t.y)
+        ctx.strokeStyle = dimmed ? "rgba(245, 240, 232, 0.01)" : "rgba(245, 240, 232, 0.035)"
+        ctx.lineWidth = 0.5
+        ctx.stroke()
+      }
+
+      // Particles
+      tickRef.current++
+      for (const p of particlesRef.current) {
+        const e = edges[p.edge]
+        if (!e) continue
+        const s = nodeMap[e.source], t = nodeMap[e.target]
+        if (!s || !t) continue
+        if (!visibleIds.has(s.id) && !visibleIds.has(t.id)) continue
+        p.t += p.speed
+        if (p.t > 1) p.t -= 1
+        const px = s.x + (t.x - s.x) * p.t
+        const py = s.y + (t.y - s.y) * p.t
+        ctx.beginPath()
+        ctx.arc(px, py, 1.2, 0, Math.PI * 2)
+        ctx.fillStyle = "rgba(245, 240, 232, 0.2)"
+        ctx.fill()
+      }
+
+      // Nodes
+      for (const n of nodes) {
+        if (!visibleIds.has(n.id)) continue
+        const dimmed = searchIds && !searchIds.has(n.id)
+        const isSelected = selectedNode?.id === n.id
+
+        // Pulsing ring on selected
+        if (isSelected) {
+          const pulse = 1 + Math.sin(tickRef.current * 0.06) * 0.3
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, n.radius * 2.2 * pulse, 0, Math.PI * 2)
+          ctx.strokeStyle = "rgba(0, 212, 170, 0.3)"
+          ctx.lineWidth = 1.5
+          ctx.stroke()
+        }
+
+        // Node circle
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2)
+        if (n.isHub) {
+          ctx.fillStyle = dimmed ? "rgba(180, 150, 100, 0.2)" : "rgba(180, 150, 100, 0.72)"
+        } else {
+          ctx.fillStyle = dimmed ? "rgba(245, 240, 232, 0.15)" : "rgba(245, 240, 232, 0.55)"
+        }
+        ctx.fill()
+
+        // Glow on hubs
+        if (n.isHub && !dimmed) {
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, n.radius + 4, 0, Math.PI * 2)
+          ctx.strokeStyle = "rgba(180, 150, 100, 0.15)"
+          ctx.lineWidth = 2
+          ctx.stroke()
+        }
+
+        // Zoom-gated labels
+        if (cam.zoom > 1.2 || (n.isHub && cam.zoom > 0.6)) {
+          ctx.font = `${n.isHub ? 11 : 9}px "Geist Mono", monospace`
+          ctx.fillStyle = dimmed ? "rgba(245, 240, 232, 0.15)" : "rgba(245, 240, 232, 0.6)"
+          ctx.textAlign = "center"
+          ctx.fillText(n.label.replace(".md", "").replace("/README", ""), n.x, n.y + n.radius + 14)
+        }
+      }
+
+      ctx.restore()
+      simulateForces()
+      animFrameRef.current = requestAnimationFrame(render)
+    }
+
+    animFrameRef.current = requestAnimationFrame(render)
+
+    return () => {
+      cancelAnimationFrame(animFrameRef.current)
+      window.removeEventListener("resize", resize)
+    }
+  // We intentionally don't include selectedNode/searchQuery/activeCategory in deps
+  // to avoid recreating the animation loop. They're read from refs or closure.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNode, searchQuery, activeCategory])
+
+  // Mouse handlers
+  function screenToWorld(sx: number, sy: number) {
+    const canvas = canvasRef.current
+    if (!canvas) return { x: 0, y: 0 }
+    const rect = canvas.getBoundingClientRect()
+    const cam = cameraRef.current
+    const cx = sx - rect.left - rect.width / 2 - cam.x
+    const cy = sy - rect.top - rect.height / 2 - cam.y
+    return { x: cx / cam.zoom, y: cy / cam.zoom }
+  }
+
+  function findNodeAt(wx: number, wy: number): GraphNode | null {
+    const nodes = nodesRef.current
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const n = nodes[i]
+      const dx = wx - n.x, dy = wy - n.y
+      const hitR = Math.max(n.radius, 12)
+      if (dx * dx + dy * dy < hitR * hitR) return n
+    }
+    return null
+  }
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const { x, y } = screenToWorld(e.clientX, e.clientY)
+    const node = findNodeAt(x, y)
+    if (node) {
+      dragRef.current = { isDragging: true, startX: e.clientX, startY: e.clientY, nodeDrag: node, panStartCamX: 0, panStartCamY: 0 }
+    } else {
+      dragRef.current = { isDragging: true, startX: e.clientX, startY: e.clientY, nodeDrag: null, panStartCamX: cameraRef.current.x, panStartCamY: cameraRef.current.y }
+    }
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const d = dragRef.current
+    if (!d.isDragging) return
+    if (d.nodeDrag) {
+      const { x, y } = screenToWorld(e.clientX, e.clientY)
+      d.nodeDrag.x = x
+      d.nodeDrag.y = y
+      d.nodeDrag.vx = 0
+      d.nodeDrag.vy = 0
+      alphaRef.current = Math.max(alphaRef.current, 0.3)
+    } else {
+      const dx = e.clientX - d.startX
+      const dy = e.clientY - d.startY
+      cameraRef.current.x = d.panStartCamX + dx
+      cameraRef.current.y = d.panStartCamY + dy
+    }
+  }, [])
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    const d = dragRef.current
+    const movedDist = Math.abs(e.clientX - d.startX) + Math.abs(e.clientY - d.startY)
+    if (movedDist < 5) {
+      // It was a click
+      const { x, y } = screenToWorld(e.clientX, e.clientY)
+      const node = findNodeAt(x, y)
+      if (node) {
+        setSelectedNode(node)
+        // Position popup near the node
+        const canvas = canvasRef.current
+        if (canvas) {
+          const rect = canvas.getBoundingClientRect()
+          const cam = cameraRef.current
+          const px = node.x * cam.zoom + cam.x + rect.width / 2
+          const py = node.y * cam.zoom + cam.y + rect.height / 2
+          setPopupPos({ x: Math.min(px + 20, rect.width - 280), y: Math.min(py - 40, rect.height - 180) })
+        }
+      } else {
+        setSelectedNode(null)
+      }
+    }
+    dragRef.current = { isDragging: false, startX: 0, startY: 0, nodeDrag: null, panStartCamX: 0, panStartCamY: 0 }
+  }, [])
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? 0.9 : 1.1
+    cameraRef.current.zoom = Math.max(0.2, Math.min(5, cameraRef.current.zoom * delta))
+  }, [])
+
+  const connectionCount = (nodeId: string) => {
+    return VAULT_EDGES.filter(e => e.source === nodeId || e.target === nodeId).length
+  }
+
+  return (
+    <div className="flex h-full">
+      {/* Graph Sidebar */}
+      <div className="w-[240px] flex-shrink-0 border-r border-[#222] bg-[#0e0e0e] flex flex-col h-full overflow-hidden">
+        <div className="px-3 py-3 border-b border-[#1a1a1a]">
+          <div className="flex items-center gap-2 mb-3">
+            <Network className="w-4 h-4 text-[#00d4aa]" />
+            <span className="font-mono text-xs font-bold tracking-wider text-[#00d4aa]">OPTX VAULT</span>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#444]" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search notes..."
+              className="w-full bg-[#161616] border border-[#222] rounded-lg pl-8 pr-3 py-1.5 text-[12px] font-mono text-[#ccc] placeholder:text-[#444] outline-none focus:border-[#333]"
+            />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
+          <button
+            onClick={() => setActiveCategory(null)}
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[11px] font-mono transition-colors ${
+              !activeCategory ? "bg-[#00d4aa]/10 text-[#00d4aa]" : "text-[#888] hover:text-[#ccc] hover:bg-[#161616]"
+            }`}
+          >
+            <span>All Notes</span>
+            <span className="text-[9px] text-[#555]">30</span>
+          </button>
+          {VAULT_CATEGORIES.map((cat) => (
+            <button
+              key={cat.name}
+              onClick={() => setActiveCategory(activeCategory === cat.name ? null : cat.name)}
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[11px] font-mono transition-colors ${
+                activeCategory === cat.name ? "bg-[#00d4aa]/10 text-[#00d4aa]" : "text-[#888] hover:text-[#ccc] hover:bg-[#161616]"
+              }`}
+            >
+              <span>{cat.name}</span>
+              <span className="text-[9px] text-[#555]">{cat.count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="px-3 py-2 border-t border-[#1a1a1a]">
+          <span className="text-[9px] font-mono text-[#444]">30 notes · {VAULT_EDGES.length} connections</span>
+        </div>
+      </div>
+
+      {/* Canvas Area */}
+      <div className="flex-1 relative bg-[#0a0a0a] overflow-hidden">
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onWheel={handleWheel}
+        />
+
+        {/* Zoom indicator */}
+        <div className="absolute top-3 right-3 text-[9px] font-mono text-[#444] bg-[#111]/80 px-2 py-1 rounded">
+          {(cameraRef.current.zoom * 100).toFixed(0)}% · scroll to zoom
+        </div>
+
+        {/* Selected node popup */}
+        {selectedNode && (
+          <div
+            className="absolute z-10 w-[260px] bg-[#111] border border-[#333] rounded-xl p-4 shadow-2xl shadow-black/50"
+            style={{ left: popupPos.x, top: popupPos.y }}
+          >
+            <button
+              onClick={() => setSelectedNode(null)}
+              className="absolute top-2 right-2 text-[#555] hover:text-[#999]"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+            <div className="flex items-center gap-2 mb-2">
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: selectedNode.isHub ? "rgba(180, 150, 100, 0.72)" : "rgba(245, 240, 232, 0.55)" }}
+              />
+              <span className="font-mono text-sm font-semibold text-[#eee] truncate">{selectedNode.label}</span>
+            </div>
+            <div className="text-[10px] font-mono text-[#00d4aa] mb-2">{CATEGORY_MAP[selectedNode.category] || selectedNode.category}</div>
+            <p className="text-[12px] text-[#999] leading-relaxed mb-3">{selectedNode.description}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono text-[#555]">{connectionCount(selectedNode.id)} connections</span>
+              <button className="text-[10px] font-mono text-[#00d4aa] hover:text-[#00eabb] transition-colors flex items-center gap-1">
+                <FileText className="w-3 h-3" />
+                Open note
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Sidebar ─────────────────────────────────────────────────
-type SidebarView = "chat" | "status" | "mesh" | "arch"
+type SidebarView = "chat" | "status" | "mesh" | "arch" | "graph"
 
 function Sidebar({
   activeView,
@@ -1154,7 +1772,10 @@ function Sidebar({
   user,
   collapsed,
   onToggleCollapsed,
-  recentChats,
+  chatSessions,
+  activeSessionId,
+  onSelectSession,
+  onNewChat,
 }: {
   activeView: SidebarView
   onViewChange: (view: SidebarView) => void
@@ -1168,13 +1789,17 @@ function Sidebar({
   user: any
   collapsed: boolean
   onToggleCollapsed: () => void
-  recentChats: string[]
+  chatSessions: ChatSession[]
+  activeSessionId: string | null
+  onSelectSession: (id: string) => void
+  onNewChat: () => void
 }) {
   const navItems: { id: SidebarView; label: string; icon: React.ReactNode }[] = [
     { id: "chat", label: "Chat", icon: <MessageSquare className="w-4 h-4" /> },
     { id: "status", label: "Status", icon: <Activity className="w-4 h-4" /> },
     { id: "mesh", label: "Mesh", icon: <Network className="w-4 h-4" /> },
     { id: "arch", label: "Architecture", icon: <GitBranch className="w-4 h-4" /> },
+    { id: "graph", label: "Knowledge Graph", icon: <Layers className="w-4 h-4" /> },
   ]
 
   return (
@@ -1221,19 +1846,60 @@ function Sidebar({
         ))}
       </nav>
 
-      {/* Recent Chats */}
-      {!collapsed && recentChats.length > 0 && (
-        <div className="px-3 mt-4">
-          <div className="text-[9px] font-mono text-[#444] uppercase tracking-widest mb-2">Recent</div>
+      {/* New Chat Button */}
+      {!collapsed && (
+        <div className="px-3 mt-2">
+          <button
+            onClick={() => { onNewChat(); onViewChange("chat") }}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border border-[#333] text-[11px] font-mono text-[#888] hover:text-[#ccc] hover:border-[#555] transition-colors"
+          >
+            <Plus className="w-3 h-3" />
+            New Chat
+          </button>
+        </div>
+      )}
+
+      {/* Recent Chat Sessions */}
+      {!collapsed && chatSessions.length > 0 && (
+        <div className="px-3 mt-3 flex-shrink-0 overflow-y-auto" style={{ maxHeight: "40%" }}>
+          <div className="text-[9px] font-mono text-[#444] uppercase tracking-widest mb-2">RECENT</div>
           <div className="space-y-0.5">
-            {recentChats.slice(0, 8).map((chat, i) => (
-              <div
-                key={i}
-                className="text-[12px] font-mono text-[#666] truncate px-2 py-1 rounded hover:bg-[#161616] hover:text-[#999] cursor-pointer transition-colors"
-              >
-                {chat}
-              </div>
-            ))}
+            {(() => {
+              const sorted = [...chatSessions].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+              const groups: Record<string, ChatSession[]> = {}
+              for (const s of sorted) {
+                const g = getDateGroup(s.createdAt)
+                if (!groups[g]) groups[g] = []
+                groups[g].push(s)
+              }
+              const order = ["Today", "Yesterday", "Earlier"]
+              return order.map((group) => {
+                const sessions = groups[group]
+                if (!sessions || sessions.length === 0) return null
+                return (
+                  <div key={group}>
+                    <div className="text-[8px] font-mono text-[#333] uppercase tracking-widest mt-1.5 mb-0.5 px-2">{group}</div>
+                    {sessions.slice(0, 6).map((session) => (
+                      <button
+                        key={session.id}
+                        onClick={() => { onSelectSession(session.id); onViewChange("chat") }}
+                        className={`w-full text-left text-[11px] font-mono truncate px-2 py-1 rounded transition-colors ${
+                          activeSessionId === session.id
+                            ? "bg-[#00d4aa]/10 text-[#00d4aa]"
+                            : "text-[#666] hover:bg-[#161616] hover:text-[#999]"
+                        }`}
+                        title={session.title}
+                      >
+                        <div className="truncate">{session.title}</div>
+                        <div className="text-[8px] text-[#444]">
+                          {session.createdAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )
+              })
+            })()}
           </div>
         </div>
       )}
@@ -1285,9 +1951,15 @@ function Sidebar({
 function ChatPanel({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   statusData,
+  activeSessionId,
+  onSessionMessage,
+  sessionMessages,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   statusData: Record<string, any> | null
+  activeSessionId: string | null
+  onSessionMessage: (sessionId: string, msg: ChatMessage) => void
+  sessionMessages: ChatMessage[]
 }) {
   const { user } = useUser()
   const { publicKey, connected } = useWallet()
@@ -1488,6 +2160,7 @@ function ChatPanel({
       timestamp: now,
     }
     setLocalMessages((prev) => [...prev, userMsg])
+    if (activeSessionId) onSessionMessage(activeSessionId, userMsg)
     setInput("")
     setSending(true)
     if (inputRef.current) {
@@ -1530,6 +2203,7 @@ function ChatPanel({
           type: data.type === "system" ? "system" : "joe",
           timestamp: Date.now(),
         }
+        if (activeSessionId) onSessionMessage(activeSessionId, joeMsg)
         if (channel) {
           await sendConvexMsg({
             channelId: channel._id,
@@ -1557,7 +2231,7 @@ function ChatPanel({
       setSending(false)
       setAttachments([])
     }
-  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress, connected, attachments, hasJTX])
+  }, [input, user, sending, codeMode, mode, channel, sendConvexMsg, walletAddress, connected, attachments, hasJTX, activeSessionId, onSessionMessage])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -2076,6 +2750,51 @@ export default function AstroJoeClient() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [statusData, setStatusData] = useState<Record<string, any> | null>(null)
 
+  // Chat session management
+  const [sessionState] = useState(() => {
+    const id = `session-${Date.now()}`
+    return {
+      initialSessions: [{ id, title: "New conversation", messages: [] as ChatMessage[], createdAt: new Date() }],
+      initialId: id,
+    }
+  })
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>(sessionState.initialSessions)
+  const [activeSessionId, setActiveSessionId] = useState<string>(sessionState.initialId)
+
+  // Sync initial session id
+  useEffect(() => {
+    if (chatSessions.length > 0 && !chatSessions.find(s => s.id === activeSessionId)) {
+      setActiveSessionId(chatSessions[0].id)
+    }
+  }, [chatSessions, activeSessionId])
+
+  const handleNewChat = useCallback(() => {
+    const newId = `session-${Date.now()}`
+    setChatSessions((prev) => [
+      { id: newId, title: "New conversation", messages: [], createdAt: new Date() },
+      ...prev,
+    ])
+    setActiveSessionId(newId)
+  }, [])
+
+  const handleSelectSession = useCallback((id: string) => {
+    setActiveSessionId(id)
+  }, [])
+
+  const handleSessionMessage = useCallback((sessionId: string, msg: ChatMessage) => {
+    setChatSessions((prev) =>
+      prev.map((s) => {
+        if (s.id !== sessionId) return s
+        const updated = { ...s, messages: [...s.messages, msg] }
+        // Update title from first user message
+        if (s.title === "New conversation" && (msg.type === "chat" || msg.type === "dev")) {
+          updated.title = msg.content.slice(0, 40) + (msg.content.length > 40 ? "..." : "")
+        }
+        return updated
+      })
+    )
+  }, [])
+
   // Fetch status on mount and interval
   const fetchStatus = useCallback(async () => {
     try {
@@ -2092,9 +2811,6 @@ export default function AstroJoeClient() {
     const interval = setInterval(fetchStatus, 30000)
     return () => clearInterval(interval)
   }, [fetchStatus])
-
-  // Extract recent chats from Convex (dummy for now — titles from messages)
-  const recentChats: string[] = []
 
   if (!isLoaded) {
     return (
@@ -2129,13 +2845,21 @@ export default function AstroJoeClient() {
         user={user}
         collapsed={sidebarCollapsed}
         onToggleCollapsed={() => setSidebarCollapsed(!sidebarCollapsed)}
-        recentChats={recentChats}
+        chatSessions={chatSessions}
+        activeSessionId={activeSessionId}
+        onSelectSession={handleSelectSession}
+        onNewChat={handleNewChat}
       />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {activeView === "chat" && (
-          <ChatPanel statusData={statusData} />
+          <ChatPanel
+            statusData={statusData}
+            activeSessionId={activeSessionId}
+            onSessionMessage={handleSessionMessage}
+            sessionMessages={chatSessions.find(s => s.id === activeSessionId)?.messages || []}
+          />
         )}
         {activeView === "status" && (
           <StatusDashboard statusData={statusData} onRefresh={fetchStatus} />
@@ -2145,6 +2869,9 @@ export default function AstroJoeClient() {
         )}
         {activeView === "arch" && (
           <ArchitecturePanel />
+        )}
+        {activeView === "graph" && (
+          <KnowledgeGraphPanel />
         )}
       </main>
     </div>
