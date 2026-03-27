@@ -315,15 +315,16 @@ export default function StakePage() {
             <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}><span className="text-orange-500">JETT</span> Optics</span>
           </Link>
 
-          {/* Center: Nav Pills — matches jettoptics.ai navbar exactly */}
-          <div
-            className="hidden md:block relative rounded-2xl backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500"
-            style={{ WebkitBackdropFilter: "blur(20px) saturate(120%)", backgroundColor: "rgba(0, 0, 0, 0.45)" }}
-          >
-            {/* Top highlight edge */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent rounded-t-2xl" />
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.03] via-transparent to-white/[0.02] pointer-events-none" />
-            <ul className="relative flex items-center gap-2 px-2 py-1">
+          {/* Center: Nav Pills — absolute center, matches jettoptics.ai style */}
+          <div className="hidden md:block absolute left-1/2 -translate-x-1/2 z-10">
+            <div
+              className="relative rounded-2xl backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500"
+              style={{ WebkitBackdropFilter: "blur(20px) saturate(120%)", backgroundColor: "rgba(0, 0, 0, 0.45)" }}
+            >
+              {/* Top highlight edge */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent rounded-t-2xl" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.03] via-transparent to-white/[0.02] pointer-events-none" />
+              <ul className="relative flex items-center gap-2 px-2 py-1">
               {[
                 { label: "VAULT", href: "/vault" },
                 { label: "STAKE", href: "/stake", active: true },
@@ -346,7 +347,8 @@ export default function StakePage() {
                   </Link>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </div>
           </div>
 
           {/* Right: Theme + Wallet */}
