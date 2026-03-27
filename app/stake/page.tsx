@@ -8,6 +8,7 @@ import { getAssociatedTokenAddressSync, createTransferInstruction, TOKEN_2022_PR
 import Link from "next/link"
 import Image from "next/image"
 import { StarfieldBackground } from "@/components/ui/starfield-background"
+import { InstagramIcon, XIcon, ZoraIcon, FarcasterIcon, CosmosIcon } from "@/components/icons/social-icons"
 import {
   Check, ExternalLink, ChevronDown,
   Sun, Moon, Zap, LogOut, Eye,
@@ -47,7 +48,7 @@ const STAKE_TIERS: StakeTier[] = [
     durationLabel: "1 Year Access",
     optxRate: "12 OPTX/month",
     badge: "STARTER",
-    badgeColor: "bg-[#FF4500]/20 text-[#FF4500] border-[#FF4500]/30",
+    badgeColor: "bg-orange-500/20 text-orange-400 border-orange-500/30",
     features: [
       "12 OPTX mints per month",
       "Jett Native keyboard",
@@ -68,7 +69,7 @@ const STAKE_TIERS: StakeTier[] = [
     durationLabel: "2 Year Access",
     optxRate: "444 OPTX/month",
     badge: "POPULAR",
-    badgeColor: "bg-[#FF4500]/30 text-[#FF4500] border-[#FF4500]/40",
+    badgeColor: "bg-orange-500/30 text-orange-300 border-orange-400/40",
     features: [
       "444 OPTX mints per month (2x fiat rate)",
       "Jett Augment customizations",
@@ -79,7 +80,7 @@ const STAKE_TIERS: StakeTier[] = [
       "Unlimited DOJO training sessions",
     ],
     highlight: true,
-    glowClass: "shadow-[0_0_40px_rgba(255,69,0,0.15)]",
+    glowClass: "shadow-[0_0_40px_rgba(181,82,0,0.15)]",
   },
   {
     id: "unlimited",
@@ -122,14 +123,6 @@ export default function StakePage() {
   const { setVisible } = useWalletModal()
 
   const [darkMode, setDarkMode] = useState(true)
-  const [isScrolled, setIsScrolled] = useState(false)
-
-  // Sticky header scroll detection
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20)
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
 
   // Sync theme with localStorage (shared across vault/stake/aaron-docs)
   useEffect(() => {
@@ -154,12 +147,26 @@ export default function StakePage() {
   const [existingStakes, setExistingStakes] = useState<StakeRecord[]>([])
   const [walletMenuOpen, setWalletMenuOpen] = useState(false)
 
+  // UTC clock for footer
+  const [utcTime, setUtcTime] = useState("")
+  useEffect(() => {
+    const tick = () => {
+      const n = new Date()
+      setUtcTime(
+        `${String(n.getUTCHours()).padStart(2, "0")}:${String(n.getUTCMinutes()).padStart(2, "0")}:${String(n.getUTCSeconds()).padStart(2, "0")}:${String(n.getUTCMilliseconds()).padStart(3, "0")}Z`
+      )
+    }
+    tick()
+    const id = setInterval(tick, 100)
+    return () => clearInterval(id)
+  }, [])
+
   // Theme classes
   const textPrimary = darkMode ? "text-white" : "text-[#1a1a2e]"
   const textSecondary = darkMode ? "text-white/60" : "text-[#1a1a2e]/60"
   const textMuted = darkMode ? "text-white/30" : "text-[#1a1a2e]/30"
-  const cardBg = darkMode ? "bg-[#111118] border-[#FF4500]/20 mars-card-glow" : "bg-white border-[#FF4500]/20 mars-card-glow"
-  const accentOrange = "text-[#FF4500]"
+  const cardBg = darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"
+  const accentOrange = "text-orange-500"
 
   // ─── Fetch JTX balance ──────────────────────────────────────────────────────
   const fetchBalance = useCallback(async () => {
@@ -295,17 +302,17 @@ export default function StakePage() {
       `}</style>
 
       {/* ═══ Header ═══ */}
-      <header className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4 transition-all duration-300 ${isScrolled ? (darkMode ? "vault-header-scrolled" : "vault-header-scrolled-light") : ""}`}>
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4">
         <nav className="relative flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
           {/* Left: Branding */}
           <Link href="/" className="group flex items-center gap-2">
             <div className="relative w-8 h-8 md:w-6 md:h-6 flex items-center justify-center">
               <span className="relative flex h-full w-full">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4500] opacity-75" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75" />
                 <Image src="/images/astroknots-logo.png" alt="Astro Knots" width={32} height={32} className="relative inline-flex rounded-full object-contain" />
               </span>
             </div>
-            <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}><span className="text-[#FF4500]">JETT</span> Optics</span>
+            <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}><span className="text-orange-500">JETT</span> Optics</span>
           </Link>
 
           {/* Center: Nav Pills */}
@@ -323,14 +330,14 @@ export default function StakePage() {
                     href={link.href}
                     className={`group relative font-mono text-xs tracking-wider px-4 py-2 rounded-xl transition-all duration-300 ${
                       link.active
-                        ? darkMode ? "text-[#FF4500] bg-[#FF4500]/10" : "text-[#FF4500] bg-[#FF4500]/10"
+                        ? darkMode ? "text-orange-400 bg-orange-500/10" : "text-orange-700 bg-orange-100"
                         : darkMode ? "text-white/70 hover:text-white hover:bg-white/[0.08]" : "text-gray-600 hover:text-gray-900 hover:bg-black/5"
                     }`}
                   >
-                    <span className="text-[#FF4500] mr-1">0{index + 1}</span>
+                    <span className="text-orange-500 mr-1">0{index + 1}</span>
                     {link.label}
                     {!link.active && (
-                      <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[#FF4500] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     )}
                   </Link>
                 </li>
@@ -343,10 +350,10 @@ export default function StakePage() {
             <button
               onClick={toggleDarkMode}
               className={`w-10 h-10 rounded-full flex items-center justify-center border transition-colors ${
-                darkMode ? "border-[#FF4500]/30 bg-[#111118] hover:bg-[#FF4500]/10" : "border-[#FF4500]/40 bg-white hover:bg-[#FF4500]/5"
+                darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10" : "border-orange-300 bg-white hover:bg-orange-50"
               }`}
             >
-              {darkMode ? <Sun className="w-4 h-4 text-[#FF4500]" /> : <Moon className="w-4 h-4 text-[#FF4500]" />}
+              {darkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-orange-600" />}
             </button>
 
             {connected && publicKey ? (
@@ -354,7 +361,7 @@ export default function StakePage() {
                 <button
                   onClick={() => setWalletMenuOpen(!walletMenuOpen)}
                   className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-mono border cursor-pointer transition-all duration-200 ${
-                    darkMode ? "border-[#FF4500]/30 bg-[#111118] hover:border-[#FF4500]/60" : "border-[#FF4500]/40 bg-white hover:border-[#FF4500]"
+                    darkMode ? "border-orange-500/30 bg-[#111118] hover:border-orange-500/60" : "border-orange-300 bg-white hover:border-orange-400"
                   }`}
                 >
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -365,9 +372,9 @@ export default function StakePage() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setWalletMenuOpen(false)} />
                     <div className={`absolute right-0 top-full mt-2 z-50 w-56 rounded-xl border shadow-2xl p-2 ${
-                      darkMode ? "bg-[#0d0d14] border-[#FF4500]/20" : "bg-white border-[#FF4500]/20"
+                      darkMode ? "bg-[#0d0d14] border-orange-500/20" : "bg-white border-orange-200"
                     }`}>
-                      <div className={`px-3 py-2 mb-1 rounded-lg ${darkMode ? "bg-black/30" : "bg-[#FF4500]/5"}`}>
+                      <div className={`px-3 py-2 mb-1 rounded-lg ${darkMode ? "bg-black/30" : "bg-orange-50"}`}>
                         <p className={`text-[10px] ${textMuted}`}>JTX Balance</p>
                         <p className={`text-sm font-bold font-mono ${accentOrange}`}>
                           {balanceLoading ? "..." : jtxBalance !== null ? `${jtxBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })} JTX` : "—"}
@@ -388,7 +395,7 @@ export default function StakePage() {
             ) : (
               <button
                 onClick={() => setVisible(true)}
-                className="px-4 py-2 rounded-xl text-xs font-mono bg-gradient-to-r from-[#FF4500] to-[#CC3700] hover:from-[#FF4500] hover:to-[#FF4500] text-white transition-all"
+                className="px-4 py-2 rounded-xl text-xs font-mono bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white transition-all"
               >
                 Connect Wallet
               </button>
@@ -419,7 +426,7 @@ export default function StakePage() {
           {/* Balance display */}
           {connected && publicKey && (
             <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl border ${
-              darkMode ? "bg-[#111118] border-[#FF4500]/20" : "bg-white border-[#FF4500]/20"
+              darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"
             }`}>
               <Image src="/icons/JOE_founder_icon.png" alt="JTX" width={24} height={24} className="rounded-full" />
               <div className="text-left">
@@ -434,7 +441,7 @@ export default function StakePage() {
 
         {/* ─── Universal Perks Banner ─── */}
         <div className={`rounded-xl border px-4 py-3 flex flex-wrap items-center justify-center gap-4 text-center ${
-          darkMode ? "bg-[#111118]/60 border-[#FF4500]/10" : "bg-white/60 border-[#FF4500]/20/50"
+          darkMode ? "bg-[#111118]/60 border-orange-500/10" : "bg-white/60 border-orange-200/50"
         }`}>
           {[
             { icon: Eye, text: "JETT Auth — always free" },
@@ -461,12 +468,12 @@ export default function StakePage() {
                 className={`relative rounded-2xl border p-6 flex flex-col transition-all duration-300 ${
                   tier.highlight
                     ? darkMode
-                      ? `border-[#FF4500]/40 bg-[#111118] ${tier.glowClass}`
-                      : "border-[#FF4500] bg-white shadow-lg"
+                      ? `border-orange-500/40 bg-[#111118] ${tier.glowClass}`
+                      : "border-orange-400 bg-white shadow-lg"
                     : darkMode
-                      ? "border-[#FF4500]/20 bg-[#111118]"
-                      : "border-[#FF4500]/20 bg-white"
-                } ${isSelected ? "ring-2 ring-[#FF4500]" : ""}`}
+                      ? "border-orange-500/20 bg-[#111118]"
+                      : "border-orange-200 bg-white"
+                } ${isSelected ? "ring-2 ring-orange-500" : ""}`}
               >
                 {/* Badge */}
                 <div className="flex items-center justify-between mb-4">
@@ -504,11 +511,11 @@ export default function StakePage() {
 
                 {/* OPTX rate */}
                 <div className={`flex items-center gap-2 mb-4 px-3 py-2 rounded-lg ${
-                  darkMode ? "bg-[#FF4500]/5 border border-[#FF4500]/10" : "bg-[#FF4500]/5 border border-[#FF4500]/20"
+                  darkMode ? "bg-orange-500/5 border border-orange-500/10" : "bg-orange-50 border border-orange-200"
                 }`}>
-                  <Sparkles className="w-4 h-4 text-[#FF4500]" />
+                  <Sparkles className="w-4 h-4 text-orange-400" />
                   <span className={`text-xs font-bold font-mono ${accentOrange}`}>{tier.optxRate}</span>
-                  {tier.id === "dojo" && <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-[#FF4500]/20 text-[#FF4500] font-bold">2x FIAT</span>}
+                  {tier.id === "dojo" && <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-bold">2x FIAT</span>}
                 </div>
 
                 {/* Features */}
@@ -532,7 +539,7 @@ export default function StakePage() {
                     disabled={!affordable || txPending}
                     className={`w-full py-3 rounded-xl text-sm font-bold font-mono transition-all ${
                       affordable
-                        ? "bg-gradient-to-r from-[#FF4500] to-[#CC3700] hover:from-[#FF4500] hover:to-[#FF4500] text-white cursor-pointer"
+                        ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white cursor-pointer"
                         : darkMode
                           ? "bg-white/5 text-white/20 border border-white/10 cursor-not-allowed"
                           : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
@@ -543,7 +550,7 @@ export default function StakePage() {
                 ) : (
                   <button
                     onClick={() => setVisible(true)}
-                    className="w-full py-3 rounded-xl text-sm font-bold font-mono bg-gradient-to-r from-[#FF4500] to-[#CC3700] hover:from-[#FF4500] hover:to-[#FF4500] text-white cursor-pointer transition-all"
+                    className="w-full py-3 rounded-xl text-sm font-bold font-mono bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white cursor-pointer transition-all"
                   >
                     CONNECT WALLET
                   </button>
@@ -554,7 +561,7 @@ export default function StakePage() {
                   <a
                     href={`https://jup.ag/swap/SOL-${JTX_MINT}`}
                     target="_blank" rel="noopener noreferrer"
-                    className="block text-center mt-2 text-[10px] font-mono text-[#FF4500] hover:text-[#FF4500] transition-colors"
+                    className="block text-center mt-2 text-[10px] font-mono text-orange-400 hover:text-orange-300 transition-colors"
                   >
                     Get JTX on Jupiter →
                   </a>
@@ -566,20 +573,20 @@ export default function StakePage() {
 
         {/* ─── Feature Comparison ─── */}
         <section className={`rounded-2xl border overflow-hidden ${cardBg}`}>
-          <div className={`px-6 py-4 border-b ${darkMode ? "border-[#FF4500]/10 bg-black/20" : "border-[#FF4500]/10 bg-[#FF4500]/5/50"}`}>
+          <div className={`px-6 py-4 border-b ${darkMode ? "border-orange-500/10 bg-black/20" : "border-orange-100 bg-orange-50/50"}`}>
             <h2 className={`text-sm font-bold tracking-widest ${accentOrange}`} style={{ fontFamily: "var(--font-orbitron)" }}>FEATURE COMPARISON</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs font-mono">
               <thead>
-                <tr className={`${darkMode ? "bg-black/20" : "bg-[#FF4500]/5/50"}`}>
+                <tr className={`${darkMode ? "bg-black/20" : "bg-orange-50/50"}`}>
                   <th className={`text-left px-4 py-3 ${textSecondary}`}>Feature</th>
-                  <th className="text-center px-4 py-3 text-[#FF4500]">MOJO</th>
-                  <th className="text-center px-4 py-3 text-[#FF4500]">DOJO</th>
+                  <th className="text-center px-4 py-3 text-orange-400">MOJO</th>
+                  <th className="text-center px-4 py-3 text-orange-400">DOJO</th>
                   <th className="text-center px-4 py-3 text-amber-400">UNLIMITED</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${darkMode ? "divide-white/5" : "divide-[#FF4500]/10"}`}>
+              <tbody className={`divide-y ${darkMode ? "divide-white/5" : "divide-orange-100"}`}>
                 {[
                   { feature: "JTX Stake", mojo: "12", dojo: "444", unlimited: "1,111" },
                   { feature: "Plan Duration", mojo: "1 Year", dojo: "2 Years", unlimited: "Lifetime" },
@@ -596,7 +603,7 @@ export default function StakePage() {
                   { feature: "Governance Voting", mojo: false, dojo: false, unlimited: true },
                   { feature: "Future Airdrops", mojo: false, dojo: false, unlimited: true },
                 ].map(row => (
-                  <tr key={row.feature} className={`${darkMode ? "hover:bg-white/[0.02]" : "hover:bg-[#FF4500]/5/30"}`}>
+                  <tr key={row.feature} className={`${darkMode ? "hover:bg-white/[0.02]" : "hover:bg-orange-50/30"}`}>
                     <td className={`px-4 py-2.5 ${textSecondary}`}>{row.feature}</td>
                     {(["mojo", "dojo", "unlimited"] as const).map(tier => {
                       const val = row[tier]
@@ -624,7 +631,7 @@ export default function StakePage() {
                 const isExpired = s.expiresAt !== null && s.expiresAt < Date.now()
                 return (
                   <div key={i} className={`flex items-center justify-between p-3 rounded-xl border ${
-                    darkMode ? "bg-black/20 border-[#FF4500]/10" : "bg-white border-[#FF4500]/10"
+                    darkMode ? "bg-black/20 border-orange-500/10" : "bg-white border-orange-100"
                   }`}>
                     <div className="flex items-center gap-3">
                       <span className={`text-sm font-bold font-mono ${isExpired ? "text-red-400" : accentOrange}`}>
@@ -640,7 +647,7 @@ export default function StakePage() {
                     <a
                       href={`https://solscan.io/tx/${s.txSignature}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`text-[10px] font-mono flex items-center gap-1 ${accentOrange} hover:text-[#FF4500]`}
+                      className={`text-[10px] font-mono flex items-center gap-1 ${accentOrange} hover:text-orange-300`}
                     >
                       {s.txSignature.slice(0, 8)}... <ExternalLink className="w-3 h-3" />
                     </a>
@@ -659,7 +666,7 @@ export default function StakePage() {
             <a
               href={`https://jup.ag/swap/SOL-${JTX_MINT}`}
               target="_blank" rel="noopener noreferrer"
-              className="px-5 py-2.5 rounded-xl text-xs font-bold font-mono bg-gradient-to-r from-[#FF4500] to-[#CC3700] hover:from-[#FF4500] hover:to-[#FF4500] text-white transition-all flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl text-xs font-bold font-mono bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white transition-all flex items-center gap-2"
             >
               <Image src="/icons/jupiter.ico" alt="Jupiter" width={16} height={16} className="rounded-full" />
               Swap on Jupiter
@@ -667,7 +674,7 @@ export default function StakePage() {
             <Link
               href="/vault"
               className={`px-5 py-2.5 rounded-xl text-xs font-bold font-mono border transition-all flex items-center gap-2 ${
-                darkMode ? "border-[#FF4500]/30 text-[#FF4500] hover:bg-[#FF4500]/10" : "border-[#FF4500]/40 text-[#FF4500] hover:bg-[#FF4500]/5"
+                darkMode ? "border-orange-500/30 text-orange-400 hover:bg-orange-500/10" : "border-orange-300 text-orange-600 hover:bg-orange-50"
               }`}
             >
               <Rocket className="w-3.5 h-3.5" />
@@ -678,7 +685,7 @@ export default function StakePage() {
 
         {/* ─── App Download CTA ─── */}
         <section className={`rounded-2xl border p-6 text-center ${
-          darkMode ? "bg-gradient-to-br from-[#111118] to-[#0d0d14] border-[#FF4500]/20" : "bg-gradient-to-br from-white to-[#FF4500]/5 border-[#FF4500]/20"
+          darkMode ? "bg-gradient-to-br from-[#111118] to-[#0d0d14] border-orange-500/20" : "bg-gradient-to-br from-white to-orange-50 border-orange-200"
         }`}>
           <Sparkles className={`w-6 h-6 mx-auto mb-2 ${accentOrange}`} />
           <h2 className={`text-sm font-bold tracking-widest mb-1 ${accentOrange}`} style={{ fontFamily: "var(--font-orbitron)" }}>DOWNLOAD THE APP</h2>
@@ -688,23 +695,69 @@ export default function StakePage() {
             <a href="#" className={`px-5 py-2.5 rounded-xl text-xs font-bold font-mono border transition-all ${
               darkMode ? "border-white/10 text-white/60 hover:bg-white/5" : "border-gray-200 text-gray-500 hover:bg-gray-50"
             }`}>
-              <span className="text-[#FF4500] mr-1">▸</span> App Store — Coming Soon
+              <span className="text-orange-400 mr-1">▸</span> App Store — Coming Soon
             </a>
             <a href="#" className={`px-5 py-2.5 rounded-xl text-xs font-bold font-mono border transition-all ${
               darkMode ? "border-white/10 text-white/60 hover:bg-white/5" : "border-gray-200 text-gray-500 hover:bg-gray-50"
             }`}>
-              <span className="text-[#FF4500] mr-1">▸</span> Google Play — Coming Soon
+              <span className="text-orange-400 mr-1">▸</span> Google Play — Coming Soon
             </a>
           </div>
         </section>
 
-        {/* ─── Footer ─── */}
-        <footer className={`text-center pt-6 pb-4 border-t ${darkMode ? "border-white/5" : "border-[#FF4500]/10"}`}>
-          <p className={`text-[10px] font-mono ${textMuted}`}>JETT Optics © 2026 — Stake JTX to power your Augment Net Graph</p>
-          <div className="flex items-center justify-center gap-4 mt-2">
-            <Link href="/vault" className={`text-[10px] font-mono ${textSecondary} hover:text-[#FF4500] transition-colors`}>Vault</Link>
-            <Link href="/docs" className={`text-[10px] font-mono ${textSecondary} hover:text-[#FF4500] transition-colors`}>Docs</Link>
-            <a href="https://x.com/jettoptx" target="_blank" rel="noopener noreferrer" className={`text-[10px] font-mono ${textSecondary} hover:text-[#FF4500] transition-colors`}>X</a>
+        {/* ─── Footer — synced with jettoptics.ai ─── */}
+        <footer className={`border-t py-3 px-8 md:px-12 mt-8 ${darkMode ? "border-white/10" : "border-orange-100"}`}>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+            {/* Left: Contact + UTC */}
+            <div className="flex flex-col items-center md:items-start gap-0.5">
+              <a
+                href="mailto:founder@jettoptics.ai"
+                className="font-mono text-xs tracking-widest hover:text-accent transition-colors duration-300 cursor-pointer"
+              >
+                <span className={accentOrange}>Contact: </span>
+                <span className={`${darkMode ? "text-white" : "text-[#1a1a2e]"} hover:text-accent transition-colors`}>founder@jettoptics.ai</span>
+              </a>
+              <p className={`font-mono text-xs tracking-widest ${textMuted}`}>
+                <span className={accentOrange}>UTC(GMT) - </span>
+                <span className={darkMode ? "text-white" : "text-[#1a1a2e]"}>{utcTime}</span>
+              </p>
+            </div>
+
+            {/* Center: Social icons */}
+            <div className="flex gap-4 items-center">
+              {[
+                { name: "Instagram", href: "https://instagram.com/jettoptx", icon: InstagramIcon },
+                { name: "X", href: "https://x.com/jettoptx?s=21&t=FxRpqXgpbbk57hTB5gaUnw", icon: XIcon },
+                { name: "Zora", href: "https://zora.co/@jettoptx", icon: ZoraIcon },
+                { name: "Farcaster", href: "https://farcaster.xyz/jettoptx", icon: FarcasterIcon },
+                { name: "Cosmos", href: "https://www.cosmos.so/jettoptx", icon: CosmosIcon },
+              ].map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${darkMode ? "text-muted-foreground" : "text-gray-400"} hover:${darkMode ? "text-white" : "text-[#1a1a2e]"} transition-colors duration-300`}
+                  aria-label={social.name}
+                >
+                  <social.icon className="w-5 h-5" />
+                </a>
+              ))}
+            </div>
+
+            {/* Right: JettOptics logo + © + TechForce */}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/optical-spatial-encryption"
+                className={`w-10 h-10 bg-white rounded-lg border flex items-center justify-center p-1.5 transition-all duration-300 ${
+                  darkMode ? "border-orange-500/30 hover:border-orange-400 hover:shadow-[0_0_15px_rgba(181,82,0,0.3)]" : "border-accent/30 hover:border-accent hover:shadow-[0_0_15px_rgba(181,82,0,0.3)]"
+                }`}
+              >
+                <Image src="/images/jettoptics-logo.png" alt="JettOptics - Learn about Spatial Encryption" width={32} height={32} className="w-full h-full object-contain" />
+              </Link>
+              <p className={`font-mono text-xs tracking-widest ${textMuted}`}>&copy; {new Date().getFullYear()}</p>
+              <Image src="/icons/techforce_OPTX.png" alt="TechForce OPTX" width={50} height={50} className="object-contain" />
+            </div>
           </div>
         </footer>
       </main>
@@ -714,7 +767,7 @@ export default function StakePage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setShowConfirm(false); setTxSig(null); setTxError(null) }} />
           <div className={`relative w-full max-w-md rounded-2xl border p-6 space-y-4 ${
-            darkMode ? "bg-[#0d0d14] border-[#FF4500]/30" : "bg-white border-[#FF4500]/20"
+            darkMode ? "bg-[#0d0d14] border-orange-500/30" : "bg-white border-orange-200"
           }`}>
             {/* Success state */}
             {txSig ? (
@@ -729,13 +782,13 @@ export default function StakePage() {
                 <a
                   href={`https://solscan.io/tx/${txSig}`}
                   target="_blank" rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-1.5 text-xs font-mono ${accentOrange} hover:text-[#FF4500]`}
+                  className={`inline-flex items-center gap-1.5 text-xs font-mono ${accentOrange} hover:text-orange-300`}
                 >
                   View on Solscan <ExternalLink className="w-3 h-3" />
                 </a>
                 <button
                   onClick={() => { setShowConfirm(false); setTxSig(null) }}
-                  className="w-full py-2.5 rounded-xl text-sm font-bold font-mono bg-gradient-to-r from-[#FF4500] to-[#CC3700] text-white mt-2"
+                  className="w-full py-2.5 rounded-xl text-sm font-bold font-mono bg-gradient-to-r from-orange-500 to-orange-600 text-white mt-2"
                 >
                   DONE
                 </button>
@@ -756,7 +809,7 @@ export default function StakePage() {
                 </div>
 
                 {/* Balance check */}
-                <div className={`rounded-xl p-3 border ${darkMode ? "bg-black/20 border-[#FF4500]/10" : "bg-[#FF4500]/5 border-[#FF4500]/20"}`}>
+                <div className={`rounded-xl p-3 border ${darkMode ? "bg-black/20 border-orange-500/10" : "bg-orange-50 border-orange-200"}`}>
                   <div className="flex items-center justify-between">
                     <span className={`text-xs font-mono ${textSecondary}`}>Your balance</span>
                     <span className={`text-sm font-bold font-mono ${canAfford(selectedTier) ? "text-green-400" : "text-red-400"}`}>
@@ -799,7 +852,7 @@ export default function StakePage() {
                     disabled={txPending || !canAfford(selectedTier)}
                     className={`flex-1 py-2.5 rounded-xl text-sm font-bold font-mono transition-all ${
                       canAfford(selectedTier) && !txPending
-                        ? "bg-gradient-to-r from-[#FF4500] to-[#CC3700] hover:from-[#FF4500] hover:to-[#FF4500] text-white"
+                        ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white"
                         : "bg-white/5 text-white/20 cursor-not-allowed"
                     }`}
                   >
