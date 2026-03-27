@@ -564,11 +564,15 @@ export default function VaultPage() {
             <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}><span className="text-orange-500">JETT</span> Optics</span>
           </Link>
 
-          {/* Center: Navigation Pills (Desktop only) */}
-          <div className={`hidden md:block absolute left-1/2 -translate-x-1/2 rounded-2xl border shadow-[0_8px_32px_rgba(0,0,0,0.3)] ${
-            darkMode ? "border-white/[0.08] bg-black/50 backdrop-blur-xl" : "border-black/[0.08] bg-white/80 backdrop-blur-xl"
-          }`}>
-            <ul className="flex items-center gap-2 px-2 py-1">
+          {/* Center: Navigation Pills — matches jettoptics.ai navbar exactly */}
+          <div
+            className="hidden md:block absolute left-1/2 -translate-x-1/2 relative rounded-2xl backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500"
+            style={{ WebkitBackdropFilter: "blur(20px) saturate(120%)", backgroundColor: "rgba(0, 0, 0, 0.45)" }}
+          >
+            {/* Top highlight edge */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent rounded-t-2xl" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.03] via-transparent to-white/[0.02] pointer-events-none" />
+            <ul className="relative flex items-center gap-2 px-2 py-1">
               {[
                 { label: "VAULT", href: "/vault", active: true },
                 { label: "STAKE", href: "/stake" },
@@ -579,14 +583,14 @@ export default function VaultPage() {
                     href={link.href}
                     className={`group relative font-mono text-xs tracking-wider px-4 py-2 rounded-xl transition-all duration-300 ${
                       link.active
-                        ? darkMode ? "text-orange-400 bg-orange-500/10" : "text-orange-700 bg-orange-100"
-                        : darkMode ? "text-white/70 hover:text-white hover:bg-white/[0.08]" : "text-gray-600 hover:text-gray-900 hover:bg-black/5"
+                        ? "text-orange-400 bg-orange-500/10"
+                        : "text-white/70 hover:text-white hover:bg-white/[0.08]"
                     }`}
                   >
-                    <span className="text-orange-500 mr-1">0{index + 1}</span>
+                    <span className="text-accent mr-1">0{index + 1}</span>
                     {link.label}
                     {!link.active && (
-                      <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     )}
                   </Link>
                 </li>
