@@ -317,7 +317,7 @@ export default function StakePage() {
 
           {/* Center: Nav Pills — matches jettoptics.ai navbar exactly */}
           <div
-            className="hidden md:block absolute left-1/2 -translate-x-1/2 relative rounded-2xl backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500"
+            className="hidden md:block relative rounded-2xl backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500"
             style={{ WebkitBackdropFilter: "blur(20px) saturate(120%)", backgroundColor: "rgba(0, 0, 0, 0.45)" }}
           >
             {/* Top highlight edge */}
