@@ -15,7 +15,7 @@
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: rgb(181, 82, 0);
+  --accent: #FF4500;
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
@@ -36,7 +36,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
-  --color-orange-500: rgb(255, 105, 0);
+  --color-orange-500: #FF4500;
 }
 /* ─── Dark mode (default) ─── */
 .dark {
@@ -72,7 +72,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
-  --color-orange-500: rgb(255, 105, 0);
+  --color-orange-500: #FF4500;
 }
 
 /* ─── Light mode (AstroJOE only — scoped to .astrojoe-light) ─── */
@@ -109,7 +109,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.88 0 0);
   --sidebar-ring: oklch(0.65 0 0);
-  --color-orange-500: rgb(255, 105, 0);
+  --color-orange-500: #FF4500;
 }
 @theme inline {
   --font-sans: "Orbitron", "Georgia", sans-serif;
@@ -150,7 +150,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-orange-500: rgb(255, 105, 0);
+  --color-orange-500: #FF4500;
 }
 @layer base {
   * {
@@ -215,6 +215,117 @@
   animation: marquee-right 50s linear infinite;
 }
 
+
+/* ─── Mars Orange Fixed Accent (persists across light/dark modes) ─── */
+:root {
+  --mars-orange: #FF4500;
+  --mars-orange-rgb: 255, 69, 0;
+  --mars-glow-sm: 0 0 8px rgba(255, 69, 0, 0.4);
+  --mars-glow-md: 0 0 16px rgba(255, 69, 0, 0.3), 0 0 32px rgba(255, 69, 0, 0.15);
+  --mars-glow-lg: 0 0 20px rgba(255, 69, 0, 0.4), 0 0 40px rgba(255, 69, 0, 0.2), 0 0 80px rgba(255, 69, 0, 0.1);
+  --mars-glow-btn: 0 4px 20px rgba(255, 69, 0, 0.35), 0 0 40px rgba(255, 69, 0, 0.15);
+}
+
+/* ─── Cyberpunk Neon Glow Animations ─── */
+@keyframes mars-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 69, 0, 0.3), 0 0 16px rgba(255, 69, 0, 0.1); }
+  50% { box-shadow: 0 0 16px rgba(255, 69, 0, 0.5), 0 0 32px rgba(255, 69, 0, 0.2), 0 0 48px rgba(255, 69, 0, 0.1); }
+}
+
+@keyframes mars-progress-glow {
+  0% { box-shadow: 0 0 6px rgba(255, 69, 0, 0.4); filter: brightness(1); }
+  50% { box-shadow: 0 0 16px rgba(255, 69, 0, 0.6), 0 0 30px rgba(255, 69, 0, 0.3); filter: brightness(1.1); }
+  100% { box-shadow: 0 0 6px rgba(255, 69, 0, 0.4); filter: brightness(1); }
+}
+
+@keyframes mars-text-glow {
+  0%, 100% { text-shadow: 0 0 4px rgba(255, 69, 0, 0.3); }
+  50% { text-shadow: 0 0 8px rgba(255, 69, 0, 0.5), 0 0 16px rgba(255, 69, 0, 0.2); }
+}
+
+@keyframes countdown-tick {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes hero-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+
+.mars-glow-btn {
+  box-shadow: var(--mars-glow-btn);
+  transition: box-shadow 0.3s ease, transform 0.15s ease;
+}
+.mars-glow-btn:hover {
+  box-shadow: 0 4px 28px rgba(255, 69, 0, 0.5), 0 0 60px rgba(255, 69, 0, 0.2);
+  transform: translateY(-1px);
+}
+.mars-glow-btn:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+.mars-progress-bar {
+  animation: mars-progress-glow 3s ease-in-out infinite, progress-fill 1.5s ease-out;
+  background: linear-gradient(90deg, #FF4500, #FF6B35, #FF4500);
+  background-size: 200% 100%;
+}
+
+.mars-text-accent {
+  color: #FF4500;
+  animation: mars-text-glow 4s ease-in-out infinite;
+}
+
+.mars-card-glow {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.mars-card-glow:hover {
+  box-shadow: 0 0 20px rgba(255, 69, 0, 0.1), 0 0 40px rgba(255, 69, 0, 0.05);
+  border-color: rgba(255, 69, 0, 0.3) !important;
+}
+
+.countdown-box {
+  animation: countdown-tick 1s ease-in-out infinite;
+}
+
+.hero-animate {
+  animation: hero-fade-in 0.8s ease-out forwards;
+}
+
+/* ─── Mobile Touch Target Improvements ─── */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+/* ─── Sticky Header Enhancements ─── */
+.vault-header-scrolled {
+  background: rgba(10, 10, 15, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.vault-header-scrolled-light {
+  background: rgba(245, 240, 232, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+}
+
 /* ===========================================
    CLERK MODAL - FINAL FIXES (centered, no cutoff, scroll inside, X icon white)
    =========================================== */
@@ -259,10 +370,10 @@
   position: absolute !important;
   top: 1rem !important;
   right: 1rem !important;
-  color: #b55200 !important;
+  color: #FF4500 !important;
 }
 .cl-modalCloseButton:hover {
-  color: #d46200 !important;
+  color: #FF6B35 !important;
 }
 .cl-modalCloseButton svg {
   stroke: currentColor !important;
@@ -296,7 +407,7 @@
    SOLANA WALLET ADAPTER — astroknots.space orange theme
    =========================================== */
 .wallet-adapter-button {
-  background-color: #b55200 !important;
+  background-color: #FF4500 !important;
   color: #ffffff !important;
   font-family: var(--font-geist-mono), monospace !important;
   border: 1px solid rgba(251, 146, 60, 0.3) !important;
@@ -304,14 +415,14 @@
   transition: background-color 0.2s ease !important;
 }
 .wallet-adapter-button:hover {
-  background-color: #8a3f00 !important;
+  background-color: #CC3700 !important;
 }
 .wallet-adapter-button-trigger {
-  background-color: #b55200 !important;
+  background-color: #FF4500 !important;
 }
 .wallet-adapter-modal-wrapper {
   background-color: #0a0a0a !important;
-  border: 1px solid rgba(181, 82, 0, 0.3) !important;
+  border: 1px solid rgba(255, 69, 0, 0.3) !important;
   border-radius: 12px !important;
 }
 .wallet-adapter-modal-title {
@@ -324,5 +435,5 @@
 }
 .wallet-adapter-modal-list .wallet-adapter-button:hover {
   background-color: #27272a !important;
-  border-color: #b55200 !important;
+  border-color: #FF4500 !important;
 }

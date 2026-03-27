@@ -133,6 +133,14 @@ export default function VaultPage() {
   const utcTime = useUTCClock()
 
   const [darkMode, setDarkMode] = useState(true)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  // Sticky header scroll detection
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20)
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   // Sync theme with localStorage (shared across vault/stake/aaron-docs)
   useEffect(() => {
@@ -475,11 +483,11 @@ export default function VaultPage() {
   const textPrimary = darkMode ? "text-white" : "text-[#1a1a2e]"
   const textSecondary = darkMode ? "text-white/60" : "text-[#1a1a2e]/60"
   const textMuted = darkMode ? "text-white/30" : "text-[#1a1a2e]/30"
-  const cardBg = darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"
-  const cardBgAlt = darkMode ? "bg-[#0d0d14] border-orange-500/10" : "bg-white/80 border-orange-100"
-  const inputBg = darkMode ? "bg-[#1a1a24] border-white/10 text-white" : "bg-white border-orange-200 text-[#1a1a2e]"
-  const accentOrange = "text-orange-500"
-  const btnOrange = "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white"
+  const cardBg = darkMode ? "bg-[#111118] border-[#FF4500]/20 mars-card-glow" : "bg-white border-[#FF4500]/20 mars-card-glow"
+  const cardBgAlt = darkMode ? "bg-[#0d0d14] border-[#FF4500]/10" : "bg-white/80 border-[#FF4500]/10"
+  const inputBg = darkMode ? "bg-[#1a1a24] border-white/10 text-white" : "bg-white border-[#FF4500]/20 text-[#1a1a2e]"
+  const accentOrange = "text-[#FF4500]"
+  const btnOrange = "bg-[#FF4500] hover:bg-[#FF6B35] text-white mars-glow-btn"
 
   return (
     <div className={`min-h-screen ${bg} ${textPrimary} transition-colors duration-300`}>
@@ -490,7 +498,7 @@ export default function VaultPage() {
           {STAR_POSITIONS.map((star, i) => (
             <div
               key={`star-${i}`}
-              className="absolute w-0.5 h-0.5 bg-orange-400/30 rounded-full animate-pulse"
+              className="absolute w-0.5 h-0.5 bg-[#FF4500]/30 rounded-full animate-pulse"
               style={{
                 left: `${star.x}%`,
                 top: `${star.y}%`,
@@ -509,7 +517,7 @@ export default function VaultPage() {
                 top: `${s.startY}%`,
                 width: `${s.length}px`,
                 height: '1px',
-                background: 'linear-gradient(90deg, transparent 0%, rgba(251,146,60,0.6) 40%, rgba(255,255,255,0.8) 100%)',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,69,0,0.6) 40%, rgba(255,255,255,0.8) 100%)',
                 transform: `rotate(${s.angle}deg)`,
                 opacity: 0,
                 animation: `shootingStar ${s.duration}s ease-in-out ${s.delay}s infinite`,
@@ -535,8 +543,8 @@ export default function VaultPage() {
             opacity={0.4}
             gap={14}
             radius={1.5}
-            color="rgba(181, 82, 0, 0.2)"
-            glowColor="rgba(181, 82, 0, 0.5)"
+            color="rgba(255, 69, 0, 0.2)"
+            glowColor="rgba(255, 69, 0, 0.5)"
             speedMin={0.2}
             speedMax={0.6}
             speedScale={0.7}
@@ -545,13 +553,13 @@ export default function VaultPage() {
       )}
 
       {/* ═══ Full-Width Header Navbar — matches landing page ═══ */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4">
+      <header className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-6 pt-4 transition-all duration-300 ${isScrolled ? (darkMode ? "vault-header-scrolled" : "vault-header-scrolled-light") : ""}`}>
         <nav className="relative flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
           {/* Left: Vault Branding (replaces DAPP) */}
           <Link href="https://jettoptics.ai" className="group flex items-center gap-2">
             <div className="relative w-8 h-8 md:w-6 md:h-6 flex items-center justify-center">
               <span className="relative flex h-full w-full">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4500] opacity-75" />
                 <Image
                   src="/images/astroknots-logo.png"
                   alt="Astro Knots"
@@ -561,7 +569,7 @@ export default function VaultPage() {
                 />
               </span>
             </div>
-            <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}><span className="text-orange-500">JETT</span> Optics</span>
+            <span className={`font-mono text-xs tracking-widest ${darkMode ? "text-white/50" : "text-gray-500"}`}><span className="text-[#FF4500]">JETT</span> Optics</span>
           </Link>
 
           {/* Center: Navigation Pills (Desktop only) */}
@@ -579,14 +587,14 @@ export default function VaultPage() {
                     href={link.href}
                     className={`group relative font-mono text-xs tracking-wider px-4 py-2 rounded-xl transition-all duration-300 ${
                       link.active
-                        ? darkMode ? "text-orange-400 bg-orange-500/10" : "text-orange-700 bg-orange-100"
+                        ? darkMode ? "text-[#FF4500] bg-[#FF4500]/10" : "text-[#FF4500] bg-[#FF4500]/10"
                         : darkMode ? "text-white/70 hover:text-white hover:bg-white/[0.08]" : "text-gray-600 hover:text-gray-900 hover:bg-black/5"
                     }`}
                   >
-                    <span className="text-orange-500 mr-1">0{index + 1}</span>
+                    <span className="text-[#FF4500] mr-1">0{index + 1}</span>
                     {link.label}
                     {!link.active && (
-                      <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[#FF4500] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     )}
                   </Link>
                 </li>
@@ -600,10 +608,10 @@ export default function VaultPage() {
             <button
               onClick={toggleDarkMode}
               className={`w-10 h-10 rounded-full flex items-center justify-center border transition-colors ${
-                darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10" : "border-orange-300 bg-white hover:bg-orange-50"
+                darkMode ? "border-[#FF4500]/30 bg-[#111118] hover:bg-[#FF4500]/10" : "border-[#FF4500]/40 bg-white hover:bg-[#FF4500]/5"
               }`}
             >
-              {darkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-orange-600" />}
+              {darkMode ? <Sun className="w-4 h-4 text-[#FF4500]" /> : <Moon className="w-4 h-4 text-[#FF4500]" />}
             </button>
 
             {/* Wallet connect / settings */}
@@ -613,8 +621,8 @@ export default function VaultPage() {
                   onClick={() => setWalletMenuOpen(!walletMenuOpen)}
                   className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-mono border cursor-pointer transition-all duration-200 ${
                     darkMode
-                      ? "border-orange-500/30 bg-[#111118] hover:border-orange-500/60 hover:bg-orange-500/5"
-                      : "border-orange-300 bg-white hover:border-orange-400 hover:bg-orange-50"
+                      ? "border-[#FF4500]/30 bg-[#111118] hover:border-[#FF4500]/60 hover:bg-[#FF4500]/5"
+                      : "border-[#FF4500]/40 bg-white hover:border-[#FF4500] hover:bg-[#FF4500]/5"
                   }`}
                 >
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -628,10 +636,10 @@ export default function VaultPage() {
                     {/* Backdrop to close */}
                     <div className="fixed inset-0 z-40" onClick={() => setWalletMenuOpen(false)} />
                     <div className={`absolute right-0 top-full mt-2 z-50 w-72 rounded-2xl border shadow-2xl overflow-hidden ${
-                      darkMode ? "bg-[#0d0d14] border-orange-500/20 shadow-orange-500/10" : "bg-white border-orange-200 shadow-orange-200/30"
+                      darkMode ? "bg-[#0d0d14] border-[#FF4500]/20 shadow-[#FF4500]/10" : "bg-white border-[#FF4500]/20 shadow-[#FF4500]/20/30"
                     }`}>
                       {/* Header */}
-                      <div className={`px-4 py-3 border-b ${darkMode ? "border-orange-500/10 bg-black/20" : "border-orange-100 bg-orange-50/50"}`}>
+                      <div className={`px-4 py-3 border-b ${darkMode ? "border-[#FF4500]/10 bg-black/20" : "border-[#FF4500]/10 bg-[#FF4500]/5/50"}`}>
                         <p className={`text-[10px] tracking-widest uppercase ${accentOrange}`} style={{ fontFamily: "var(--font-orbitron)" }}>Wallet Settings</p>
                         <p className={`font-mono text-[11px] mt-1 ${textSecondary}`}>{publicKey.toBase58()}</p>
                         {wallet?.adapter?.name && (
@@ -649,10 +657,10 @@ export default function VaultPage() {
                             if (vaultSection) vaultSection.scrollIntoView({ behavior: "smooth", block: "center" })
                           }}
                           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
-                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-[#FF4500]/5 text-gray-600 hover:text-gray-900"
                           }`}
                         >
-                          <Eye className="w-4 h-4 text-orange-400" />
+                          <Eye className="w-4 h-4 text-[#FF4500]" />
                           <div>
                             <p className="font-medium">View Vault Details</p>
                             <p className={`text-[10px] ${textMuted}`}>Token stats, fundraising, timeline</p>
@@ -667,10 +675,10 @@ export default function VaultPage() {
                             if (donateSection) donateSection.scrollIntoView({ behavior: "smooth", block: "center" })
                           }}
                           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
-                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-[#FF4500]/5 text-gray-600 hover:text-gray-900"
                           }`}
                         >
-                          <DollarSign className="w-4 h-4 text-orange-400" />
+                          <DollarSign className="w-4 h-4 text-[#FF4500]" />
                           <div>
                             <p className="font-medium">Put $JTX in the Vault</p>
                             <p className={`text-[10px] ${textMuted}`}>Contribute to community pool</p>
@@ -684,10 +692,10 @@ export default function VaultPage() {
                           rel="noopener noreferrer"
                           onClick={() => setWalletMenuOpen(false)}
                           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
-                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                            darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-[#FF4500]/5 text-gray-600 hover:text-gray-900"
                           }`}
                         >
-                          <ExternalLink className="w-4 h-4 text-orange-400" />
+                          <ExternalLink className="w-4 h-4 text-[#FF4500]" />
                           <div>
                             <p className="font-medium">View on Solscan</p>
                             <p className={`text-[10px] ${textMuted}`}>Open wallet in explorer</p>
@@ -702,10 +710,10 @@ export default function VaultPage() {
                               setAdminOpen(!adminOpen)
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
-                              darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                              darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-[#FF4500]/5 text-gray-600 hover:text-gray-900"
                             }`}
                           >
-                            <Shield className="w-4 h-4 text-orange-400" />
+                            <Shield className="w-4 h-4 text-[#FF4500]" />
                             <div>
                               <p className="font-medium">Admin Terminal</p>
                               <p className={`text-[10px] ${textMuted}`}>Vault program management</p>
@@ -721,10 +729,10 @@ export default function VaultPage() {
                               setShowReceiptModal(true)
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs transition-colors ${
-                              darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-orange-50 text-gray-600 hover:text-gray-900"
+                              darkMode ? "hover:bg-white/5 text-white/70 hover:text-white" : "hover:bg-[#FF4500]/5 text-gray-600 hover:text-gray-900"
                             }`}
                           >
-                            <Trophy className="w-4 h-4 text-orange-400" />
+                            <Trophy className="w-4 h-4 text-[#FF4500]" />
                             <div>
                               <p className="font-medium">View My NFT Receipt</p>
                               <p className={`text-[10px] ${textMuted}`}>{donorReceipt.isPreview ? "Preview — pending mint" : "On-chain receipt"}</p>
@@ -733,7 +741,7 @@ export default function VaultPage() {
                         )}
 
                         {/* Divider */}
-                        <div className={`mx-2 border-t ${darkMode ? "border-orange-500/10" : "border-orange-100"}`} />
+                        <div className={`mx-2 border-t ${darkMode ? "border-[#FF4500]/10" : "border-[#FF4500]/10"}`} />
 
                         {/* Disconnect */}
                         <button
@@ -760,7 +768,7 @@ export default function VaultPage() {
               <button
                 onClick={() => setVisible(true)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border transition-colors ${
-                  darkMode ? "border-orange-500/30 bg-[#111118] hover:bg-orange-500/10 text-white" : "border-orange-300 bg-white hover:bg-orange-50 text-[#1a1a2e]"
+                  darkMode ? "border-[#FF4500]/30 bg-[#111118] hover:bg-[#FF4500]/10 text-white" : "border-[#FF4500]/40 bg-white hover:bg-[#FF4500]/5 text-[#1a1a2e]"
                 }`}
               >
                 <Wallet className="w-4 h-4" /> Connect
@@ -770,8 +778,8 @@ export default function VaultPage() {
             {/* JettOptics logo button (desktop) → loading page / Jett Hub */}
             <Link href="https://jettoptics.ai/loading" className="hidden md:flex items-center">
               <div className={`relative w-11 h-11 overflow-hidden rounded-xl flex items-center justify-center transition-all duration-500 border ${
-                darkMode ? "border-orange-500/40 bg-[#111118]" : "border-orange-300 bg-white"
-              } hover:shadow-[0_0_20px_rgba(181,82,0,0.4)]`}>
+                darkMode ? "border-[#FF4500]/40 bg-[#111118]" : "border-[#FF4500]/40 bg-white"
+              } hover:shadow-[0_0_20px_rgba(255,69,0,0.4)]`}>
                 <Image src="/images/jettoptics-logo.png" alt="JettOptics" width={36} height={36} className="w-9 h-9 object-contain" />
               </div>
             </Link>
@@ -788,6 +796,27 @@ export default function VaultPage() {
           <p className={`mt-2 text-xs tracking-widest uppercase ${accentOrange}`} style={{ fontFamily: "var(--font-orbitron)" }}>
             Raising {SOL_GOAL.toLocaleString()} SOL to unlock 97,680 JTX tokens ($1.56M liquidity at $8/token)
           </p>
+
+          {/* ─── Quick Donate Hero Button ─── */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 hero-animate" style={{ animationDelay: "0.3s" }}>
+            <button
+              onClick={() => {
+                setDonateAmount("0.06")
+                const donateSection = document.querySelector("[data-section='donate']")
+                if (donateSection) donateSection.scrollIntoView({ behavior: "smooth", block: "center" })
+              }}
+              className="px-8 py-4 rounded-2xl font-bold text-sm tracking-widest bg-[#FF4500] hover:bg-[#FF6B35] text-white mars-glow-btn flex items-center gap-3 touch-target transition-all"
+              style={{ fontFamily: "var(--font-orbitron)" }}
+            >
+              <Zap className="w-5 h-5" />
+              DONATE 0.06 SOL
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <span className={`text-xs font-mono tracking-wider flex items-center gap-1.5 ${darkMode ? "text-white/40" : "text-gray-400"}`}>
+              <Shield className="w-3 h-3 text-[#FF4500]" />
+              Agent-powered · On-chain vault
+            </span>
+          </div>
         </div>
 
         {/* ═══ NFT Receipt Button ═══ */}
@@ -795,7 +824,7 @@ export default function VaultPage() {
           <div className="flex justify-center">
             <button
               onClick={() => setShowReceiptModal(true)}
-              className={`px-5 py-2.5 rounded-xl font-bold text-xs tracking-widest flex items-center gap-2 transition-all ${btnOrange} shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40`}
+              className={`px-5 py-2.5 rounded-xl font-bold text-xs tracking-widest flex items-center gap-2 transition-all ${btnOrange} shadow-lg shadow-[#FF4500]/20 hover:shadow-[#FF4500]/40`}
               style={{ fontFamily: "var(--font-orbitron)" }}
             >
               🎫 VIEW MY NFT RECEIPT
@@ -819,9 +848,9 @@ export default function VaultPage() {
           </div>
 
           {/* Progress bar */}
-          <div className={`w-full h-3 rounded-full ${darkMode ? "bg-white/10" : "bg-orange-100"} mb-6`}>
+          <div className={`w-full h-3 rounded-full ${darkMode ? "bg-white/10" : "bg-[#FF4500]/10"} mb-6`}>
             <div
-              className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-600 transition-all"
+              className="h-full rounded-full mars-progress-bar transition-all"
               style={{ width: `${Math.max(pctRaised, 0.5)}%` }}
             />
           </div>
@@ -841,7 +870,7 @@ export default function VaultPage() {
                 <div key={item.label} className="flex items-center gap-2">
                   {i > 0 && <span className={`text-xl ${textMuted}`}>:</span>}
                   <div className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center border ${
-                    darkMode ? "border-orange-500/20 bg-[#1a1a24]" : "border-orange-200 bg-orange-50"
+                    darkMode ? "border-[#FF4500]/20 bg-[#1a1a24]" : "border-[#FF4500]/20 bg-[#FF4500]/5"
                   }`}>
                     <span className="text-xl font-bold">{String(item.val).padStart(2, "0")}</span>
                     <span className={`text-[8px] uppercase ${textMuted}`}>{item.label}</span>
@@ -857,8 +886,8 @@ export default function VaultPage() {
             <span>Est. at ${SOL_PRICE_EST}/SOL</span>
           </div>
           {donorCount > 0 && (
-            <div className={`mt-3 pt-3 border-t ${darkMode ? "border-white/5" : "border-orange-100"} flex items-center justify-center gap-2 text-xs ${textSecondary}`}>
-              <Wallet className="w-3 h-3 text-orange-400" />
+            <div className={`mt-3 pt-3 border-t ${darkMode ? "border-white/5" : "border-[#FF4500]/10"} flex items-center justify-center gap-2 text-xs ${textSecondary}`}>
+              <Wallet className="w-3 h-3 text-[#FF4500]" />
               <span><span className={`font-bold ${accentOrange}`}>{donorCount}</span> donor{donorCount !== 1 ? "s" : ""} so far</span>
             </div>
           )}
@@ -867,7 +896,7 @@ export default function VaultPage() {
         {/* ═══ JTX Token Info ═══ */}
         <section data-section="vault-stats" className={`rounded-2xl border p-6 ${cardBg}`}>
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500/30">
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#FF4500]/30">
               <Image src="/icons/JOE_founder_icon.png" alt="JTX" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div>
@@ -878,11 +907,11 @@ export default function VaultPage() {
 
           {/* Price + Market Cap */}
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className={`rounded-xl p-4 border ${darkMode ? "border-orange-500/20 bg-orange-500/5" : "border-orange-200 bg-orange-50"}`}>
+            <div className={`rounded-xl p-4 border ${darkMode ? "border-[#FF4500]/20 bg-[#FF4500]/5" : "border-[#FF4500]/20 bg-[#FF4500]/5"}`}>
               <p className={`text-xs uppercase tracking-wider ${textMuted} mb-1`}>Live Price</p>
               <p className={`text-2xl font-bold ${accentOrange}`}>${livePrice?.toFixed(2) || "---"}</p>
             </div>
-            <div className={`rounded-xl p-4 border ${darkMode ? "border-orange-500/20 bg-orange-500/5" : "border-orange-200 bg-orange-50"}`}>
+            <div className={`rounded-xl p-4 border ${darkMode ? "border-[#FF4500]/20 bg-[#FF4500]/5" : "border-[#FF4500]/20 bg-[#FF4500]/5"}`}>
               <p className={`text-xs uppercase tracking-wider ${textMuted} mb-1`}>Market Cap</p>
               <p className="text-2xl font-bold">${marketCap}</p>
             </div>
@@ -908,7 +937,7 @@ export default function VaultPage() {
           <div className={`rounded-lg p-3 border ${cardBgAlt} mb-5`}>
             <div className="flex items-center justify-between mb-2">
               <p className={`text-xs uppercase tracking-wider ${textMuted}`}>Mint Address</p>
-              <button onClick={copyMint} className={`flex items-center gap-1 text-xs ${accentOrange} hover:text-orange-400`}>
+              <button onClick={copyMint} className={`flex items-center gap-1 text-xs ${accentOrange} hover:text-[#FF4500]`}>
                 {copiedMint ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                 {copiedMint ? "Copied" : "Copy"}
               </button>
@@ -925,7 +954,7 @@ export default function VaultPage() {
             <div className="grid grid-cols-4 gap-2">
               {DEX_LINKS.map(dex => (
                 <a key={dex.name} href={dex.url} target="_blank" rel="noopener noreferrer"
-                  className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-all ${cardBgAlt} hover:border-orange-500/40 hover:scale-[1.02]`}>
+                  className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-all ${cardBgAlt} hover:border-[#FF4500]/40 hover:scale-[1.02]`}>
                   <Image src={dex.icon} alt={dex.name} width={20} height={20} className="w-5 h-5 rounded-full flex-shrink-0 object-contain" />
                   {dex.name}
                 </a>
@@ -939,7 +968,7 @@ export default function VaultPage() {
             <div className="grid grid-cols-3 gap-2">
               {TRACKER_LINKS.map(t => (
                 <a key={t.name} href={t.url} target="_blank" rel="noopener noreferrer"
-                  className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-all ${cardBgAlt} hover:border-orange-500/40 hover:scale-[1.02]`}>
+                  className={`rounded-lg p-2.5 border text-xs font-medium flex items-center gap-2 transition-all ${cardBgAlt} hover:border-[#FF4500]/40 hover:scale-[1.02]`}>
                   <Image src={t.icon} alt={t.name} width={20} height={20} className="w-5 h-5 rounded-full flex-shrink-0 object-contain" />
                   {t.name}
                 </a>
@@ -987,7 +1016,7 @@ export default function VaultPage() {
             <div className={`rounded-xl p-5 border-2 ${darkMode ? "border-purple-500/40 bg-purple-500/5" : "border-purple-300 bg-purple-50"}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-orange-400" />
+                  <Trophy className="w-4 h-4 text-[#FF4500]" />
                   <span className="font-bold">Phase 1</span>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-bold uppercase tracking-wider">Active</span>
@@ -1032,7 +1061,7 @@ export default function VaultPage() {
                   onClick={() => { setContributeType(t); setDonateAmount("") }}
                   className={`px-4 py-1.5 text-xs font-bold tracking-wider transition-all ${
                     contributeType === t
-                      ? "bg-orange-500 text-white"
+                      ? "bg-[#FF4500] text-white"
                       : darkMode ? "bg-white/5 text-white/40 hover:text-white/70" : "bg-gray-100 text-gray-400 hover:text-gray-700"
                   }`}
                   style={{ fontFamily: "var(--font-orbitron)" }}
@@ -1091,8 +1120,8 @@ export default function VaultPage() {
                 onClick={() => setDonateAmount(a)}
                 className={`rounded-lg py-2 border text-sm font-medium transition-colors ${
                   donateAmount === a
-                    ? "border-orange-500 bg-orange-500/10 text-orange-400"
-                    : `${cardBgAlt} hover:border-orange-500/40`
+                    ? "border-[#FF4500] bg-[#FF4500]/10 text-[#FF4500]"
+                    : `${cardBgAlt} hover:border-[#FF4500]/40`
                 }`}
               >
                 {a} {contributeType}
@@ -1155,10 +1184,10 @@ export default function VaultPage() {
 
         {/* ═══ JOE Vault Keeper ═══ */}
         {joeJtxBalance !== null && (
-          <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"}`}>
+          <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-[#FF4500]/20" : "bg-white border-[#FF4500]/20"}`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${darkMode ? "bg-orange-500/20" : "bg-orange-100"}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${darkMode ? "bg-[#FF4500]/20" : "bg-[#FF4500]/10"}`}>
                   <Shield className={`w-5 h-5 ${accentOrange}`} />
                 </div>
                 <div>
@@ -1177,7 +1206,7 @@ export default function VaultPage() {
                 <ExternalLink className="w-3 h-3" /> Solscan
               </a>
             </div>
-            <div className={`rounded-xl p-4 border ${darkMode ? "border-orange-500/10 bg-black/20" : "border-orange-100 bg-orange-50/30"}`}>
+            <div className={`rounded-xl p-4 border ${darkMode ? "border-[#FF4500]/10 bg-black/20" : "border-[#FF4500]/10 bg-[#FF4500]/5/30"}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className={`text-[10px] uppercase tracking-widest ${textMuted}`}>JTX Holdings</p>
@@ -1189,7 +1218,7 @@ export default function VaultPage() {
                   <p className={`font-mono text-[10px] ${textMuted}`}>@ $8/JTX</p>
                 </div>
               </div>
-              <div className={`mt-3 pt-3 border-t ${darkMode ? "border-white/5" : "border-orange-100"}`}>
+              <div className={`mt-3 pt-3 border-t ${darkMode ? "border-white/5" : "border-[#FF4500]/10"}`}>
                 <p className={`font-mono text-[10px] ${textMuted}`}>
                   <Wallet className="w-3 h-3 inline mr-1" />
                   {JOE_PUBLIC_KEY.slice(0, 4)}...{JOE_PUBLIC_KEY.slice(-4)} · Recruits agents + users via <a href="https://x.com/jettoptx" target="_blank" rel="noopener noreferrer" className={accentOrange}>@jettoptx</a>
@@ -1201,7 +1230,7 @@ export default function VaultPage() {
 
         {/* ═══ Mission Leaders + Mission Log ═══ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"}`}>
+          <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-[#FF4500]/20" : "bg-white border-[#FF4500]/20"}`}>
             <div className={`w-full mb-3 py-2 rounded-lg font-bold text-sm tracking-widest ${btnOrange} flex items-center justify-center gap-2`}
               style={{ fontFamily: "var(--font-orbitron)" }}>
               <Trophy className="w-4 h-4" /> MISSION LEADERS
@@ -1211,7 +1240,7 @@ export default function VaultPage() {
               <div className="space-y-2">
                 {topDonors.map((d, i) => (
                   <div key={d.wallet} className={`flex items-center gap-2 p-2 rounded-lg border ${cardBgAlt}`}>
-                    <span className={`text-xs font-bold w-5 text-center ${i === 0 ? "text-yellow-400" : i === 1 ? "text-gray-300" : i === 2 ? "text-orange-600" : textMuted}`}>
+                    <span className={`text-xs font-bold w-5 text-center ${i === 0 ? "text-yellow-400" : i === 1 ? "text-gray-300" : i === 2 ? "text-[#FF4500]" : textMuted}`}>
                       {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
                     </span>
                     <div className="flex-1 min-w-0">
@@ -1232,7 +1261,7 @@ export default function VaultPage() {
             )}
           </section>
 
-          <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-orange-500/20" : "bg-white border-orange-200"}`}>
+          <section className={`rounded-2xl border p-5 ${darkMode ? "bg-[#111118] border-[#FF4500]/20" : "bg-white border-[#FF4500]/20"}`}>
             <div className={`w-full mb-3 py-2 rounded-lg font-bold text-sm tracking-widest ${btnOrange} flex items-center justify-center gap-2`}
               style={{ fontFamily: "var(--font-orbitron)" }}>
               <Clock className="w-4 h-4" /> MISSION LOG
@@ -1291,10 +1320,10 @@ export default function VaultPage() {
           {/* Access Tiers */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-left">
             {/* Guaranteed */}
-            <div className={`rounded-xl p-4 border ${darkMode ? "border-orange-500/30 bg-[#1a1510]" : "border-orange-300 bg-orange-50"}`}>
+            <div className={`rounded-xl p-4 border ${darkMode ? "border-[#FF4500]/30 bg-[#1a1510]" : "border-[#FF4500]/40 bg-[#FF4500]/5"}`}>
               <div className="flex items-center gap-2 mb-2">
-                <Trophy className="w-4 h-4 text-orange-400" />
-                <h3 className="font-bold text-orange-400 text-sm">Guaranteed Access</h3>
+                <Trophy className="w-4 h-4 text-[#FF4500]" />
+                <h3 className="font-bold text-[#FF4500] text-sm">Guaranteed Access</h3>
               </div>
               <p className={`text-xs font-bold ${accentOrange} mb-3`}>250+ OPTX earned</p>
               <ul className={`text-xs ${textSecondary} space-y-1.5`}>
@@ -1334,7 +1363,7 @@ export default function VaultPage() {
           {/* Claim Beta */}
           <div className={`mt-5 rounded-xl p-4 border text-left ${cardBgAlt}`}>
             <div className="flex items-center gap-2 mb-2">
-              <ExternalLink className="w-4 h-4 text-orange-400" />
+              <ExternalLink className="w-4 h-4 text-[#FF4500]" />
               <h3 className="font-bold text-sm">Claim Your Beta Access</h3>
             </div>
             <p className={`text-sm ${textSecondary}`}>
@@ -1362,10 +1391,10 @@ export default function VaultPage() {
             <div className={`rounded-xl p-4 border ${darkMode ? "border-purple-500/30 bg-purple-500/5" : "border-purple-200 bg-purple-50"}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-orange-400" />
+                  <Trophy className="w-4 h-4 text-[#FF4500]" />
                   <span className="font-bold">Phase 1 Donors</span>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-bold">2x MULTIPLIER</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF4500]/20 text-[#FF4500] font-bold">2x MULTIPLIER</span>
               </div>
               <div className={`text-xs ${textSecondary} space-y-0.5`}>
                 <p>Donate before <span className={accentOrange}>March 31, 2026</span></p>
@@ -1465,8 +1494,8 @@ export default function VaultPage() {
         {/* ═══ How It Works ═══ */}
         <section className={`rounded-2xl border p-6 ${cardBg}`}>
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-              <GitBranch className="w-4 h-4 text-orange-400" />
+            <div className="w-8 h-8 rounded-full bg-[#FF4500]/20 flex items-center justify-center">
+              <GitBranch className="w-4 h-4 text-[#FF4500]" />
             </div>
             <div>
               <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>HOW IT WORKS</h2>
@@ -1506,8 +1535,8 @@ export default function VaultPage() {
         {/* ═══ FAQ ═══ */}
         <section className={`rounded-2xl border p-6 ${cardBg}`}>
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-              <HelpCircle className="w-4 h-4 text-orange-400" />
+            <div className="w-8 h-8 rounded-full bg-[#FF4500]/20 flex items-center justify-center">
+              <HelpCircle className="w-4 h-4 text-[#FF4500]" />
             </div>
             <div>
               <h2 className="font-bold tracking-widest text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>FREQUENTLY ASKED QUESTIONS</h2>
@@ -1522,8 +1551,8 @@ export default function VaultPage() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className={`w-full rounded-xl px-4 py-3 flex items-center justify-between text-left font-semibold text-sm transition-colors ${
                     darkMode
-                      ? "bg-orange-500/80 hover:bg-orange-500/90 text-white"
-                      : "bg-orange-500 hover:bg-orange-600 text-white"
+                      ? "bg-[#FF4500]/80 hover:bg-[#FF4500]/90 text-white"
+                      : "bg-[#FF4500] hover:bg-[#CC3700] text-white"
                   }`}
                 >
                   {faq.q}
@@ -1574,7 +1603,7 @@ export default function VaultPage() {
           {/* Modal card */}
           <div
             className={`relative max-w-md w-full mx-4 rounded-2xl border p-6 shadow-2xl overflow-y-auto max-h-[90vh] ${
-              darkMode ? "bg-[#111118] border-orange-500/30 shadow-orange-500/10" : "bg-white border-orange-200"
+              darkMode ? "bg-[#111118] border-[#FF4500]/30 shadow-[#FF4500]/10" : "bg-white border-[#FF4500]/20"
             }`}
             style={{ animation: "modalIn 300ms ease-out" }}
           >
@@ -1686,7 +1715,7 @@ export default function VaultPage() {
       {showReceiptModal && donorReceipt && publicKey && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className={`max-w-md w-full mx-4 rounded-2xl border p-6 shadow-2xl font-mono ${
-            darkMode ? "bg-[#111118] border-orange-500/30 shadow-orange-500/10" : "bg-white border-orange-200"
+            darkMode ? "bg-[#111118] border-[#FF4500]/30 shadow-[#FF4500]/10" : "bg-white border-[#FF4500]/20"
           }`}>
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -1697,7 +1726,7 @@ export default function VaultPage() {
                   {donorReceipt.isPreview ? "PREVIEW" : "ON-CHAIN"}
                 </p>
               </div>
-              <button onClick={() => setShowReceiptModal(false)} className={`text-xs ${textMuted} hover:text-orange-400`}>[close]</button>
+              <button onClick={() => setShowReceiptModal(false)} className={`text-xs ${textMuted} hover:text-[#FF4500]`}>[close]</button>
             </div>
 
             {/* Holographic NFT Card */}
@@ -1705,7 +1734,7 @@ export default function VaultPage() {
               <div className={`rounded-[10px] p-5 ${darkMode ? "bg-[#0d0d14]" : "bg-white"}`}>
                 {/* NFT Image + Callsign/Wallet */}
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border border-orange-500/30">
+                  <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border border-[#FF4500]/30">
                     <Image src="/images/jtx-vault-nft.jpg" alt="JTX Vault NFT" fill className="object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1760,7 +1789,7 @@ export default function VaultPage() {
                 {/* Estimated value */}
                 <div className={`border-t pt-3 ${darkMode ? "border-white/10" : "border-gray-200"}`}>
                   <p className={`text-[10px] ${textSecondary}`}>
-                    Est. value: <span className="font-bold text-orange-400">${(donorReceipt.donationValueUsdc / 1e6).toFixed(2)} USDC</span> @ $8/JTX
+                    Est. value: <span className="font-bold text-[#FF4500]">${(donorReceipt.donationValueUsdc / 1e6).toFixed(2)} USDC</span> @ $8/JTX
                   </p>
                 </div>
               </div>
@@ -1802,7 +1831,7 @@ export default function VaultPage() {
       {showDevnetModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className={`max-w-md w-full mx-4 rounded-2xl border p-6 shadow-2xl font-mono ${
-            darkMode ? "bg-[#111118] border-orange-500/30 shadow-orange-500/10" : "bg-white border-orange-200"
+            darkMode ? "bg-[#111118] border-[#FF4500]/30 shadow-[#FF4500]/10" : "bg-white border-[#FF4500]/20"
           }`}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
@@ -1817,7 +1846,7 @@ export default function VaultPage() {
             <div className={`rounded-xl p-4 mb-4 border ${darkMode ? "border-emerald-500/20 bg-emerald-500/5" : "border-emerald-300 bg-emerald-50"}`}>
               <p className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2 font-mono">Operational Status</p>
               <p className={`text-xs font-mono ${textSecondary} leading-relaxed`}>
-                The JTX Community Vault is live on <span className="font-bold text-orange-400">Solana Mainnet</span>. SOL donations are fully
+                The JTX Community Vault is live on <span className="font-bold text-[#FF4500]">Solana Mainnet</span>. SOL donations are fully
                 operational via the on-chain Anchor program. Agent wallets can donate via
                 x402 payment headers or Tempo CLI (MPP).
               </p>
@@ -1845,7 +1874,7 @@ export default function VaultPage() {
                 <span>OPTX token mainnet deployment pending</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#FF4500]" />
                 <span>NFT receipts — minted after vault period ends</span>
               </div>
             </div>
@@ -1897,7 +1926,7 @@ tempo send SOL --to vault --amount 0.1 --memo "JTX vault donation"`}</pre>
       {connected && publicKey && ADMIN_WALLETS.includes(publicKey.toBase58()) && (
         <button
           onClick={() => setAdminOpen(!adminOpen)}
-          className="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500/30 transition-all duration-300 hover:scale-110 hover:border-orange-400 hover:shadow-lg hover:shadow-orange-500/30 group cursor-pointer"
+          className="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full overflow-hidden border-2 border-[#FF4500]/30 transition-all duration-300 hover:scale-110 hover:border-[#FF4500] hover:shadow-lg hover:shadow-[#FF4500]/30 group cursor-pointer"
           title="Admin Terminal"
         >
           <img src="/icons/lightLOGOjettoptics.jpeg" alt="Admin" className="w-full h-full object-cover opacity-60 transition-all duration-300 group-hover:opacity-100 group-hover:rotate-12" />
@@ -1907,13 +1936,13 @@ tempo send SOL --to vault --amount 0.1 --memo "JTX vault donation"`}</pre>
       {/* Admin Terminal Panel */}
       {adminOpen && connected && publicKey && ADMIN_WALLETS.includes(publicKey.toBase58()) && (
         <div className={`fixed bottom-24 left-4 z-50 w-96 max-h-[70vh] overflow-y-auto rounded-2xl border shadow-2xl p-5 ${
-          darkMode ? "bg-[#0d0d14] border-orange-500/20 shadow-orange-500/10" : "bg-white border-orange-200 shadow-orange-200/30"
+          darkMode ? "bg-[#0d0d14] border-[#FF4500]/20 shadow-[#FF4500]/10" : "bg-white border-[#FF4500]/20 shadow-[#FF4500]/20/30"
         }`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-sm tracking-widest" style={{ fontFamily: "var(--font-orbitron)" }}>
               VAULT ADMIN TERMINAL
             </h3>
-            <button onClick={() => setAdminOpen(false)} className={`text-xs ${textMuted} hover:text-orange-400`}>
+            <button onClick={() => setAdminOpen(false)} className={`text-xs ${textMuted} hover:text-[#FF4500]`}>
               [close]
             </button>
           </div>
@@ -1971,7 +2000,7 @@ tempo send SOL --to vault --amount 0.1 --memo "JTX vault donation"`}</pre>
 
       {/* ═══ Footer ═══ */}
       <footer className={`border-t py-3 px-4 md:px-8 ${
-        darkMode ? "bg-[#0a0a0f] border-white/5" : "bg-white border-orange-100"
+        darkMode ? "bg-[#0a0a0f] border-white/5" : "bg-white border-[#FF4500]/10"
       }`}>
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           {/* Left: Contact + UTC clock (desktop only) */}
@@ -1991,10 +2020,10 @@ tempo send SOL --to vault --amount 0.1 --memo "JTX vault donation"`}</pre>
             <div className="relative group">
               {/* Poof cloud glow behind icons */}
               <div className={`absolute -inset-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${
-                darkMode ? "bg-orange-500/10" : "bg-orange-200/40"
+                darkMode ? "bg-[#FF4500]/10" : "bg-[#FF4500]/15"
               }`} />
               <div className={`absolute -inset-2 rounded-full opacity-0 group-hover:opacity-60 transition-opacity duration-300 blur-md ${
-                darkMode ? "bg-orange-500/15" : "bg-orange-300/30"
+                darkMode ? "bg-[#FF4500]/15" : "bg-[#FF4500]/15"
               }`} />
               <div className="relative flex gap-5 md:gap-4">
                 {[
@@ -2005,7 +2034,7 @@ tempo send SOL --to vault --amount 0.1 --memo "JTX vault donation"`}</pre>
                   { name: "Cosmos", href: "https://www.cosmos.so/jettoptx", icon: CosmosIcon },
                 ].map((social) => (
                   <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer"
-                    className={`relative ${textMuted} hover:text-orange-400 transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_6px_rgba(249,115,22,0.5)]`}
+                    className={`relative ${textMuted} hover:text-[#FF4500] transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_6px_rgba(249,115,22,0.5)]`}
                     aria-label={social.name}>
                     <social.icon className="w-5 h-5" />
                   </a>
@@ -2018,7 +2047,7 @@ tempo send SOL --to vault --amount 0.1 --memo "JTX vault donation"`}</pre>
           <div className="hidden md:flex items-center gap-3">
             <Link href="/optical-spatial-encryption"
               className={`w-10 h-10 rounded-lg border flex items-center justify-center p-1.5 transition-all ${
-                darkMode ? "bg-white border-orange-500/30 hover:border-orange-400 hover:shadow-[0_0_15px_rgba(181,82,0,0.3)]" : "bg-white border-orange-200 hover:border-orange-400 hover:shadow-[0_0_15px_rgba(181,82,0,0.3)]"
+                darkMode ? "bg-white border-[#FF4500]/30 hover:border-[#FF4500] hover:shadow-[0_0_15px_rgba(255,69,0,0.3)]" : "bg-white border-[#FF4500]/20 hover:border-[#FF4500] hover:shadow-[0_0_15px_rgba(255,69,0,0.3)]"
               }`}>
               <Image src="/images/jettoptics-logo.png" alt="JettOptics" width={32} height={32} className="w-full h-full object-contain" />
             </Link>
@@ -2036,13 +2065,13 @@ function FlowStep({ num, icon, title, desc, color, darkMode }: {
   num: string; icon: React.ReactNode; title: string; desc: string; color: string; darkMode: boolean
 }) {
   const colors: Record<string, string> = {
-    orange: darkMode ? "border-orange-500/30 bg-[#1a1510]" : "border-orange-200 bg-orange-50",
+    orange: darkMode ? "border-[#FF4500]/30 bg-[#1a1510]" : "border-[#FF4500]/20 bg-[#FF4500]/5",
     purple: darkMode ? "border-purple-500/30 bg-[#12101a]" : "border-purple-200 bg-purple-50",
     green: darkMode ? "border-green-500/30 bg-[#0a1510]" : "border-green-200 bg-green-50",
     yellow: darkMode ? "border-yellow-500/30 bg-[#1a1810]" : "border-yellow-200 bg-yellow-50",
   }
   const numColors: Record<string, string> = {
-    orange: "bg-orange-500",
+    orange: "bg-[#FF4500]",
     purple: "bg-purple-500",
     green: "bg-green-500",
     yellow: "bg-yellow-500",
